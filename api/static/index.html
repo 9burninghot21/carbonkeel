@@ -1,0 +1,1779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Per-vessel derived figures must never be search-indexed: googling an
+     operator's ship must not surface our estimate of their bill. -->
+<meta name="robots" content="noindex, nofollow">
+<title>CarbonKeel — Maritime GHG Compliance, Priced</title>
+<style>
+  :root {
+    --navy: #0b2239; --deep: #071627; --teal: #14b8a6; --teal-dim: #0d9488;
+    --amber: #f59e0b; --red: #f87171; --green: #22c55e;
+    --ink: #e7eef6; --muted: #93a7bd;
+    --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; background:
+         linear-gradient(180deg, var(--deep) 0%, var(--navy) 100%);
+         color: var(--ink); min-height: 100vh; }
+  .num { font-variant-numeric: tabular-nums; }
+  .wrap { max-width: 940px; margin: 0 auto; padding: var(--s5) 20px; }
+
+  /* ---- global top bar (U1) ---- */
+  .topbar { display: flex; align-items: center; gap: var(--s4); flex-wrap: wrap;
+       padding-bottom: var(--s3); border-bottom: 1px solid rgba(255,255,255,0.12);
+       margin-bottom: var(--s5); }
+  .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; cursor: pointer; }
+  .logo span { color: var(--teal); }
+  nav { display: flex; gap: 2px; flex-wrap: wrap; }
+  nav button { background: none; border: none; color: var(--muted); padding: 9px 13px;
+       font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 8px; }
+  nav button.on { color: var(--teal); background: rgba(20,184,166,0.1); }
+  nav button:hover { color: var(--ink); }
+  nav .free { background: rgba(20,184,166,0.15); color: var(--teal);
+       border-radius: 10px; font-size: 10px; padding: 2px 6px; margin-left: 4px;
+       font-weight: 800; letter-spacing: 0.05em; }
+  nav .lock { font-size: 9.5px; margin-left: 5px; padding: 2px 6px; border-radius: 9px;
+       background: rgba(255,255,255,.08); color: var(--muted); font-weight: 700;
+       letter-spacing: .04em; text-transform: uppercase; }
+  .fuelgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
+       gap: var(--s2); }
+  .fuelgrid label { font-size: 11.5px; color: var(--muted); display: block;
+       margin-bottom: 3px; }
+  .traj { display: flex; gap: 3px; margin: var(--s3) 0 var(--s2); }
+  .traj div { flex: 1; text-align: center; padding: 7px 2px; border-radius: 6px;
+       font-size: 11.5px; font-weight: 700; }
+  .traj .yr { display: block; font-size: 10px; font-weight: 400; opacity: 0.8; }
+  /* nav is allowed to wrap and shrink; the search takes the leftover room and
+     drops to its own line when there is not enough. Without this the nav ran
+     underneath the search box and hid the last tab. */
+  nav { flex: 1 1 auto; min-width: 0; }
+  .topsearch { position: relative; margin-left: auto; flex: 0 1 260px;
+       min-width: 180px; }
+  .topsearch input { width: 100%; padding: 9px 12px; font-size: 13.5px; }
+
+  h1 { font-size: 20px; margin: var(--s1) 0 var(--s2); font-weight: 650; }
+  .sub { color: var(--muted); font-size: 13.5px; margin-bottom: var(--s4); }
+  .card { background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.09);
+          border-radius: 14px; padding: var(--s5); margin-bottom: var(--s4); }
+  .searchbox { position: relative; }
+  input, textarea, select { width: 100%; padding: 12px 14px; border-radius: 10px;
+          border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25);
+          color: var(--ink); font-size: 15px; }
+  input:focus, textarea:focus { outline: 2px solid var(--teal-dim); }
+  .sugg { position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
+          background: #0d2338; border: 1px solid rgba(255,255,255,0.15);
+          border-radius: 10px; margin-top: 6px; max-height: 300px; overflow-y: auto;
+          box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+  .sugg div { padding: 10px 14px; cursor: pointer; font-size: 14px;
+              border-bottom: 1px solid rgba(255,255,255,0.06); }
+  .sugg div:hover, .sugg div.kb { background: rgba(20,184,166,0.14); }
+  .dim { color: var(--muted); }
+  .spin { color: var(--teal); font-size: 13.5px; padding: var(--s2) 2px; display: none; }
+  .estimate-band { display: inline-block; background: rgba(245,158,11,0.15);
+       color: var(--amber); border: 1px solid rgba(245,158,11,0.4);
+       padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
+       letter-spacing: 0.06em; margin-bottom: var(--s3); cursor: pointer; }
+  .rating-A,.rating-B,.pos { color: var(--green); } .rating-C { color: var(--amber); }
+  .rating-D,.rating-E,.neg { color: var(--red); }
+  .row { display: flex; gap: var(--s3); flex-wrap: wrap; }
+  .row > * { flex: 1; min-width: 140px; }
+  button.cta { padding: 12px 20px; border-radius: 9px; border: none; cursor: pointer;
+       background: var(--teal); color: #04211c; font-weight: 700; font-size: 14.5px; }
+  button.cta:hover { background: #2dd4bf; }
+  button.cta:disabled { opacity: 0.45; cursor: not-allowed; }
+  .ghost { padding: 9px 14px; border-radius: 8px; border: 1px solid
+       rgba(20,184,166,0.5); background: transparent; color: var(--teal);
+       font-weight: 700; font-size: 13px; cursor: pointer; }
+  .ghost:hover { background: rgba(20,184,166,0.12); }
+  .err { color: var(--red); font-size: 14px; margin-top: var(--s3); }
+  .banner { margin: var(--s3) 0; padding: 10px 14px; border-radius: 9px; font-size: 14px; }
+  .banner.good { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.4); }
+  .banner.bad { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.4); }
+  .banner.warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.35); font-size: 13.5px; }
+
+  /* ---- the bill (U2): hierarchy winner + bullet graphs ---- */
+  .idstrip { font-size: 13px; color: var(--muted); margin-bottom: var(--s3); }
+  .idstrip b { color: var(--ink); font-size: 15px; }
+  .bill { margin: var(--s3) 0 var(--s4); }
+  .bill .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase;
+       letter-spacing: 0.1em; }
+  .bill .v { font-size: 40px; font-weight: 800; line-height: 1.15; }
+  .bill .d { font-size: 12.5px; color: var(--muted); }
+  .bullets { display: flex; flex-direction: column; gap: 10px; margin: var(--s4) 0; }
+  .bullet { display: grid; grid-template-columns: 110px 1fr 110px; gap: var(--s3);
+       align-items: center; font-size: 13px; }
+  .bullet .lbl { color: var(--muted); }
+  .bullet .track { height: 14px; background: rgba(0,0,0,0.3); border-radius: 4px;
+       position: relative; overflow: hidden; }
+  .bullet .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+  .bullet .val { text-align: right; font-weight: 700; }
+  .bullet .due { grid-column: 2 / 4; font-size: 11.5px; color: var(--muted);
+       margin-top: -6px; }
+  .statline { display: flex; gap: var(--s5); flex-wrap: wrap; font-size: 13px;
+       color: var(--muted); margin: var(--s3) 0; }
+  .statline b { font-size: 16px; }
+
+  ol.actions { padding-left: 20px; margin-top: var(--s2); }
+  ol.actions li { margin: var(--s2) 0; font-size: 13.5px; line-height: 1.5; }
+  details.whatif { margin-top: var(--s4); border-top: 1px solid rgba(255,255,255,0.09);
+       padding-top: var(--s3); }
+  details.whatif summary { cursor: pointer; font-size: 13.5px; font-weight: 700;
+       color: var(--teal); list-style: none; }
+  details.whatif summary::before { content: "▸ "; }
+  details.whatif[open] summary::before { content: "▾ "; }
+  .dwt-up { display: flex; gap: var(--s2); margin-top: var(--s2); flex-wrap: wrap;
+       align-items: center; }
+  .dwt-up input { padding: 8px 10px; font-size: 13px; width: auto; flex: 1; min-width: 110px; }
+
+  .ciibar { display: flex; height: 26px; border-radius: 7px; overflow: hidden;
+       margin: var(--s3) 0 var(--s1); font-size: 11px; font-weight: 700; color: #04211c; }
+  .ciibar div { display: flex; align-items: center; justify-content: center; }
+  .ciilabels { display: flex; justify-content: space-between; font-size: 11px;
+       color: var(--muted); margin-bottom: var(--s2); }
+
+  table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.data th { cursor: pointer; text-align: right; padding: 7px 8px;
+       color: var(--muted); border-bottom: 2px solid rgba(255,255,255,0.15); }
+  table.data td { text-align: right; padding: 6px 8px;
+       border-top: 1px solid rgba(255,255,255,0.07); }
+  table.data th:first-child, table.data td:first-child { text-align: left; }
+  table.data tr.rowlink { cursor: pointer; }
+  table.data tr.rowlink:hover td { background: rgba(20,184,166,0.07); }
+
+  .cal-item { display: flex; gap: var(--s4); padding: 11px 4px; border-bottom:
+       1px solid rgba(255,255,255,0.07); font-size: 13.5px; align-items: baseline; }
+  .cal-date { color: var(--teal); font-weight: 700; min-width: 105px; }
+  .cal-date.soon { color: var(--amber); }
+  .cal-regime { color: var(--muted); font-size: 11.5px; text-transform: uppercase;
+       letter-spacing: 0.06em; min-width: 95px; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
+  .chips button { padding: 8px 13px; border-radius: 18px; font-size: 13px;
+       border: 1px solid rgba(255,255,255,0.18); background: rgba(0,0,0,0.22);
+       color: var(--ink); cursor: pointer; }
+  .chips button:hover { border-color: var(--teal-dim); }
+  .chips button.on { background: rgba(20,184,166,0.2); border-color: var(--teal);
+       color: var(--teal); font-weight: 700; }
+  .step { font-size: 13px; font-weight: 700; margin: var(--s4) 0 var(--s2); }
+  .stepn { display: inline-flex; align-items: center; justify-content: center;
+       width: 20px; height: 20px; border-radius: 50%; background: var(--teal);
+       color: #04211c; font-size: 12px; margin-right: 7px; }
+  .modecards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+       gap: 10px; margin-bottom: var(--s3); }
+  .modecard { border: 1.5px solid rgba(255,255,255,0.14); border-radius: 11px;
+       padding: 13px 15px; cursor: pointer; display: flex; flex-direction: column;
+       gap: 3px; font-size: 13.5px; background: rgba(0,0,0,0.18); }
+  .modecard:hover { border-color: var(--teal-dim); }
+  .modecard.on { border-color: var(--teal); background: rgba(20,184,166,0.10); }
+
+  .scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px,1fr));
+       gap: var(--s3); margin: var(--s4) 0; }
+  .score { background: rgba(0,0,0,0.22); border-radius: 11px; padding: 15px; }
+  .score .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase;
+       letter-spacing: 0.08em; }
+  .score .v { font-size: 24px; font-weight: 800; margin-top: 6px; }
+  .score .d { font-size: 12px; color: var(--muted); margin-top: var(--s1); }
+
+  .method { font-size: 14px; line-height: 1.65; }
+  .method h2 { font-size: 17px; margin: var(--s5) 0 var(--s2); }
+  .method h3 { font-size: 14.5px; margin: var(--s4) 0 var(--s2); }
+  .method pre, .method code { background: rgba(0,0,0,0.35); border-radius: 6px;
+       font-size: 12.5px; }
+  .method pre { padding: var(--s3); overflow-x: auto; margin: var(--s2) 0; }
+  .method code { padding: 1px 5px; }
+  .method table { border-collapse: collapse; margin: var(--s2) 0; font-size: 13px; }
+  .method td, .method th { border: 1px solid rgba(255,255,255,0.15); padding: 5px 9px;
+       text-align: left; }
+  .method li { margin: 4px 0 4px 18px; }
+
+  footer { color: var(--muted); font-size: 12px; margin-top: var(--s6); line-height: 1.6; }
+  .tab { display: none; } .tab.on { display: block; }
+  @media (max-width: 1080px) {
+    .topsearch { flex-basis: 100%; margin-left: 0; order: 3; }
+  }
+  @media (max-width: 720px) {
+    .topsearch { flex-basis: 100%; margin-left: 0; }
+    .bill .v { font-size: 32px; }
+    /* stack the bullet graph so the bar keeps meaningful width (Few:
+       the bar IS the information; a 40px track conveys nothing) */
+    .bullet { grid-template-columns: 1fr auto; row-gap: 4px; }
+    .bullet .lbl { grid-column: 1; font-weight: 600; }
+    .bullet .val { grid-column: 2; }
+    .bullet .track { grid-column: 1 / 3; }
+    .bullet .due { grid-column: 1 / 3; margin-top: 0; }
+    .statline { gap: var(--s3); }
+  }
+
+  /* ---- touch + small-screen hardening (UAT 4 Oct 2026) ----
+     Every interactive control is at least 40px tall, and calendar rows wrap
+     instead of forcing a sideways scroll on a phone. */
+  nav button, .chips button, button.ghost, button.cta, .dwt-up button { min-height: 40px; }
+  nav button { padding-top: 10px; padding-bottom: 10px; }
+  input, select, textarea { min-height: 40px; }
+  details.whatif summary { display: block; padding: 11px 0; min-height: 44px; }
+  .sugg div { min-height: 40px; display: flex; align-items: center; flex-wrap: wrap; }
+  .cal-item span { overflow-wrap: anywhere; }
+  @media (max-width: 720px) {
+    .cal-item { flex-wrap: wrap; gap: 4px 12px; }
+    .cal-item > span:last-child { flex-basis: 100%; }
+    .cal-date, .cal-regime { min-width: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <div class="logo" onclick="goHome()" title="Back to the start"
+         role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()">Carbon<span>Keel</span></div>
+    <nav>
+      <button id="nav-vessel" class="on" onclick="showTab('vessel')">Check a vessel</button>
+      <button id="nav-eexi" onclick="showTab('eexi')">EEXI<span class="free">FREE</span></button>
+      <button id="nav-cii" onclick="showTab('cii')">CII calculator<span class="lock">operators</span></button>
+      <button id="nav-fleet" onclick="showTab('fleet')">My fleet</button>
+      <button id="nav-cal" onclick="showTab('cal')">Calendar</button>
+      <button id="nav-method" onclick="showTab('method')">Method</button>
+      <button id="nav-privacy" onclick="showTab('privacy')">Your data</button>
+    </nav>
+    <div class="topsearch" id="topsearch" style="display:none">
+      <input id="tq" placeholder="Find a vessel…" autocomplete="off">
+      <div id="tsugg" class="sugg" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- ============ VESSEL ============ -->
+  <div id="tab-vessel" class="tab on">
+    <h1>What is this vessel's compliance bill?</h1>
+    <p class="sub">EU ETS · FuelEU · UK ETS · IMO Net-Zero — in euros, free, from public
+       verified data. Add capacity to unlock the CII rating.</p>
+    <div class="card">
+      <div class="searchbox">
+        <input id="q" placeholder="Ship name or IMO number" autocomplete="off">
+        <div id="sugg" class="sugg" style="display:none"></div>
+      </div>
+      <div id="examples" style="margin-top:12px">
+        <span class="dim" style="font-size:12.5px">Try:</span>
+        <span class="chips" style="display:inline-flex;margin-left:6px">
+          <button onclick="tryExample('9464663','PETER OLDENDORFF')">PETER OLDENDORFF · bulk</button>
+          <button onclick="tryExample('9334856','AIDADIVA')">AIDADIVA · cruise</button>
+          <button onclick="trySearch('MAERSK')">search "MAERSK"</button>
+        </span>
+      </div>
+      <div id="spin" class="spin">Searching the EU-trading fleet…</div>
+      <div id="err" class="err"></div>
+    </div>
+    <div id="out"></div>
+  </div>
+
+  <!-- ============ EEXI ============ -->
+  <div id="tab-eexi" class="tab">
+    <h1>Free EEXI check</h1>
+    <p class="sub">Required EEXI (MARPOL Reg. 25) vs the technical-efficiency value the ship
+       already reported to EU-MRV — or your own vessel's particulars.</p>
+    <div class="card">
+      <div class="searchbox">
+        <input id="eq" placeholder="Ship name or IMO number" autocomplete="off">
+        <div id="esugg" class="sugg" style="display:none"></div>
+      </div>
+      <div class="row" style="margin-top:10px">
+        <input id="edwt" type="number" placeholder="DWT (deadweight)">
+        <input id="egt" type="number" placeholder="GT (cruise ships only)">
+        <button class="cta" onclick="runEexi()">Check EEXI</button>
+      </div>
+      <div id="espin" class="spin">Checking…</div>
+      <div id="eerr" class="err"></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
+        <b style="font-size:14px">Custom vessel — not in the registry, or checking a design?</b>
+        <button class="ghost" style="font-size:12px" onclick="fillExample()">Try an example ▸</button>
+      </div>
+      <div class="step"><span class="stepn">1</span> Click your ship type</div>
+      <div class="chips" id="cTypeChips">
+        <button data-v="bulk_carrier" class="on">Bulk carrier</button>
+        <button data-v="tanker">Tanker</button>
+        <button data-v="container">Container</button>
+        <button data-v="general_cargo">General cargo</button>
+        <button data-v="gas_carrier">Gas carrier</button>
+        <button data-v="lng_carrier">LNG carrier</button>
+        <button data-v="refrigerated_cargo">Reefer</button>
+        <button data-v="combination_carrier">Combination</button>
+        <button data-v="ro_ro">Ro-ro</button>
+        <button data-v="ro_pax">Ro-pax</button>
+        <button data-v="cruise">Cruise</button>
+        <button data-v="vehicle_carrier">Vehicle carrier</button>
+      </div>
+      <div class="step"><span class="stepn">2</span> <span id="capLabel">Deadweight (DWT)</span></div>
+      <input id="cCap" type="number" placeholder="e.g. 93,000" style="max-width:260px">
+      <div class="step"><span class="stepn">3</span> What do you have?</div>
+      <div class="modecards">
+        <div id="modeAtt" class="modecard on" onclick="setMode('att')">
+          <b>I know my attained EEXI</b>
+          <span class="dim">from the Technical File — firm verdict</span>
+        </div>
+        <div id="modeEst" class="modecard" onclick="setMode('est')">
+          <b>Estimate it for me</b>
+          <span class="dim">from MCR + service speed — indicative</span>
+        </div>
+      </div>
+      <div id="attInputs">
+        <input id="cAttained" type="number" step="0.01"
+               placeholder="Attained EEXI, gCO₂/t·nm — e.g. 3.05" style="max-width:320px">
+      </div>
+      <div id="estInputs" style="display:none">
+        <div class="row">
+          <input id="cMcr" type="number" placeholder="Main engine MCR (kW) — e.g. 12,000">
+          <input id="cVref" type="number" step="0.1" placeholder="Service speed (kn) — e.g. 14.2">
+        </div>
+        <div class="step" style="margin-top:10px"><span class="stepn">+</span> Main fuel</div>
+        <div class="chips" id="cFuelChips">
+          <button data-v="hfo" class="on">HFO</button>
+          <button data-v="lfo">VLSFO / LFO</button>
+          <button data-v="mdo_mgo">MDO / MGO</button>
+          <button data-v="lng">LNG</button>
+          <button data-v="methanol">Methanol</button>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="cta" id="cGo" onclick="runEexiCustom()" disabled>Enter DWT to check</button>
+      </div>
+      <div id="cerr" class="err"></div>
+    </div>
+    <div id="eout"></div>
+  </div>
+
+  <!-- ============ CII CALCULATOR (locked) ============ -->
+  <div id="tab-cii" class="tab">
+    <div id="ciiLocked">
+      <h1>CII calculator — for vessel operators</h1>
+      <p class="sub">The owner-data tool: compute a vessel's Carbon Intensity Indicator
+         from your own consumption and distance — the full IMO rule set (G1–G5), the
+         A–E rating, and where that rating goes as the targets tighten to 2030.
+         Not an estimate from public data: your numbers, audit-grade.</p>
+      <div class="card">
+        <b style="font-size:14px">Enter your access key</b>
+        <p class="sub" style="margin:6px 0 12px">We issue a key to vessel operators
+           and design partners — just ask. It is remembered on this device.</p>
+        <div class="row">
+          <input id="ciiKey" placeholder="ck-…" autocomplete="off">
+          <button class="cta" onclick="unlockCii()">Unlock</button>
+        </div>
+        <div id="ciiKeyErr" class="err"></div>
+      </div>
+    </div>
+
+    <div id="ciiApp" style="display:none">
+      <h1>CII calculator <span class="dim" id="ciiWho"></span></h1>
+      <p class="sub">G1 attained · G2 reference line · G3 required · G4 rating ·
+         G5 corrections. Owner data — not a public-data estimate.</p>
+
+      <div class="card">
+        <div class="step"><span class="stepn">1</span> Vessel</div>
+        <div class="chips" id="ciiTypeChips">
+          <button data-v="bulk_carrier" class="on">Bulk carrier</button>
+          <button data-v="tanker">Tanker</button>
+          <button data-v="container">Container</button>
+          <button data-v="general_cargo">General cargo</button>
+          <button data-v="gas_carrier">Gas carrier</button>
+          <button data-v="lng_carrier">LNG carrier</button>
+          <button data-v="refrigerated_cargo">Reefer</button>
+          <button data-v="combination_carrier">Combination</button>
+          <button data-v="ro_ro">Ro-ro</button>
+          <button data-v="ro_pax">Ro-pax</button>
+          <button data-v="cruise">Cruise</button>
+          <button data-v="vehicle_carrier">Vehicle carrier</button>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <input id="ciiName" placeholder="Vessel name (optional)">
+          <input id="ciiImo" placeholder="IMO (optional)">
+          <input id="ciiCap" type="number" placeholder="Deadweight (DWT)">
+          <input id="ciiGt" type="number" placeholder="GT (ro-ro/ro-pax/cruise/vehicle)">
+          <select id="ciiYear">
+            <option>2023</option><option>2024</option><option>2025</option>
+            <option selected>2026</option><option>2027</option><option>2028</option>
+            <option>2029</option><option>2030</option>
+          </select>
+        </div>
+
+        <div class="step"><span class="stepn">2</span> How will you give the consumption?</div>
+        <div class="modecards">
+          <div id="ciiModeFuel" class="modecard on" onclick="setCiiMode('fuel')">
+            <b>Actual fuel burned</b>
+            <span class="dim">from BDNs / noon reports — verifier-grade</span>
+          </div>
+          <div id="ciiModeSpeed" class="modecard" onclick="setCiiMode('speed')">
+            <b>Estimate from speed</b>
+            <span class="dim">cube law off a known consumption point</span>
+          </div>
+        </div>
+
+        <div id="ciiFuelInputs">
+          <div class="fuelgrid">
+            <div><label>HFO (t)</label><input id="f_hfo" type="number" step="0.1" placeholder="0"></div>
+            <div><label>VLSFO / LFO (t)</label><input id="f_lfo" type="number" step="0.1" placeholder="0"></div>
+            <div><label>MDO / MGO (t)</label><input id="f_mdo_mgo" type="number" step="0.1" placeholder="0"></div>
+            <div><label>LNG (t)</label><input id="f_lng" type="number" step="0.1" placeholder="0"></div>
+            <div><label>Methanol (t)</label><input id="f_methanol" type="number" step="0.1" placeholder="0"></div>
+            <div><label>B100 biofuel (t)</label><input id="f_biofuel_b100" type="number" step="0.1" placeholder="0"></div>
+          </div>
+          <div class="row" style="margin-top:10px">
+            <input id="ciiDist" type="number" placeholder="Distance sailed (nm) — required">
+          </div>
+        </div>
+
+        <div id="ciiSpeedInputs" style="display:none">
+          <div class="row">
+            <input id="sp_ref_cons" type="number" step="0.1" placeholder="Reference consumption (t/day)">
+            <input id="sp_ref_speed" type="number" step="0.1" placeholder="at reference speed (kn)">
+          </div>
+          <div class="row" style="margin-top:8px">
+            <input id="sp_speed" type="number" step="0.1" placeholder="Actual average speed (kn)">
+            <input id="sp_sea_days" type="number" step="0.1" placeholder="Days at sea">
+          </div>
+          <div class="row" style="margin-top:8px">
+            <input id="sp_aux_sea" type="number" step="0.1" placeholder="Aux/boiler at sea (t/day)">
+            <input id="sp_port_days" type="number" step="0.1" placeholder="Days in port">
+            <input id="sp_aux_port" type="number" step="0.1" placeholder="Aux in port (t/day)">
+          </div>
+          <p class="dim" style="font-size:12px;margin-top:8px">Main-engine consumption
+             scales with the cube of the speed ratio against your reference point
+             (sea-trial curve or charter-party description). Distance is derived as
+             speed × 24 × sea days unless you enter a logged distance below.</p>
+          <div class="row"><input id="ciiDist2" type="number" placeholder="Logged distance (nm) — optional"></div>
+        </div>
+
+        <details class="whatif" style="margin-top:16px">
+          <summary>G5 corrections & voyage adjustments (MEPC.355(78)) — optional</summary>
+          <p class="dim" style="font-size:12px;margin:8px 0">Only enter values your
+             verifier has accepted (ice transit, STS operations, shuttle-tanker or
+             ice-class capacity factors). We apply and record them — we never
+             invent a correction.</p>
+          <div class="row">
+            <input id="g5_co2" type="number" step="0.1" placeholder="Excluded CO₂ (t)">
+            <input id="g5_dist" type="number" step="1" placeholder="Excluded distance (nm)">
+            <input id="g5_cap" type="number" step="0.001" placeholder="Capacity factor (default 1.0)">
+            <input id="g5_basis" placeholder="Documentation reference">
+          </div>
+        </details>
+
+        <div class="row" style="margin-top:14px">
+          <button class="cta" id="ciiGo" onclick="runCii()">Compute CII</button>
+          <button class="ghost" onclick="fillCiiExample()">Try an example ▸</button>
+          <button class="ghost" onclick="lockCii()">Lock again</button>
+        </div>
+        <div id="ciiErr" class="err"></div>
+      </div>
+      <div id="ciiOut"></div>
+    </div>
+  </div>
+
+  <!-- ============ FLEET ============ -->
+  <div id="tab-fleet" class="tab">
+    <h1>My fleet — analysis &amp; FuelEU pooling</h1>
+    <p class="sub">Paste anything containing IMO numbers: fleet totals, per-vessel bills,
+       the pooling optimum, printable report and a draft pooling agreement.</p>
+    <div class="card">
+      <textarea id="fleetImos" style="height:90px;font-family:monospace"
+        placeholder="9464663, 9463633, 9448047 …"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button class="cta" onclick="fleetDash()">Analyse fleet</button>
+        <button class="ghost" onclick="fleetReport()">Printable report (→ PDF)</button>
+        <button class="ghost" onclick="poolAgreement()">Draft pooling agreement</button>
+      </div>
+      <div id="fspin" class="spin">Analysing fleet…</div>
+      <div id="ferr" class="err"></div>
+    </div>
+    <div id="fout"></div>
+  </div>
+
+  <!-- ============ CALENDAR ============ -->
+  <div id="tab-cal" class="tab">
+    <h1>Compliance calendar</h1>
+    <p class="sub">Every dated obligation with its legal basis. Download .ics —
+       imports into Outlook/Google with 14-day reminders.</p>
+    <div class="card">
+      <div class="row">
+        <select id="calYear">
+          <option>2025</option><option selected>2026</option><option>2027</option>
+        </select>
+        <button class="cta" onclick="loadCal()">Show deadlines</button>
+        <button class="ghost" onclick="dlIcs()">Download .ics</button>
+      </div>
+    </div>
+    <div id="calout" class="card" style="display:none"></div>
+  </div>
+
+  <!-- ============ METHOD ============ -->
+  <div id="tab-method" class="tab">
+    <h1>Method — audit us</h1>
+    <p class="sub">Every formula, every parameter, its regulatory source, and a worked
+       example you can recompute by hand. Deterministic engines; no AI touches a
+       number. Every vessel result can be opened as a full calculation worksheet
+       from the Verifier view.</p>
+    <div class="card method" id="methodOut">
+      <span class="spin" style="display:block">Loading method notes…</span>
+    </div>
+  </div>
+
+  <!-- ============ YOUR DATA ============ -->
+  <div id="tab-privacy" class="tab">
+    <h1>Your data — where it comes from and how to control it</h1>
+    <p class="sub">Everything here is published by EMSA because Art. 21 of the EU MRV
+       Regulation requires it. Our <i>derived</i> figures are a different matter — and
+       those, you can switch off.</p>
+    <div class="card">
+      <b style="font-size:14px">Is this your ship? Take control</b>
+      <p class="sub" style="margin:6px 0 12px">Claim it, correct our figures, or have our
+         estimates hidden from third parties. Hiding takes effect straight away, and we
+         confirm by email once it is permanent.</p>
+      <div class="chips" id="claimKind">
+        <button data-v="claim" class="on">Claim my vessels</button>
+        <button data-v="correct">Correct a figure</button>
+        <button data-v="suppress">Hide your estimates</button>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <input id="clImos" placeholder="IMO number(s) — e.g. 9464663, 9463633">
+        <input id="clCompany" placeholder="Company (DoC holder)">
+      </div>
+      <div class="row" style="margin-top:8px">
+        <input id="clEmail" type="email" placeholder="Work email (used to verify)">
+        <input id="clMsg" placeholder="Anything we should know (optional)">
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="cta" id="clGo" onclick="submitClaim()">Send request</button>
+      </div>
+      <div id="clErr" class="err"></div>
+      <div id="clOut"></div>
+      <p class="dim" style="font-size:12px;margin-top:10px">We use these details only to
+        verify and answer your request.
+        <a class="ck-priv" href="privacy.html" target="_blank" rel="noopener"
+           style="color:var(--teal)">Privacy notice</a></p>
+    </div>
+    <div class="card method" id="privacyOut">
+      <span class="spin" style="display:block">Loading data policy…</span>
+    </div>
+  </div>
+
+  <footer>
+    All figures are <b>ESTIMATES</b> reconstructed from the public THETIS-MRV
+    verified-emissions export (EMSA) unless owner data is supplied.
+    Source data is public by law (Article 21, EU MRV Regulation 2015/757) —
+    <a style="color:var(--teal);cursor:pointer" onclick="showTab('privacy')">how we
+    handle it, and your controls</a> · <a class="ck-priv" href="privacy.html"
+    target="_blank" rel="noopener" style="color:var(--teal)">Privacy notice</a>.
+    Not search-indexed.
+    CarbonKeel · prototype v0.6
+  </footer>
+</div>
+
+<script>
+/* API base: relative when served by the app; explicit localhost when the
+   file is opened directly (file://), where relative fetch URLs cannot parse. */
+const API = (location.protocol === 'http:' || location.protocol === 'https:')
+  ? '' : 'http://127.0.0.1:8000';
+const E = id => document.getElementById(id);
+const eur = n => '€' + Math.round(n).toLocaleString();
+let currentImo = null, currentDwt = null, baseCost = null,
+    methodLoaded = false, privacyLoaded = false;
+
+/* The logo is home: opening tab, cleared search, top of page. */
+function goHome() {
+  showTab('vessel');
+  E('q').value = '';
+  E('err').textContent = '';
+  E('out').innerHTML = '';
+  E('sugg').style.display = 'none';
+  if (history.replaceState) history.replaceState(null, '', location.pathname);
+  window.scrollTo({top: 0, behavior: 'smooth'});
+}
+
+function showTab(t) {
+  for (const x of ['vessel', 'eexi', 'cii', 'fleet', 'cal', 'method', 'privacy']) {
+    E('tab-' + x).classList.toggle('on', x === t);
+    E('nav-' + x).classList.toggle('on', x === t);
+  }
+  if (t === 'privacy' && !privacyLoaded) loadPrivacy();
+  if (t === 'cii' && ciiKey && E('ciiApp').style.display === 'none') unlockCii(true);
+  E('topsearch').style.display = t === 'vessel' ? 'none' : 'block';
+  if (t === 'method' && !methodLoaded) loadMethod();
+  if (t === 'cal' && E('calout').style.display === 'none') loadCal();
+}
+
+/* ---------- shared autosuggest with keyboard nav (U3) ---------- */
+function wireSuggest(inputId, suggId, onPick) {
+  let timer = null, kb = -1;
+  const inp = E(inputId), s = E(suggId);
+  const items = () => [...s.children];
+  inp.addEventListener('input', () => {
+    clearTimeout(timer); kb = -1;
+    const v = inp.value.trim();
+    if (/^\d{7}$/.test(v)) { s.style.display = 'none'; onPick(v, null); return; }
+    if (v.length < 3) { s.style.display = 'none'; return; }
+    timer = setTimeout(async () => {
+      const r = await fetch(`${API}/api/search?q=${encodeURIComponent(v)}&limit=8`);
+      const d = await r.json();
+      if (!d.count) { s.style.display = 'none'; return; }
+      s.innerHTML = d.results.map(x =>
+        `<div data-imo="${x.imo}" data-name="${x.name.replace(/"/g, '&quot;')}">
+           <b>${x.name}</b> <span class="dim">· ${x.ship_type} · IMO ${x.imo}
+           ${x.supported ? '' : '· not yet supported'}</span></div>`).join('');
+      for (const div of s.children)
+        div.onclick = () => { s.style.display = 'none';
+          inp.value = div.dataset.name; onPick(div.dataset.imo, div.dataset.name); };
+      s.style.display = 'block';
+    }, 280);
+  });
+  inp.addEventListener('keydown', e => {
+    if (s.style.display !== 'block') return;
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      kb = e.key === 'ArrowDown' ? Math.min(kb + 1, items().length - 1)
+                                 : Math.max(kb - 1, 0);
+      items().forEach((el, i) => el.classList.toggle('kb', i === kb));
+      items()[kb].scrollIntoView({block: 'nearest'});
+    } else if (e.key === 'Enter' && kb >= 0) {
+      e.preventDefault(); items()[kb].click();
+    } else if (e.key === 'Escape') { s.style.display = 'none'; }
+  });
+}
+
+wireSuggest('q', 'sugg', imo => pick(imo));
+wireSuggest('tq', 'tsugg', imo => { showTab('vessel'); pick(imo); });
+wireSuggest('eq', 'esugg', imo => { eexiImo = imo; });
+
+function tryExample(imo, name) {
+  E('q').value = name; pick(imo);
+}
+function trySearch(term) {
+  E('q').value = term; E('q').focus();
+  E('q').dispatchEvent(new Event('input', {bubbles: true}));
+}
+
+/* ---------- vessel: persona views ---------- */
+let lastData = null, lastMode = null, currentView = 'owner', valueTeaser = null;
+const VIEWS = [['owner', 'Owner / CFO'], ['tech', 'Technical / Ops'],
+               ['verifier', 'Verifier']];
+
+async function pick(imo) {
+  E('err').textContent = ''; currentImo = imo; currentDwt = null;
+  baseCost = null; valueTeaser = null;
+  E('spin').style.display = 'block';
+  try {
+    const r = await fetch(`${API}/api/lookup/${imo}`);
+    if (!r.ok) { const t = (await r.json()).detail;
+      E('err').innerHTML = t + (t.includes('not yet supported')
+        ? ' — <a style="color:var(--teal);cursor:pointer" onclick="showTab(\'eexi\')">try the custom EEXI check</a>' : '');
+      E('out').innerHTML = ''; return; }
+    const d = await r.json();
+    lastData = d; lastMode = 'partial';
+    if (d.suppressed) { renderVessel(); return; }   // operator opted out
+    baseCost = d.ets.cost_eur + d.fueleu.penalty_eur;
+    renderVessel();
+    probeValue();
+  } catch (e) { E('err').textContent = 'Request failed: ' + e; }
+  finally { E('spin').style.display = 'none'; }
+}
+
+async function addDwt() {
+  const dwt = E('dwtIn').value.trim();
+  if (!dwt || !currentImo) return;
+  const r = await fetch(`${API}/api/lookup/${currentImo}?dwt=${dwt}`);
+  if (!r.ok) { E('err').textContent = (await r.json()).detail; return; }
+  currentDwt = dwt;
+  const d = await r.json();
+  lastData = d; lastMode = 'full'; valueTeaser = null;
+  baseCost = d.scorecard.cost_exposure_eur;
+  renderVessel();
+  probeValue();
+}
+
+async function whatIf() {
+  const bio = E('wiBio').value || 0, spd = E('wiSpd').value || 0;
+  let url = `${API}/api/lookup/${currentImo}?biofuel_pct=${bio}&speed_pct=${spd}`;
+  if (currentDwt) url += `&dwt=${currentDwt}`;
+  const r = await fetch(url);
+  if (!r.ok) { E('err').textContent = (await r.json()).detail; return; }
+  const d = await r.json();
+  const cost = currentDwt ? d.scorecard.cost_exposure_eur
+                          : d.ets.cost_eur + d.fueleu.penalty_eur;
+  const delta = baseCost - cost;
+  const banner = `<div class="banner ${delta >= 0 ? 'good' : 'bad'}">
+      <b>${delta >= 0 ? 'Saves' : 'Adds'} ${eur(Math.abs(delta))}/yr</b>
+      vs current operation (${bio}% B100, ${spd}% speed change)</div>`;
+  renderVessel(banner, true, d);   // scenario rendered; baseline kept in lastData
+}
+
+/* silent probe: would a standard lever package create value? (20% B100, -10% speed) */
+async function probeValue() {
+  const imo = currentImo, mode = lastMode, base = baseCost;
+  try {
+    let url = `${API}/api/lookup/${imo}?biofuel_pct=20&speed_pct=-10`;
+    if (currentDwt) url += `&dwt=${currentDwt}`;
+    const r = await fetch(url);
+    if (!r.ok) return;
+    const d = await r.json();
+    const cost = currentDwt ? d.scorecard.cost_exposure_eur
+                            : d.ets.cost_eur + d.fueleu.penalty_eur;
+    const delta = base - cost;
+    if (imo === currentImo && mode === lastMode && delta > 1000) {
+      valueTeaser = delta;
+      const slot = E('teaserSlot');
+      if (slot) slot.innerHTML = teaserHtml();
+    }
+  } catch (e) { /* teaser is optional */ }
+}
+function teaserHtml() {
+  return valueTeaser ? `<div class="banner good" style="cursor:pointer;font-size:13.5px"
+    onclick="applyTeaser()">💡 <b>Value identified: up to ${eur(valueTeaser)}/yr</b>
+    recoverable with standard levers (20% B100 on EU legs, −10% speed) — show me ▸</div>` : '';
+}
+function applyTeaser() {
+  currentView = 'owner';
+  renderVessel();
+  const det = document.querySelector('details.whatif');
+  if (det) det.open = true;
+  E('wiBio').value = 20; E('wiSpd').value = -10;
+  whatIf();
+}
+
+function setView(v) { currentView = v; renderVessel(); }
+function viewBar() {
+  return `<div class="chips" style="margin-bottom:12px">${VIEWS.map(([v, l]) =>
+    `<button class="${v === currentView ? 'on' : ''}" onclick="setView('${v}')">${l}</button>`)
+    .join('')}</div><div id="teaserSlot">${teaserHtml()}</div>`;
+}
+
+/* ---- operator control: "Is this your ship?" ---- */
+function claimLink(imo) {
+  return `<div class="dim" style="font-size:12px;margin-top:14px;
+    padding-top:10px;border-top:1px solid rgba(255,255,255,0.07)">
+    Figures for this vessel are our estimates from EMSA's public Art. 21 data.
+    <a style="color:var(--teal);cursor:pointer" onclick="openClaim('${imo}')">Is this
+    your ship? Claim it, correct a figure, or hide our estimates ▸</a></div>`;
+}
+function openClaim(imo) {
+  showTab('privacy');
+  E('clImos').value = imo || '';
+  E('clImos').scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+wireChips('claimKind');
+async function submitClaim() {
+  E('clErr').textContent = ''; E('clOut').innerHTML = '';
+  const kind = chipValue('claimKind');
+  const imos = (E('clImos').value.match(/\d{7}/g) || []);
+  const email = E('clEmail').value.trim();
+  if (!imos.length) { E('clErr').textContent = 'Enter at least one 7-digit IMO number.'; return; }
+  if (!email.includes('@')) { E('clErr').textContent = 'A work email is needed so we can verify the request.'; return; }
+  E('clGo').disabled = true; E('clGo').textContent = 'Sending…';
+  try {
+    const r = await fetch(`${API}/api/claim`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({kind, imos, company: E('clCompany').value.trim(),
+                            contact_email: email, message: E('clMsg').value.trim()})});
+    const d = await r.json();
+    if (!r.ok) { E('clErr').textContent = d.detail || 'Request failed.'; return; }
+    const mailBody = 'Request: ' + kind + '\nIMO: ' + imos.join(', ') +
+      '\nCompany: ' + E('clCompany').value.trim() + '\nReply to: ' + email +
+      '\n\n' + E('clMsg').value.trim();
+    E('clOut').innerHTML = `<div class="banner good" style="margin-top:12px">
+      <b>${d.imos.join(', ')}</b> — ${d.message}
+      <div style="margin-top:8px;font-size:13px">To be certain it reaches us,
+        <a style="color:var(--teal)" href="mailto:hello@carbonkeel.com?subject=${encodeURIComponent('CarbonKeel data request — ' + kind)}&body=${encodeURIComponent(mailBody)}">email us a copy</a>.</div></div>`;
+    E('clMsg').value = '';
+  } catch (e) { E('clErr').textContent = 'Request failed: ' + e; }
+  finally { E('clGo').disabled = false; E('clGo').textContent = 'Send request'; }
+}
+
+/* ---- a vessel whose operator opted out of our derived figures ---- */
+function renderSuppressed(d) {
+  E('out').innerHTML = shell(`
+    <div class="idstrip"><b>${d.vessel_name}</b> · IMO ${d.imo} · ${d.ship_type}</div>
+    <div class="banner warn">${d.note}</div>
+    <div class="statline">
+      <span>Verified CO₂ <b class="num">${Math.round(d.verified.co2_tonnes || 0).toLocaleString()} t</b></span>
+      <span>Verified fuel <b class="num">${Math.round(d.verified.fuel_tonnes || 0).toLocaleString()} t</b></span>
+      ${d.verified.tech_efficiency ? `<span>Design <b>${d.verified.tech_efficiency}</b></span>` : ''}
+    </div>
+    <p class="dim" style="font-size:12.5px;margin-top:10px">These verified figures are
+      published by EMSA under Art. 21 of the EU MRV Regulation and are available from
+      the source regardless of this site.
+      <a style="color:var(--teal);cursor:pointer" onclick="openClaim('${d.imo}')">If you
+      operate this vessel, claim it to see the full analysis ▸</a></p>`, d.source);
+}
+
+function renderVessel(banner, keepOpen, override) {
+  const d = override || lastData;
+  if (!d) return;
+  if (d.suppressed) { renderSuppressed(d); return; }
+  if (currentView === 'tech') renderTech(d, banner, keepOpen);
+  else if (currentView === 'verifier') renderVerifier(d);
+  else if (lastMode === 'full') renderFull(d, banner, keepOpen);
+  else renderPartial(d, banner, keepOpen);
+}
+
+/* ---- Technical / Ops view: rating, levers, fleet standing ---- */
+function renderTech(d, banner, keepOpen) {
+  const full = lastMode === 'full';
+  const sc = full ? d.scorecard : null;
+  const name = full ? sc.vessel_name : d.vessel_name;
+  const imo = full ? sc.imo_number : d.imo;
+  const year = full ? sc.year : d.year;
+  const techEff = (lastData.verified || {}).tech_efficiency;
+  const ciiSection = full ? `
+    <div class="statline">
+      <span>CII <b class="rating-${sc.cii.rating}" style="font-size:22px">${sc.cii.rating}</b>
+        <span class="dim num">(ratio ${sc.cii.ratio}, Z=${sc.cii.z_factor_pct}%)</span></span>
+      <span class="dim num">CO₂ ${Math.round(sc.cii.co2_tonnes).toLocaleString()} t this period</span>
+    </div>
+    ${ciiDetail(sc.cii)}`
+    : `<div class="banner warn">CII rating needs the vessel's capacity —
+       <span class="dwt-up" style="display:inline-flex">
+       <input id="dwtIn" type="number" placeholder="DWT (GT for ro-ro/cruise)" style="max-width:190px">
+       <button class="ghost" onclick="addDwt()">Rate it</button></span></div>`;
+  const actions = full ? sc.actions : [];
+  E('out').innerHTML = shell(`
+    ${viewBar()}${banner || ''}
+    <div class="idstrip"><b>${name}</b> · IMO ${imo} · ${year}
+      ${techEff ? ' · design: ' + techEff : ''}</div>
+    ${ciiSection}
+    <div id="fleetCtx"></div>
+    ${actions.length ? `<b>Operational levers, ranked</b>
+      <ol class="actions">${actions.map(a => `<li>${a}</li>`).join('')}</ol>` : ''}
+    ${whatIfBox(keepOpen === undefined ? true : keepOpen)}`,
+    d.source || lastData.source);
+  const di = E('dwtIn');
+  if (di) di.addEventListener('keydown', e => { if (e.key === 'Enter') addDwt(); });
+  loadFleetCtx(imo);
+}
+
+/* ---- Verifier view: provenance, parameters, reproducibility ---- */
+function renderVerifier(d) {
+  const full = lastMode === 'full';
+  const v = lastData.verified || {};
+  const name = full ? d.scorecard.vessel_name : d.vessel_name;
+  const imo = full ? d.scorecard.imo_number : d.imo;
+  const etsOurs = full ? d.scorecard.ets.co2e_in_scope_t : d.ets.co2e_in_scope_t;
+  const feu = full ? d.scorecard.fueleu : d.fueleu;
+  const rows = [
+    ['Verified total CO₂ (EMSA filing)', `${Math.round(v.co2_tonnes || 0).toLocaleString()} t`],
+    ['Verified total fuel', `${Math.round(v.fuel_tonnes || 0).toLocaleString()} t`],
+    ['Distance (derived from filed CO₂/nm)', v.est_distance_nm ?
+        `${Math.round(v.est_distance_nm).toLocaleString()} nm — ESTIMATE` : '—'],
+    ['ETS-scope CO₂, verifier-reported', v.ets_scope_co2_reported ?
+        `${Math.round(v.ets_scope_co2_reported).toLocaleString()} t` : '—'],
+    ['ETS-scope CO₂e, our reconstruction', `${Math.round(etsOurs).toLocaleString()} t`],
+    ['FuelEU intensity (Annex II defaults)', `${feu.ghg_intensity} vs target ${feu.target} gCO₂e/MJ`],
+    ['Technical efficiency as filed', v.tech_efficiency || '—'],
+  ].map(([k, val]) => `<tr><td style="text-align:left;color:var(--muted)">${k}</td>
+      <td class="num">${val}</td></tr>`).join('');
+  const match = v.ets_scope_co2_reported &&
+    Math.abs(v.ets_scope_co2_reported - etsOurs) / v.ets_scope_co2_reported < 0.02;
+  E('out').innerHTML = shell(`
+    ${viewBar()}
+    <div class="idstrip"><b>${name}</b> · IMO ${imo} · reproducibility record</div>
+    ${match ? '<div class="banner good"><b>Reconstruction check ✓</b> — our ETS-scope figure agrees with the verifier-reported value within 2%. (Across a 400-ship sample we match exactly on about two thirds.)</div>'
+            : '<div class="banner warn"><b>Reconstruction differs from the verifier-reported figure.</b> Most often the filed figure covers only part of the year or part of the operator&rsquo;s obligation — which the public record does not break out. Owner data resolves it.</div>'}
+    <div style="overflow-x:auto"><table class="data">${rows}</table></div>
+    <p class="dim" style="font-size:12.5px;margin-top:12px">
+      Every parameter (CF factors, reference lines, Z factors, dd vectors,
+      Annex II fuel properties, GWPs) is table-driven and cited —
+      <a style="color:var(--teal);cursor:pointer" onclick="showTab('method')">full method</a>.
+      ${currentDwt ? `Machine-readable worksheet:
+        <a style="color:var(--teal)" href="${API}/api/audit/${imo}?dwt=${currentDwt}"
+        target="_blank">open audit worksheet for this vessel ▸</a>`
+        : 'Add the vessel\'s DWT on the Owner view to unlock the audit worksheet.'}
+    </p>`, d.source || lastData.source);
+}
+
+function whatIfBox(open) {
+  const bio = E('wiBio') ? E('wiBio').value : '', spd = E('wiSpd') ? E('wiSpd').value : '';
+  return `<details class="whatif"${open ? ' open' : ''}>
+    <summary>What would biofuel or slowing down save?</summary>
+    <div class="dwt-up">
+      <label class="dim" style="font-size:12.5px">B100 biofuel %</label>
+      <input id="wiBio" type="number" min="0" max="100" value="${bio}" placeholder="0">
+      <label class="dim" style="font-size:12.5px">speed change %</label>
+      <input id="wiSpd" type="number" min="-30" max="20" value="${spd}" placeholder="-10">
+      <button class="ghost" onclick="whatIf()">Recompute</button>
+    </div></details>`;
+}
+
+function shell(inner, src) {
+  return `<div class="card">
+    <span class="estimate-band" onclick="showTab('method')"
+      title="Click for the method">ESTIMATE — public THETIS-MRV data (${src})</span>
+    ${inner}</div>`;
+}
+
+/* bill block: hierarchy winner + bullet graphs (U2, Few) */
+function billBlock(items, nzfUsd) {
+  const euros = items.filter(i => i.eur > 0);
+  const total = items.reduce((t, i) => t + i.eur, 0);
+  const max = Math.max(...items.map(i => i.eur), 1);
+  const bars = items.map(i => `
+    <div class="bullet">
+      <span class="lbl">${i.label}</span>
+      <span class="track">${i.eur > 0 ? `<span class="fill num"
+        style="width:${Math.max(2, i.eur / max * 100)}%;background:var(--red);opacity:0.75"></span>`
+        : ''}</span>
+      <span class="val num ${i.eur > 0 ? '' : 'pos'}">${i.eur > 0 ? eur(i.eur) : '€0 ✓'}</span>
+      <span class="due">${i.due}</span>
+    </div>`).join('');
+  return `<div class="bill">
+    <div class="k">This year's compliance bill (est.)</div>
+    <div class="v num">${eur(total)}</div>
+    <div class="d">${euros.length ? '' : 'no payable exposure at current data'} </div>
+  </div>
+  <div class="bullets">${bars}
+    <div class="bullet"><span class="lbl">IMO NZF 2028</span>
+      <span class="dim" style="font-size:12.5px">scenario — adoption vote ~Oct 2026</span>
+      <span class="val num">$${Math.round(nzfUsd).toLocaleString()}</span></div>
+  </div>`;
+}
+
+function renderPartial(d, banner, keepOpen) {
+  const cb = d.fueleu.compliance_balance_tco2e;
+  E('out').innerHTML = shell(`
+    ${viewBar()}${banner || ''}
+    <div class="idstrip"><b>${d.vessel_name}</b> · IMO ${d.imo} · ${d.year}
+      · verified ${Math.round(d.verified.co2_tonnes).toLocaleString()} t CO₂
+      ${d.verified.tech_efficiency ? ' · ' + d.verified.tech_efficiency : ''}</div>
+    ${billBlock([
+      {label: 'EU ETS', eur: d.ets.cost_eur,
+       due: `${Math.round(d.ets.allowances_due).toLocaleString()} EUAs @ €${d.ets.eua_price_used} — surrender by 30 Sep · ${eur(d.ets.allowances_due*60)}@€60 / ${eur(d.ets.allowances_due*100)}@€100`},
+      {label: 'FuelEU', eur: d.fueleu.penalty_eur,
+       due: cb < 0 ? `balance ${Math.round(cb).toLocaleString()} t — pool it or pay by 30 Jun`
+                   : `balance +${Math.round(cb).toLocaleString()} t — surplus, sellable via pooling`}
+    ], d.nzf.remedial_cost_usd)}
+    <div class="statline">
+      <span>CII rating <b class="dim">needs capacity</b>
+        <span class="dwt-up" style="display:inline-flex;margin-left:6px">
+          <input id="dwtIn" type="number" placeholder="DWT (GT for ro-ro/cruise)" style="max-width:200px">
+          <button class="ghost" onclick="addDwt()">Add</button></span></span>
+      <span>ETS-scope check <b class="pos num">${d.verified.ets_scope_co2_reported ?
+        Math.round(d.verified.ets_scope_co2_reported).toLocaleString() + ' t ✓ matches verifier' : '—'}</b></span>
+    </div>
+    <div id="fleetCtx"></div>
+    ${whatIfBox(keepOpen)}
+    ${claimLink(d.imo)}`, d.source);
+  const di = E('dwtIn');
+  if (di) di.addEventListener('keydown', e => { if (e.key === 'Enter') addDwt(); });
+  loadFleetCtx(d.imo);
+}
+
+function ciiDetail(cii) {
+  const b = cii.boundaries;
+  if (!b) return '';
+  const segs = [['A', 0, b.A, 'var(--green)'], ['B', b.A, b.B, '#86efac'],
+                ['C', b.B, b.C, 'var(--amber)'], ['D', b.C, b.D, '#fca5a5'],
+                ['E', b.D, b.D * 1.25, 'var(--red)']];
+  const max = b.D * 1.25;
+  const pos = Math.min(99, cii.attained / max * 100);
+  return `
+    <div style="margin-top:12px"><b style="font-size:13.5px">CII detail (G1–G4, verified MEPC tables)</b>
+    <div class="ciibar">
+      ${segs.map(([l, lo, hi, col]) =>
+        `<div style="flex:${(hi - lo) / max};background:${col}">${l}</div>`).join('')}
+    </div>
+    <div style="position:relative;height:16px;margin-top:-6px">
+      <div class="num" style="position:absolute;left:${pos}%;transform:translateX(-50%);font-size:11px">
+        ▲ ${cii.attained}</div>
+    </div>
+    <div class="ciilabels"><span class="num">attained ${cii.attained} vs required ${cii.required}
+      gCO₂/cap·nm (Z=${cii.z_factor_pct}%)</span>
+      <span class="num">A≤${b.A} · B≤${b.B} · C≤${b.C} · D≤${b.D}</span></div></div>`;
+}
+
+function renderFull(d, banner, keepOpen) {
+  const sc = d.scorecard;
+  E('out').innerHTML = shell(`
+    ${viewBar()}${banner || ''}
+    <div class="idstrip"><b>${sc.vessel_name}</b> · IMO ${sc.imo_number} · ${sc.year}</div>
+    ${billBlock([
+      {label: 'EU ETS', eur: sc.ets.cost_eur,
+       due: `${Math.round(sc.ets.allowances_due).toLocaleString()} EUAs @ €${sc.ets.eua_price_used} — surrender by 30 Sep · ${eur(sc.ets.allowances_due*60)}@€60 / ${eur(sc.ets.allowances_due*100)}@€100`},
+      {label: 'FuelEU', eur: sc.fueleu.penalty_eur,
+       due: sc.fueleu.compliance_balance_tco2e < 0
+        ? `balance ${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t — pool it or pay by 30 Jun`
+        : `balance +${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t — surplus, sellable`},
+      {label: 'UK ETS', eur: sc.ukets.cost_gbp * 1.15,
+       due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString()} native — UK domestic legs`
+                                  : 'no UK domestic legs detected'}
+    ], sc.nzf.remedial_cost_usd)}
+    <div class="statline">
+      <span>CII <b class="rating-${sc.cii.rating}">${sc.cii.rating}</b>
+        <span class="dim num">(ratio ${sc.cii.ratio})</span></span>
+      <span>Regulatory health <b class="num">${sc.regulatory_health}/100</b></span>
+      <span>Compliance asset <b class="num ${sc.compliance_asset_eur > 0 ? 'pos' : ''}">${eur(sc.compliance_asset_eur)}</b></span>
+    </div>
+    ${ciiDetail(sc.cii)}
+    <div id="fleetCtx"></div>
+    <b>Next actions</b>
+    <ol class="actions">${sc.actions.map(a => `<li>${a}</li>`).join('')}</ol>
+    ${whatIfBox(keepOpen)}
+    ${claimLink(sc.imo_number)}`, d.source);
+  loadFleetCtx(sc.imo_number);
+}
+
+/* ---- fleet-context chart ---- */
+async function loadFleetCtx(imo) {
+  const box = E('fleetCtx');
+  if (!box) return;
+  try {
+    const r = await fetch(`${API}/api/siblings/${imo}`);
+    if (!r.ok) return;
+    const d = await r.json();
+    if (!d.company || d.siblings.length < 2) return;
+    box.innerHTML = fleetChart(d);
+  } catch (e) { /* optional */ }
+}
+
+function fleetChart(d) {
+  const pts = d.siblings.filter(s => s.co2_per_nm_kg);
+  if (pts.length < 2) return '';
+  const vals = pts.map(s => s.co2_per_nm_kg);
+  const lo = Math.min(...vals), hi = Math.max(...vals);
+  const pad = (hi - lo) * 0.08 || 10;
+  const x0 = lo - pad, x1 = hi + pad;
+  const W = 800, H = 170, L = 10, R = 790, top = 52, rows = 5, rowH = 14;
+  const X = v => L + (v - x0) / (x1 - x0) * (R - L);
+  const sameVals = pts.filter(s => s.same_type).map(s => s.co2_per_nm_kg).sort((a, b) => a - b);
+  const med = sameVals.length ? sameVals[Math.floor(sameVals.length / 2)] : null;
+  const sel = pts.find(s => s.selected);
+  let dots = '';
+  pts.sort((a, b) => a.co2_per_nm_kg - b.co2_per_nm_kg).forEach((s, i) => {
+    if (s.selected) return;
+    const cx = X(s.co2_per_nm_kg), cy = top + (i % rows) * rowH + 8;
+    const t = `${s.name} · ${s.ship_type} · ${s.co2_per_nm_kg} kg CO₂/nm`;
+    dots += s.same_type
+      ? `<circle cx="${cx}" cy="${cy}" r="5" fill="#14b8a6" fill-opacity="0.85"><title>${t}</title></circle>`
+      : `<circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="#93a7bd" stroke-width="1.5"><title>${t}</title></circle>`;
+  });
+  let selSvg = '';
+  if (sel) {
+    const cx = X(sel.co2_per_nm_kg);
+    selSvg = `<line x1="${cx}" y1="30" x2="${cx}" y2="${H - 28}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <circle cx="${cx}" cy="${top + 8}" r="7.5" fill="#f59e0b" stroke="#fff" stroke-width="1.5">
+        <title>${sel.name} (this ship) · ${sel.co2_per_nm_kg} kg CO₂/nm</title></circle>
+      <text x="${Math.min(cx, R - 130)}" y="24" fill="#f59e0b" font-size="12.5" font-weight="700">▼ ${sel.name}</text>`;
+  }
+  const medSvg = med !== null ?
+    `<line x1="${X(med)}" y1="34" x2="${X(med)}" y2="${H - 28}" stroke="#93a7bd" stroke-width="1" stroke-dasharray="2 4"/>
+     <text x="${X(med) + 4}" y="${H - 32}" fill="#93a7bd" font-size="10.5">type median ${med}</text>` : '';
+  return `
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.09)">
+    <b style="font-size:13.5px">Fleet context — ${d.company}</b>
+    <span class="dim" style="font-size:12px"> · ${d.fleet_size} related ships (same DoC holder)</span>
+    <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin-top:6px">
+      <line x1="${L}" y1="${H - 26}" x2="${R}" y2="${H - 26}" stroke="rgba(255,255,255,0.25)"/>
+      ${medSvg}${dots}${selSvg}
+      <text x="${L}" y="${H - 10}" fill="#93a7bd" font-size="11">${Math.round(x0)} kg CO₂/nm</text>
+      <text x="${R}" y="${H - 10}" fill="#93a7bd" font-size="11" text-anchor="end">${Math.round(x1)} kg CO₂/nm — higher = dirtier per mile</text>
+      <circle cx="${L + 8}" cy="12" r="5" fill="#14b8a6"/><text x="${L + 18}" y="16" fill="#93a7bd" font-size="11">same type</text>
+      <circle cx="${L + 98}" cy="12" r="4.5" fill="none" stroke="#93a7bd" stroke-width="1.5"/><text x="${L + 108}" y="16" fill="#93a7bd" font-size="11">other types</text>
+    </svg>
+    <div class="dim" style="font-size:11.5px;line-height:1.5">Axis = verified CO₂ per nautical
+      mile from each ship's EU-MRV filing. A true CII per sibling needs each ship's DWT
+      (not published); this ship's own A–E position is the band chart above.</div>
+  </div>`;
+}
+
+/* ---------- EEXI ---------- */
+let eexiImo = null;
+async function runEexi() {
+  E('eerr').textContent = '';
+  const q = E('eq').value.trim();
+  if (/^\d{7}$/.test(q)) eexiImo = q;
+  if (!eexiImo) { E('eerr').textContent = 'Pick a ship first.'; return; }
+  const dwt = E('edwt').value.trim();
+  if (!dwt) { E('eerr').textContent = 'DWT is needed to compute the required EEXI.'; return; }
+  const gt = E('egt').value.trim();
+  E('espin').style.display = 'block';
+  try {
+    let url = `/api/eexi/${eexiImo}?dwt=${dwt}`;
+    if (gt) url += `&gt=${gt}`;
+    const r = await fetch(url);
+    if (!r.ok) { E('eerr').textContent = (await r.json()).detail; return; }
+    renderEexi(await r.json());
+  } finally { E('espin').style.display = 'none'; }
+}
+
+function renderEexi(d) {
+  const x = d.result;
+  const good = x.verdict.includes('COMPLIANT') && !x.verdict.includes('ABOVE');
+  const cls = x.verdict.startsWith('N/A') || x.attained === null ? 'warn' : (good ? 'good' : 'bad');
+  const custom = !d.imo;
+  const head = custom
+    ? `<div class="idstrip"><b>Custom vessel</b> · ${d.ship_type} · ${Number(d.dwt).toLocaleString()} DWT</div>`
+    : `<div class="idstrip"><b>${d.name}</b> · IMO ${d.imo} · ${d.ship_type}</div>`;
+  const band = custom ? 'FREE CHECK — your inputs, our verified reference tables'
+                      : `FREE CHECK — from the ship's own EU-MRV filing (${d.source})`;
+  const srcLine = custom
+    ? `${x.attained_basis === 'ESTIMATED' ? 'estimated from MCR/speed' : 'your supplied value'}`
+    : `as filed: "${d.reported_raw ?? 'none'}"`;
+  E('eout').innerHTML = `<div class="card">
+    <span class="estimate-band" onclick="showTab('method')">${band}</span>
+    ${head}
+    <div class="banner ${cls}"><b>${x.verdict}</b>
+      ${x.margin_pct !== null ? ` — margin ${x.margin_pct > 0 ? '+' : ''}${x.margin_pct}% vs required` : ''}</div>
+    <div class="scores">
+      <div class="score"><div class="k">Attained (${x.attained_basis})</div>
+        <div class="v num">${x.attained ?? '—'}</div><div class="d">gCO₂/t·nm — ${srcLine}</div></div>
+      <div class="score"><div class="k">Required EEXI</div>
+        <div class="v num">${x.required ?? '—'}</div>
+        <div class="d num">= reference ${x.reference ?? '—'} × (1 − ${x.reduction_factor_pct ?? '—'}%)</div></div>
+      <div class="score"><div class="k">${good ? 'Next: the operating bill' : 'If non-compliant'}</div>
+        <div class="v" style="font-size:13.5px;line-height:1.5">${good
+          ? 'Design is fine — CII and the € bill are operational. '
+          : 'EPL / ShaPoLi first, then ESDs. '}
+        <a style="color:var(--teal);cursor:pointer" onclick="showTab('vessel')">Run the vessel check →</a></div></div>
+    </div>
+    <div class="dim" style="font-size:12.5px">${x.notes.join(' ')}</div>
+  </div>`;
+}
+
+/* ---- custom-vessel guided form ---- */
+let cMode = 'att';
+const GT_TYPES = new Set(['cruise']);
+function chipValue(id) {
+  const on = document.querySelector(`#${id} button.on`);
+  return on ? on.dataset.v : null;
+}
+function wireChips(id, onChange) {
+  for (const b of document.querySelectorAll(`#${id} button`))
+    b.onclick = () => {
+      for (const x of document.querySelectorAll(`#${id} button`)) x.classList.remove('on');
+      b.classList.add('on');
+      if (onChange) onChange(b.dataset.v);
+      refreshCta();
+    };
+}
+wireChips('cTypeChips', t => {
+  E('capLabel').textContent = GT_TYPES.has(t) ? 'Gross tonnage (GT)' : 'Deadweight (DWT)';
+  E('cCap').placeholder = GT_TYPES.has(t) ? 'e.g. 69,200' : 'e.g. 93,000';
+});
+wireChips('cFuelChips');
+function setMode(m) {
+  cMode = m;
+  E('modeAtt').classList.toggle('on', m === 'att');
+  E('modeEst').classList.toggle('on', m === 'est');
+  E('attInputs').style.display = m === 'att' ? 'block' : 'none';
+  E('estInputs').style.display = m === 'est' ? 'block' : 'none';
+  refreshCta();
+}
+function refreshCta() {
+  const cap = E('cCap').value.trim();
+  let ready = !!cap, label = 'Enter ' +
+    (GT_TYPES.has(chipValue('cTypeChips')) ? 'GT' : 'DWT') + ' to check';
+  if (cap) {
+    if (cMode === 'att') { ready = !!E('cAttained').value.trim();
+      label = ready ? 'Check custom vessel' : 'Enter attained EEXI'; }
+    else { ready = !!E('cMcr').value.trim() && !!E('cVref').value.trim();
+      label = ready ? 'Estimate & check' : 'Enter MCR + speed'; }
+  }
+  E('cGo').disabled = !ready;
+  E('cGo').textContent = label;
+}
+for (const id of ['cCap', 'cAttained', 'cMcr', 'cVref'])
+  E(id).addEventListener('input', refreshCta);
+function fillExample() {
+  document.querySelector('#cTypeChips button[data-v="bulk_carrier"]').click();
+  E('cCap').value = 93000;
+  setMode('est');
+  E('cMcr').value = 12000; E('cVref').value = 14.2;
+  document.querySelector('#cFuelChips button[data-v="hfo"]').click();
+  refreshCta();
+  runEexiCustom();
+}
+async function runEexiCustom() {
+  E('cerr').textContent = '';
+  const type = chipValue('cTypeChips'), cap = E('cCap').value.trim();
+  if (!type || !cap) return;
+  const p = new URLSearchParams({ship_type: type, dwt: cap});
+  if (GT_TYPES.has(type)) p.set('gt', cap);
+  if (cMode === 'att') p.set('attained', E('cAttained').value.trim());
+  else { p.set('mcr_kw', E('cMcr').value.trim());
+         p.set('vref_kn', E('cVref').value.trim());
+         p.set('main_fuel', chipValue('cFuelChips') || 'hfo'); }
+  const r = await fetch(`${API}/api/eexi-custom?${p}`);
+  if (!r.ok) { E('cerr').textContent = (await r.json()).detail; return; }
+  renderEexi(await r.json());
+  E('eout').scrollIntoView({behavior: 'smooth'});
+}
+refreshCta();
+
+/* Deep link from the marketing site: carbonkeel.com sends ?q=<ship or IMO>
+   straight here, so the visitor's first search costs them no extra click. */
+(function () {
+  var q = new URLSearchParams(location.search).get('q');
+  if (!q) return;
+  q = q.trim();
+  if (!q) return;
+  showTab('vessel');
+  E('q').value = q;
+  if (/^\d{7}$/.test(q)) { pick(q); return; }
+  // A name: resolve it here rather than leaving the visitor staring at a
+  // suggestion list. One unambiguous match goes straight to the result.
+  var spin = E('spin');
+  spin.style.display = 'block';
+  fetch(API + '/api/search?q=' + encodeURIComponent(q) + '&limit=8')
+    .then(function (r) { return r.json(); })
+    .then(function (d) {
+      var hits = (d.results || []).filter(function (x) { return x.supported; });
+      if (hits.length === 1) { E('q').value = hits[0].name; pick(hits[0].imo); }
+      else { E('q').dispatchEvent(new Event('input', {bubbles: true})); }
+    })
+    .catch(function () {
+      E('q').dispatchEvent(new Event('input', {bubbles: true}));
+    })
+    .then(function () { spin.style.display = 'none'; });
+})();
+
+/* ---------- fleet ---------- */
+let fleetData = null, sortKey = 'ets_cost_eur', sortDir = -1;
+function fleetImos() {
+  const imos = (E('fleetImos').value.match(/\d{7}/g) || []);
+  if (!imos.length) E('ferr').textContent = 'No IMO numbers found in the pasted text.';
+  return imos;
+}
+function fleetReport() {
+  const imos = fleetImos();
+  if (imos.length) window.open(`${API}/report?imos=${imos.join(',')}`, '_blank');
+}
+function poolAgreement() {
+  const imos = fleetImos();
+  if (imos.length) window.open(`${API}/api/pool-agreement?imos=${imos.join(',')}`, '_blank');
+}
+async function fleetDash() {
+  const imos = fleetImos();
+  if (!imos.length) return;
+  E('ferr').textContent = ''; E('fspin').style.display = 'block';
+  try {
+    const r = await fetch(`${API}/api/fleet?imos=${imos.join(',')}`);
+    if (!r.ok) { E('ferr').textContent = (await r.json()).detail; return; }
+    fleetData = await r.json();
+    renderFleet();
+  } finally { E('fspin').style.display = 'none'; }
+}
+function sortFleet(k) { sortDir = (sortKey === k) ? -sortDir : -1; sortKey = k; renderFleet(); }
+function renderFleet() {
+  const vs = fleetData.vessels.filter(v => v.supported)
+    .sort((a, b) => (a[sortKey] > b[sortKey] ? 1 : -1) * sortDir);
+  const bad = fleetData.vessels.filter(v => !v.supported);
+  const tot = vs.reduce((t, v) => ({ ets: t.ets + v.ets_cost_eur,
+    pen: t.pen + v.fueleu_penalty_eur, cb: t.cb + v.fueleu_cb_t }), {ets: 0, pen: 0, cb: 0});
+  const p = fleetData.pooling;
+  const pool = p && p.avoided_penalty_eur > 0 ?
+    `<div class="banner good"><b>Pooling opportunity: ${eur(p.avoided_penalty_eur)}</b>
+     avoidable by pooling ${p.member_imos.length} ships internally (Art. 21).
+     ${p.uncovered_imos.length ? 'Remaining ' + eur(p.uncovered_penalty_eur) +
+       ' needs an external surplus partner — the matchmaking service.' : ''}</div>` :
+    (p && tot.cb < 0 ? `<div class="banner warn">No internal pooling capacity — the fleet
+     FuelEU deficit of ${Math.round(Math.abs(tot.cb)).toLocaleString()} t (${eur(tot.pen)})
+     needs an external surplus partner or biofuel. That match is the service.</div>` : '');
+  const th = (label, k) => `<th onclick="sortFleet('${k}')">${label}
+      ${sortKey === k ? (sortDir < 0 ? '▼' : '▲') : ''}</th>`;
+  E('fout').innerHTML = `<div class="card">
+    <span class="estimate-band" onclick="showTab('method')">ESTIMATE — ${fleetData.source}</span>
+    <h1>Fleet analysis <span class="dim">${vs.length} vessels</span></h1>
+    <div class="scores">
+      <div class="score"><div class="k">EU ETS bill (fleet)</div><div class="v num">${eur(tot.ets)}</div></div>
+      <div class="score"><div class="k">FuelEU penalty risk</div><div class="v num">${eur(tot.pen)}</div></div>
+      <div class="score"><div class="k">FuelEU balance</div>
+        <div class="v num ${tot.cb < 0 ? 'neg' : 'pos'}">${Math.round(tot.cb).toLocaleString()} t</div></div>
+    </div>
+    ${pool}
+    <div style="overflow-x:auto"><table class="data num">
+      <tr>${th('Vessel', 'name')}${th('CO₂/nm', 'co2_per_nm_kg')}${th('CO₂ t', 'co2_tonnes')}
+        ${th('EUAs', 'euas')}${th('ETS €', 'ets_cost_eur')}${th('FuelEU t', 'fueleu_cb_t')}${th('Penalty €', 'fueleu_penalty_eur')}</tr>
+      ${vs.map(v => `<tr class="rowlink" onclick="showTab('vessel');E('q').value='${v.name.replace(/'/g, "\\'")}';pick('${v.imo}')">
+        <td style="color:var(--teal)">${v.name}</td>
+        <td>${v.co2_per_nm_kg ?? '—'}</td>
+        <td>${Math.round(v.co2_tonnes).toLocaleString()}</td>
+        <td>${Math.round(v.euas).toLocaleString()}</td>
+        <td>${Math.round(v.ets_cost_eur).toLocaleString()}</td>
+        <td class="${v.fueleu_cb_t < 0 ? 'neg' : 'pos'}">${Math.round(v.fueleu_cb_t).toLocaleString()}</td>
+        <td>${Math.round(v.fueleu_penalty_eur).toLocaleString()}</td></tr>`).join('')}
+    </table></div>
+    ${bad.length ? `<div class="dim" style="font-size:12.5px;margin-top:8px">
+      Not scored: ${bad.map(v => v.imo).join(', ')}</div>` : ''}
+  </div>`;
+}
+
+/* ---------- calendar (U5: timeline + soon-alert) ---------- */
+async function loadCal() {
+  const y = E('calYear').value;
+  const r = await fetch(`${API}/api/calendar?year=${y}`);
+  const d = await r.json();
+  const today = new Date();
+  const soon = due => {
+    const dd = (new Date(due) - today) / 86400000;
+    return dd >= 0 && dd <= 14;
+  };
+  E('calout').style.display = 'block';
+  E('calout').innerHTML = `<h1>Obligations from compliance year ${y}</h1>
+    ${calTimeline(d.deadlines)}` +
+    d.deadlines.map(x => `<div class="cal-item">
+      <span class="cal-date num ${soon(x.due) ? 'soon' : ''}">${x.due}${soon(x.due) ? ' ⚠' : ''}</span>
+      <span class="cal-regime">${x.regime}</span>
+      <span>${x.what} <span class="dim">— ${x.basis}</span></span></div>`).join('');
+}
+const REGIME_COLOR = {'EU ETS': '#ef4444', 'FuelEU': '#14b8a6', 'UK ETS': '#a78bfa',
+                      'IMO CII': '#f59e0b', 'EU MRV / DCS': '#60a5fa',
+                      'FuelEU / EU MRV': '#14b8a6'};
+function calTimeline(ds) {
+  if (!ds.length) return '';
+  const dates = ds.map(x => new Date(x.due));
+  const t0 = Math.min(...dates), t1 = Math.max(...dates);
+  const pad = (t1 - t0) * 0.06 || 86400000 * 30;
+  const W = 800, L = 14, R = 786, LBL_W = 46, ROW_H = 13;
+  const X = t => L + (t - (t0 - pad)) / ((t1 + pad) - (t0 - pad)) * (R - L);
+
+  /* Lay the date labels out so they never collide: walk left to right and
+     drop each one onto the first row where it clears the last label already
+     on that row. Dates clustered a few weeks apart used to print on top of
+     each other. */
+  const marks = ds.map(x => ({ x: X(new Date(x.due)), d: x,
+                               col: REGIME_COLOR[x.regime] || '#93a7bd' }))
+                  .sort((a, b) => a.x - b.x);
+  const rowEnds = [];
+  marks.forEach(m => {
+    const cx = Math.max(L + LBL_W / 2, Math.min(R - LBL_W / 2, m.x));
+    let row = 0;
+    while (rowEnds[row] !== undefined && cx - LBL_W / 2 < rowEnds[row] + 4) row++;
+    rowEnds[row] = cx + LBL_W / 2;
+    m.cx = cx;
+    m.row = row;
+  });
+  const rows = rowEnds.length;
+  const baseY = 48;
+  const H = baseY + rows * ROW_H + 6;
+
+  const ticks = marks.map(m => {
+    const ly = baseY + m.row * ROW_H;
+    /* leader line when the label had to shift sideways to avoid a clash */
+    const leader = Math.abs(m.cx - m.x) > 1.5
+      ? `<line x1="${m.x}" y1="40" x2="${m.cx}" y2="${ly - 8}" stroke="${m.col}"
+           stroke-width="1" opacity=".5"/>` : '';
+    return `<line x1="${m.x}" y1="20" x2="${m.x}" y2="40" stroke="${m.col}" stroke-width="3">
+      <title>${m.d.due} · ${m.d.regime}: ${m.d.what}</title></line>${leader}
+      <text x="${m.cx}" y="${ly}" fill="${m.col}" font-size="9.5"
+        text-anchor="middle">${m.d.due.slice(5)}</text>`;
+  }).join('');
+
+  /* Today's position. When every deadline is still ahead (or already behind)
+     the marker is pinned to the matching edge with an arrow, so the reader
+     always sees where "now" sits relative to the timeline. */
+  const now = Date.now();
+  const lo = t0 - pad, hi = t1 + pad;
+  const label = new Date(now).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
+  let nowSvg;
+  if (now < lo) {
+    nowSvg = `<line x1="${L}" y1="12" x2="${L}" y2="44" stroke="#e7eef6" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="${L + 4}" y="10" fill="#93a7bd" font-size="10">◀ today (${label}) — all deadlines ahead</text>`;
+  } else if (now > hi) {
+    nowSvg = `<line x1="${R}" y1="12" x2="${R}" y2="44" stroke="#e7eef6" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="${R - 4}" y="10" fill="#93a7bd" font-size="10" text-anchor="end">today (${label}) — all deadlines passed ▶</text>`;
+  } else {
+    nowSvg = `<line x1="${X(now)}" y1="12" x2="${X(now)}" y2="44" stroke="#e7eef6" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="${Math.min(X(now) + 3, R - 26)}" y="10" fill="#93a7bd" font-size="10">today</text>`;
+  }
+
+  return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin:8px 0 14px"
+      role="img" aria-label="Timeline of compliance deadlines">
+    <line x1="${L}" y1="31" x2="${R}" y2="31" stroke="rgba(255,255,255,0.25)"/>
+    ${ticks}${nowSvg}</svg>`;
+}
+function dlIcs() {
+  window.open(`${API}/api/calendar.ics?year=${E('calYear').value}&fleet=MyFleet`, '_blank');
+}
+
+/* ---------- method (U6): tiny markdown renderer ---------- */
+async function loadMethod() {
+  methodLoaded = true;
+  const r = await fetch(API + '/api/method');
+  const md = await r.text();
+  E('methodOut').innerHTML = mdToHtml(md);
+}
+/* ================= CII calculator (locked) ================= */
+let ciiKey = localStorage.getItem('ck_key') || '', ciiMode = 'fuel';
+
+async function unlockCii(silent) {
+  const key = silent ? ciiKey : E('ciiKey').value.trim();
+  if (!key) { if (!silent) E('ciiKeyErr').textContent = 'Enter your access key.'; return false; }
+  try {
+    const r = await fetch(`${API}/api/access/check?key=${encodeURIComponent(key)}`);
+    if (!r.ok) { if (!silent) E('ciiKeyErr').textContent = (await r.json()).detail;
+                 return false; }
+    const d = await r.json();
+    ciiKey = key; localStorage.setItem('ck_key', key);
+    E('ciiLocked').style.display = 'none';
+    E('ciiApp').style.display = 'block';
+    E('ciiWho').textContent = d.issued_to ? '· ' + d.issued_to : '';
+    E('ciiKeyErr').textContent = '';
+    return true;
+  } catch (e) { if (!silent) E('ciiKeyErr').textContent = 'Could not reach the server.';
+                return false; }
+}
+function lockCii() {
+  ciiKey = ''; localStorage.removeItem('ck_key');
+  E('ciiApp').style.display = 'none'; E('ciiLocked').style.display = 'block';
+  E('ciiKey').value = ''; E('ciiOut').innerHTML = '';
+}
+function setCiiMode(m) {
+  ciiMode = m;
+  E('ciiModeFuel').classList.toggle('on', m === 'fuel');
+  E('ciiModeSpeed').classList.toggle('on', m === 'speed');
+  E('ciiFuelInputs').style.display = m === 'fuel' ? 'block' : 'none';
+  E('ciiSpeedInputs').style.display = m === 'speed' ? 'block' : 'none';
+}
+wireChips('ciiTypeChips');
+
+function fillCiiExample() {
+  document.querySelector('#ciiTypeChips button[data-v="bulk_carrier"]').click();
+  E('ciiName').value = 'MV EXAMPLE'; E('ciiCap').value = 50000;
+  E('ciiYear').value = '2026';
+  setCiiMode('fuel');
+  E('f_hfo').value = 4300; E('f_mdo_mgo').value = ''; E('ciiDist').value = 50000;
+  runCii();
+}
+
+async function runCii() {
+  E('ciiErr').textContent = '';
+  const body = {
+    ship_type: chipValue('ciiTypeChips'),
+    dwt: parseFloat(E('ciiCap').value) || 0,
+    gt: parseFloat(E('ciiGt').value) || 0,
+    year: parseInt(E('ciiYear').value, 10),
+    vessel_name: E('ciiName').value.trim(),
+    imo_number: E('ciiImo').value.trim(),
+    excluded_co2_t: parseFloat(E('g5_co2').value) || 0,
+    excluded_distance_nm: parseFloat(E('g5_dist').value) || 0,
+    capacity_correction: parseFloat(E('g5_cap').value) || 1.0,
+    corrections_basis: E('g5_basis').value.trim(),
+    fuel_tonnes: {}, distance_nm: 0,
+  };
+  if (!body.dwt && !body.gt) { E('ciiErr').textContent = 'Enter the vessel capacity (DWT, or GT for ro-ro/ro-pax/cruise/vehicle carriers).'; return; }
+  if (ciiMode === 'fuel') {
+    for (const f of ['hfo','lfo','mdo_mgo','lng','methanol','biofuel_b100']) {
+      const v = parseFloat(E('f_' + f).value);
+      if (v > 0) body.fuel_tonnes[f] = v;
+    }
+    body.distance_nm = parseFloat(E('ciiDist').value) || 0;
+    if (!Object.keys(body.fuel_tonnes).length) { E('ciiErr').textContent = 'Enter at least one fuel quantity.'; return; }
+    if (!body.distance_nm) { E('ciiErr').textContent = 'Distance sailed is required.'; return; }
+  } else {
+    const sp = {
+      ref_cons_t_per_day: parseFloat(E('sp_ref_cons').value) || 0,
+      ref_speed_kn: parseFloat(E('sp_ref_speed').value) || 0,
+      actual_speed_kn: parseFloat(E('sp_speed').value) || 0,
+      sea_days: parseFloat(E('sp_sea_days').value) || 0,
+      aux_t_per_day_at_sea: parseFloat(E('sp_aux_sea').value) || 0,
+      port_days: parseFloat(E('sp_port_days').value) || 0,
+      aux_t_per_day_in_port: parseFloat(E('sp_aux_port').value) || 0,
+    };
+    if (!sp.ref_cons_t_per_day || !sp.ref_speed_kn || !sp.actual_speed_kn || !sp.sea_days) {
+      E('ciiErr').textContent = 'Reference consumption, reference speed, actual speed and sea days are all required.'; return; }
+    body.speed = sp;
+    body.distance_nm = parseFloat(E('ciiDist2').value) || 0;
+  }
+  E('ciiGo').disabled = true; E('ciiGo').textContent = 'Computing…';
+  try {
+    const r = await fetch(`${API}/api/cii/compute?key=${encodeURIComponent(ciiKey)}`, {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)});
+    const d = await r.json();
+    if (!r.ok) { E('ciiErr').textContent = d.detail || 'Computation failed.'; return; }
+    renderCii(d);
+  } catch (e) { E('ciiErr').textContent = 'Request failed: ' + e; }
+  finally { E('ciiGo').disabled = false; E('ciiGo').textContent = 'Compute CII'; }
+}
+
+const BAND_COLOR = {A: 'var(--green)', B: '#86efac', C: 'var(--amber)',
+                    D: '#fca5a5', E: 'var(--red)'};
+
+function renderCii(d) {
+  const b = d.boundaries;
+  const segs = [['A', 0, b.A], ['B', b.A, b.B], ['C', b.B, b.C],
+                ['D', b.C, b.D], ['E', b.D, b.D * 1.25]];
+  const max = b.D * 1.25;
+  const pos = Math.min(99, d.attained / max * 100);
+  const traj = d.trajectory.map(p => `<div style="background:${BAND_COLOR[p.rating]};
+      color:#04211c"><span class="yr">${p.year}</span>${p.rating}</div>`).join('');
+  const fuelLine = Object.entries(d.fuel_tonnes)
+    .map(([f, t]) => `${f.toUpperCase().replace('_','/')} ${t.toLocaleString()} t`).join(' · ');
+  const nextBand = d.gap_to_next_band_pct !== null
+    ? `<div class="banner ${d.rating === 'E' || d.rating === 'D' ? 'bad' : 'warn'}">
+        Cut CO₂ by <b>${d.gap_to_next_band_pct}%</b> to move up one band
+        (${d.rating} → ${'ABCDE'['ABCDE'.indexOf(d.rating) - 1]}).
+        To hold <b>C</b> you need ${d.reduction_to_reach.C}%.</div>`
+    : `<div class="banner good">Top band — no reduction required at this year's
+        target. Watch the trajectory below: the target tightens every year.</div>`;
+  E('ciiOut').innerHTML = `<div class="card">
+    <span class="estimate-band" style="background:${d.estimated_inputs
+      ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.14)'};
+      color:${d.estimated_inputs ? 'var(--amber)' : 'var(--green)'};
+      border-color:${d.estimated_inputs ? 'rgba(245,158,11,0.4)' : 'rgba(34,197,94,0.4)'}">
+      ${d.estimated_inputs ? 'ESTIMATE — fuel derived from speed' : 'OWNER DATA — computed from your figures'}</span>
+    <div class="idstrip"><b>${d.vessel_name || 'Vessel'}</b>
+      ${d.imo_number ? '· IMO ' + d.imo_number : ''} · ${d.ship_type.replace(/_/g,' ')}
+      · ${Math.round(d.capacity).toLocaleString()} ${d.capacity_basis} · ${d.year}</div>
+
+    <div class="bill">
+      <div class="k">Attained CII rating (${d.year})</div>
+      <div class="v" style="color:${BAND_COLOR[d.rating]}">${d.rating}</div>
+      <div class="d num">attained ${d.attained} vs required ${d.required} gCO₂/${d.capacity_basis.toLowerCase()}·nm
+        · ratio ${d.ratio} · Z = ${d.z_factor_pct}%</div>
+    </div>
+
+    <div class="ciibar">${segs.map(([l, lo, hi]) =>
+      `<div style="flex:${(hi - lo) / max};background:${BAND_COLOR[l]}">${l}</div>`).join('')}</div>
+    <div style="position:relative;height:18px;margin-top:-6px">
+      <div class="num" style="position:absolute;left:${pos}%;transform:translateX(-50%);font-size:11px">
+        ▲ ${d.attained}</div></div>
+    <div class="ciilabels"><span class="num">boundaries A≤${b.A} · B≤${b.B} · C≤${b.C} · D≤${b.D}</span>
+      <span class="num">reference line ${d.reference}</span></div>
+
+    ${nextBand}
+
+    <b style="font-size:13.5px">Rating trajectory at today's performance</b>
+    <div class="dim" style="font-size:12px">Same ship, same operation — only the IMO
+      target moves (Z factor rises to 21.5% by 2030).</div>
+    <div class="traj">${traj}</div>
+
+    <div class="statline">
+      <span>CO₂ <b class="num">${d.co2_tonnes.toLocaleString()} t</b></span>
+      <span>Distance <b class="num">${Math.round(d.distance_nm).toLocaleString()} nm</b></span>
+      <span>Fuel <b class="num">${fuelLine}</b></span>
+    </div>
+    <details class="whatif" open>
+      <summary>Reduction needed to reach each band</summary>
+      <table class="data num" style="margin-top:8px">
+        <tr><th style="text-align:left">Band</th><th>Boundary (gCO₂/cap·nm)</th><th>CO₂ cut needed</th></tr>
+        ${['A','B','C','D'].map(k => `<tr><td style="text-align:left">${k}</td>
+          <td>${b[k]}</td><td>${d.reduction_to_reach[k] > 0
+            ? d.reduction_to_reach[k] + '%' : '<span class="pos">already met</span>'}</td></tr>`).join('')}
+      </table>
+    </details>
+    <div class="dim" style="font-size:12px;margin-top:12px">${d.notes.join('<br>')}</div>
+  </div>`;
+  E('ciiOut').scrollIntoView({behavior: 'smooth', block: 'start'});
+}
+
+async function loadPrivacy() {
+  privacyLoaded = true;
+  const r = await fetch(API + '/api/privacy');
+  const md = await r.text();
+  E('privacyOut').innerHTML = mdToHtml(md);
+}
+function esc(s) { return s.replace(/&/g, '&amp;').replace(/</g, '&lt;'); }
+function inline(s) {
+  return esc(s).replace(/`([^`]+)`/g, '<code>$1</code>')
+               .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+               .replace(/\*([^*]+)\*/g, '<i>$1</i>');
+}
+function mdToHtml(md) {
+  const lines = md.split('\n');
+  let out = '', inCode = false, inList = false, inTable = false;
+  const closeAll = () => { if (inList) { out += '</ul>'; inList = false; }
+                           if (inTable) { out += '</table>'; inTable = false; } };
+  for (const raw of lines) {
+    if (raw.startsWith('```')) { closeAll();
+      out += inCode ? '</pre>' : '<pre>'; inCode = !inCode; continue; }
+    if (inCode) { out += esc(raw) + '\n'; continue; }
+    if (/^\s*\|/.test(raw)) {
+      if (/^\s*\|[\s\-|]+\|\s*$/.test(raw)) continue;   // separator row
+      if (!inTable) { closeAll(); out += '<table>'; inTable = true; }
+      out += '<tr>' + raw.trim().replace(/^\||\|$/g, '').split('|')
+        .map(c => `<td>${inline(c.trim())}</td>`).join('') + '</tr>';
+      continue;
+    }
+    if (inTable) { out += '</table>'; inTable = false; }
+    if (/^### /.test(raw)) { closeAll(); out += `<h3>${inline(raw.slice(4))}</h3>`; }
+    else if (/^## /.test(raw)) { closeAll(); out += `<h2>${inline(raw.slice(3))}</h2>`; }
+    else if (/^# /.test(raw)) { closeAll(); out += `<h2>${inline(raw.slice(2))}</h2>`; }
+    else if (/^\s*[-*] /.test(raw)) {
+      if (!inList) { out += '<ul>'; inList = true; }
+      out += `<li>${inline(raw.replace(/^\s*[-*] /, ''))}</li>`;
+    } else if (raw.trim() === '') { closeAll(); out += '<div style="height:8px"></div>'; }
+    else { closeAll(); out += `<p>${inline(raw)}</p>`; }
+  }
+  closeAll();
+  if (inCode) out += '</pre>';
+  return out;
+}
+</script>
+<!-- ===================== TALK TO US (floating, right edge) =====================
+     A deliberate non-bot: it collects the category and the message, then hands
+     the whole thing to email. Nothing is sent from the page, nothing is stored,
+     and it never asks about budget or price. -->
+<style>
+  .ck-fab{position:fixed;right:20px;bottom:20px;z-index:9998;display:flex;align-items:center;
+    gap:9px;min-height:52px;padding:0 20px 0 17px;border:0;border-radius:26px;cursor:pointer;
+    background:#2dd4bf;color:#042f2a;font:700 15px/1 "Segoe UI",system-ui,sans-serif;
+    box-shadow:0 10px 30px rgba(0,0,0,.45)}
+  .ck-fab:hover{background:#5eead4}
+  .ck-fab svg{flex:none}
+  .ck-fab .ck-close-ico{display:none}
+  .ck-fab[aria-expanded="true"] .ck-open-ico{display:none}
+  .ck-fab[aria-expanded="true"] .ck-close-ico{display:block}
+  .ck-fab[aria-expanded="true"] .ck-fab-txt{display:none}
+  .ck-fab[aria-expanded="true"]{padding:0;width:52px;justify-content:center}
+
+  .ck-chat{position:fixed;right:20px;bottom:84px;z-index:9999;width:360px;max-width:calc(100vw - 40px);
+    max-height:min(620px,calc(100vh - 120px));display:flex;flex-direction:column;overflow:hidden;
+    background:#15314f;border:1px solid rgba(255,255,255,.14);border-radius:16px;
+    box-shadow:0 24px 60px rgba(0,0,0,.5);
+    font-family:"Segoe UI",system-ui,sans-serif;color:#f0f6fc}
+  .ck-chat[hidden]{display:none}
+  .ck-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.12);flex:none}
+  .ck-head b{display:block;font-size:16px}
+  .ck-head span{display:block;font-size:12.5px;color:#8aa2bb;margin-top:2px}
+  .ck-body{padding:16px 18px;overflow-y:auto;flex:1}
+  .ck-msg{background:rgba(0,0,0,.26);border-radius:12px;border-top-left-radius:4px;
+    padding:12px 14px;font-size:14px;line-height:1.5;color:#b3c6da}
+  .ck-msg b{color:#f0f6fc}
+  .ck-lbl{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:#8aa2bb;
+    font-weight:700;margin:18px 0 8px}
+  .ck-cats{display:flex;flex-wrap:wrap;gap:7px}
+  .ck-cats button{min-height:40px;padding:0 13px;border-radius:20px;cursor:pointer;
+    background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.14);color:#f0f6fc;
+    font:600 13.5px/1 inherit}
+  .ck-cats button:hover{border-color:#14b8a6}
+  .ck-cats button[aria-pressed="true"]{background:rgba(45,212,191,.16);border-color:#2dd4bf;color:#2dd4bf}
+  .ck-chat textarea,.ck-chat input{width:100%;min-height:44px;background:rgba(0,0,0,.28);color:#f0f6fc;
+    border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:11px 13px;
+    font:14px/1.5 inherit;margin-top:8px}
+  .ck-chat textarea{min-height:92px;resize:vertical}
+  .ck-chat textarea:focus,.ck-chat input:focus{outline:2px solid #14b8a6;border-color:transparent}
+  .ck-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.12);flex:none}
+  .ck-send{width:100%;min-height:46px;border:0;border-radius:10px;cursor:pointer;
+    background:#2dd4bf;color:#042f2a;font:700 15px/1 inherit}
+  .ck-send:hover{background:#5eead4}
+  .ck-note{font-size:11.5px;color:#8aa2bb;margin-top:9px;text-align:center;line-height:1.45}
+  .ck-chat :focus-visible{outline:2px solid #2dd4bf;outline-offset:2px}
+  @media(max-width:480px){
+    .ck-chat{right:12px;left:12px;width:auto;bottom:80px}
+    .ck-fab{right:12px;bottom:12px}
+  }
+</style>
+
+<button class="ck-fab" id="ckFab" aria-expanded="false" aria-controls="ckChat"
+        aria-label="Talk to us">
+  <svg class="ck-open-ico" width="19" height="19" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.9-.9L3 21l1.9-4.6A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z"/>
+  </svg>
+  <svg class="ck-close-ico" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+    <path d="M18 6 6 18M6 6l12 12"/>
+  </svg>
+  <span class="ck-fab-txt">Talk to us</span>
+</button>
+
+<div class="ck-chat" id="ckChat" role="dialog" aria-label="Talk to CarbonKeel" hidden>
+  <div class="ck-head">
+    <b>Talk to us</b>
+    <span>One person, not a bot. Usually replies same day.</span>
+  </div>
+  <div class="ck-body">
+    <div class="ck-msg">
+      Hello — tell me what you need and I will come back to you myself.
+      <b>What is this about?</b>
+    </div>
+
+    <p class="ck-lbl">Pick one</p>
+    <div class="ck-cats" id="ckCats" role="group" aria-label="Category">
+      <button type="button" aria-pressed="false" data-c="What my fleet owes">What my fleet owes</button>
+      <button type="button" aria-pressed="false" data-c="Our CII rating">Our CII rating</button>
+      <button type="button" aria-pressed="false" data-c="A question about a number">A question about a number</button>
+      <button type="button" aria-pressed="false" data-c="Something looks wrong about our ship">Something looks wrong</button>
+      <button type="button" aria-pressed="false" data-c="Access to the CII calculator">Calculator access</button>
+      <button type="button" aria-pressed="false" data-c="Something else">Something else</button>
+    </div>
+
+    <p class="ck-lbl">Your message</p>
+    <textarea id="ckMsg" placeholder="Ship names or IMO numbers help, but are not required."
+              aria-label="Your message"></textarea>
+
+    <p class="ck-lbl">Where to reply</p>
+    <input id="ckFrom" type="email" autocomplete="email" placeholder="you@company.com"
+           aria-label="Your email">
+    <input id="ckCo" type="text" autocomplete="organization" placeholder="Company (optional)"
+           aria-label="Company">
+  </div>
+  <div class="ck-foot">
+    <button class="ck-send" id="ckSend" type="button">Send</button>
+    <p class="ck-note" id="ckNote">Opens your email app. Nothing is sent from this page,
+      and nothing you type here is stored.</p>
+    <p class="ck-note" style="margin-top:4px"><a class="ck-priv" href="privacy.html"
+      target="_blank" rel="noopener" style="color:#8aa2bb">Privacy notice</a></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* The notice is a static page on the main site. From the app (a different
+     host) it must be an absolute address; from the landing page, relative. */
+  (function () {
+    var h = location.hostname, base = '';
+    if (h.indexOf('app.') === 0) base = 'https://carbonkeel.com/';
+    else if (location.port === '8000') base = 'http://127.0.0.1:8112/';
+    document.querySelectorAll('.ck-priv').forEach(function (a) { a.href = base + 'privacy.html'; });
+  })();
+  var fab = document.getElementById('ckFab'),
+      box = document.getElementById('ckChat'),
+      note = document.getElementById('ckNote'),
+      cat = '';
+
+  function open(yes) {
+    box.hidden = !yes;
+    fab.setAttribute('aria-expanded', yes ? 'true' : 'false');
+    if (yes) { var f = document.querySelector('#ckCats button'); if (f) f.focus(); }
+    else fab.focus();
+  }
+  fab.addEventListener('click', function () { open(box.hidden); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !box.hidden) open(false);
+  });
+
+  document.getElementById('ckCats').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function (x) {
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+    });
+    cat = b.dataset.c;
+  });
+
+  document.getElementById('ckSend').addEventListener('click', function () {
+    var msg = document.getElementById('ckMsg').value.trim(),
+        from = document.getElementById('ckFrom').value.trim(),
+        co = document.getElementById('ckCo').value.trim();
+    if (!cat && !msg) {
+      note.textContent = 'Pick a topic or write a line, so I know what you need.';
+      document.getElementById('ckMsg').focus(); return;
+    }
+    if (from && from.indexOf('@') < 0) {
+      note.textContent = 'That email does not look right — check it so I can reply.';
+      document.getElementById('ckFrom').focus(); return;
+    }
+    var body = 'About: ' + (cat || 'not stated') +
+      (co ? '\n\nCompany: ' + co : '') +
+      (from ? '\nReply to: ' + from : '') +
+      '\n\n' + (msg || '(no message)') + '\n';
+    var url = 'mailto:hello@carbonkeel.com?subject=' +
+      encodeURIComponent('CarbonKeel — ' + (cat || 'enquiry')) +
+      '&body=' + encodeURIComponent(body);
+    window.__ckMailto = url;               // exposed so the hand-off can be tested
+    note.textContent = 'Your email app should be opening. If it does not, write to hello@carbonkeel.com.';
+    if (!window.__ckDry) window.location.href = url;
+  });
+})();
+</script>
+<!-- =================== /TALK TO US =================== -->
+
+</body>
+</html>

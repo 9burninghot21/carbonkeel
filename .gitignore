@@ -1,0 +1,35 @@
+# Access keys unlock the CII calculator — never commit them.
+data/access_keys.txt
+data/privacy/requests.jsonl
+
+__pycache__/
+*.pyc
+.venv/
+venv/
+.DS_Store
+
+# Generated outreach artefacts (regenerate with scripts/make_reports.py)
+outreach/reports/*.pdf
+outreach/reports/*.html
+
+# Keep the register and its cache: the app needs them at runtime.
+!fixtures/*.xlsx
+!fixtures/*.pkl
+
+# Prospect list holds named business contacts - private working data.
+outreach/pipeline.csv
+
+# Arena tournament scratch (hundreds of generated briefs).
+.arena/
+
+# Local environment files, if ever created.
+.env
+.env.*
+
+# Personal documents (CVs etc.) that sit in the project folder. NEVER commit.
+Claude outputs/
+*.docx
+*CV*.pdf
+*cv*.pdf
+*resume*
+*passport*

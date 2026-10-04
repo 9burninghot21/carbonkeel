@@ -1,0 +1,4 @@
+* text=auto
+*.pkl binary
+*.xlsx binary
+*.pdf binary

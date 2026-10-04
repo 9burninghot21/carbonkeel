@@ -1,0 +1,6 @@
+# Runtime dependencies for the CarbonKeel web app.
+# Pinned to what the engines were tested against (143 checks green).
+fastapi==0.139.0
+uvicorn[standard]==0.50.2
+openpyxl==3.1.5
+pydantic==2.13.4

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>CarbonKeel — what carbon costs your ships</title>
+<meta name="description" content="See what EU ETS, FuelEU and CII cost your ships, in euros. Free check from verified public data. No account.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚓</text></svg>">
+<style>
+  :root{
+    --bg:#0c2036; --bg2:#102a46; --panel:#15314f; --panel2:#1b3a5c;
+    --teal:#2dd4bf; --teal-d:#14b8a6; --teal-dim:rgba(45,212,191,.14);
+    --ink:#f0f6fc; --muted:#b3c6da; --faint:#8aa2bb;
+    --A:#34d399; --B:#86efac; --C:#fbbf24; --D:#fb923c; --E:#f87171;
+    --line:rgba(255,255,255,.12);
+    --s1:4px; --s2:8px; --s3:16px; --s4:24px; --s5:40px; --s6:64px; --r:14px;
+  }
+  *{box-sizing:border-box;margin:0}
+  /* overflow-x belongs on html; on body it makes body a scroll container and
+     silently kills window scrolling and every in-page anchor. */
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:hidden}
+  body{font-family:"Segoe UI",system-ui,-apple-system,sans-serif;
+    background:var(--bg);color:var(--ink);line-height:1.55;-webkit-font-smoothing:antialiased}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(900px 500px at 78% -8%, rgba(45,212,191,.13), transparent 60%),
+      radial-gradient(700px 500px at 4% 14%, rgba(56,130,246,.10), transparent 60%);}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px;position:relative;z-index:1}
+  a{color:var(--teal)}
+  :focus-visible{outline:2px solid var(--teal);outline-offset:3px;border-radius:6px}
+  .num{font-variant-numeric:tabular-nums}
+
+  header{display:flex;align-items:center;gap:var(--s3);padding:var(--s4) 0}
+  .logo{font-size:20px;font-weight:800;letter-spacing:-.3px;text-decoration:none;color:var(--ink)}
+  .logo span{color:var(--teal)}
+  .logo:hover{color:var(--ink);opacity:.85}
+  header nav{margin-left:auto;display:flex;align-items:center;gap:var(--s3)}
+  header nav a.txt{color:var(--muted);font-size:14.5px;font-weight:600;text-decoration:none}
+  header nav a.txt:hover{color:var(--ink)}
+  @media(max-width:600px){header nav a.txt{display:none}}
+
+  .go{display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    min-height:46px;padding:0 22px;border-radius:10px;border:0;background:var(--teal);
+    color:#042f2a;font-weight:700;font-size:15px;text-decoration:none;white-space:nowrap;
+    cursor:pointer;font-family:inherit}
+  .go:hover{background:#5eead4;color:#042f2a}
+  .go.quiet{background:rgba(255,255,255,.07);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+  .go.quiet:hover{background:rgba(255,255,255,.12)}
+  .go.sm{min-height:40px;padding:0 16px;font-size:14px}
+
+  .hero{padding:var(--s5) 0 var(--s6);text-align:center}
+  h1{font-size:clamp(30px,6.2vw,46px);line-height:1.1;font-weight:800;letter-spacing:-1.3px}
+  .hero .sub{font-size:clamp(16px,2.2vw,18.5px);color:var(--muted);margin:var(--s3) auto 0;max-width:32em}
+  .seek{display:flex;gap:var(--s2);margin:var(--s4) auto 0;max-width:520px}
+  .seek input{flex:1;min-width:0;min-height:52px;padding:0 18px;border-radius:10px;
+    border:1px solid var(--line);background:rgba(0,0,0,.28);color:var(--ink);
+    font-size:16px;font-family:inherit}
+  .seek input::placeholder{color:var(--faint)}
+  .seek input:focus{outline:2px solid var(--teal-d);border-color:transparent}
+  .seek .go{min-height:52px}
+  .trylist{display:flex;flex-wrap:wrap;gap:2px var(--s2);align-items:center;
+    justify-content:center;margin-top:var(--s3);font-size:13.5px;color:var(--faint)}
+  .trylist .pre{padding:11px 0}
+  .trylist button{background:none;border:0;color:var(--teal);font:inherit;font-size:13.5px;
+    cursor:pointer;padding:11px 8px;min-height:40px;text-decoration:underline}
+  .assure{display:flex;gap:var(--s4);justify-content:center;flex-wrap:wrap;
+    margin-top:var(--s4);font-size:13.5px;color:var(--muted)}
+  .assure span::before{content:"✓ ";color:var(--A);font-weight:700}
+
+  .eyebrow{text-align:center;font-size:12.5px;letter-spacing:.09em;text-transform:uppercase;
+    color:var(--faint);font-weight:700;margin-bottom:var(--s3)}
+  .showcase{padding:0 0 var(--s6)}
+  .sample{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+    border-radius:var(--r);padding:var(--s4);box-shadow:0 18px 40px rgba(0,0,0,.3)}
+  .sample .ship{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+    padding-bottom:var(--s3);border-bottom:1px solid var(--line)}
+  .sample .ship b{font-size:17px}
+  .sample .ship .meta{color:var(--faint);font-size:13.5px}
+  .sample .ship .ex{margin-left:auto;font-size:11px;font-weight:700;letter-spacing:.06em;
+    color:#fbbf24;background:rgba(251,191,36,.14);padding:3px 9px;border-radius:12px}
+  .mets{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:var(--s3);margin-top:var(--s3)}
+  .met{background:rgba(0,0,0,.2);border-radius:10px;padding:14px}
+  .met .lbl{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--faint);font-weight:700}
+  .met .val{font-size:26px;font-weight:800;margin-top:6px;letter-spacing:-.5px}
+  .met .fine{font-size:12.5px;color:var(--muted);margin-top:3px}
+  .bandwrap{margin-top:var(--s4)}
+  .bandlbl{display:flex;justify-content:space-between;font-size:12.5px;color:var(--faint);gap:10px}
+  .band{display:flex;height:30px;border-radius:8px;overflow:hidden;margin-top:6px}
+  .band div{flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#06251c}
+  .pin{position:relative;height:20px}
+  .pin b{position:absolute;left:62%;transform:translateX(-50%);font-size:12px;color:var(--ink);white-space:nowrap}
+  .trail{display:flex;gap:4px;margin-top:var(--s3)}
+  .trail div{flex:1;text-align:center;border-radius:7px;padding:7px 2px;font-size:12px;font-weight:800;color:#06251c}
+  .trail span{display:block;font-size:10px;font-weight:600;opacity:.75}
+
+  section{padding:var(--s6) 0;border-top:1px solid var(--line)}
+  h2{font-size:clamp(22px,4.2vw,30px);font-weight:700;letter-spacing:-.7px}
+  .lede{color:var(--muted);font-size:16.5px;margin-top:var(--s2);max-width:36em}
+
+  .ranked{margin-top:var(--s4);display:flex;flex-direction:column;gap:var(--s3)}
+  .rank{display:flex;gap:var(--s3);background:var(--panel);border:1px solid var(--line);
+    border-radius:12px;padding:var(--s3)}
+  .rank .no{flex:none;width:34px;height:34px;border-radius:9px;display:flex;align-items:center;
+    justify-content:center;font-weight:800;font-size:15px;background:var(--teal-dim);color:var(--teal)}
+  .rank h3{font-size:16.5px;font-weight:700}
+  .rank .when{font-size:12px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--faint)}
+  .rank p{font-size:14.5px;color:var(--muted);margin-top:5px}
+  .rank.low .no{background:rgba(255,255,255,.06);color:var(--faint)}
+
+  .costbox{background:linear-gradient(180deg,rgba(248,113,113,.11),rgba(248,113,113,.04));
+    border:1px solid rgba(248,113,113,.3);border-radius:var(--r);padding:var(--s4);margin-top:var(--s4)}
+  .costbox h3{font-size:19px;font-weight:700}
+  .costbox p{color:var(--muted);font-size:15.5px;margin-top:var(--s2);max-width:40em}
+  .costbox ul{margin:var(--s3) 0 0;padding-left:20px;color:var(--muted);font-size:15px}
+  .costbox li{margin:6px 0}
+  .costbox li b{color:var(--ink)}
+
+  /* maths that reads like maths */
+  .eq{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;
+    background:rgba(0,0,0,.22);border-radius:10px;padding:var(--s4) var(--s3);
+    margin-top:var(--s3);font-size:16px}
+  .frac{display:inline-flex;flex-direction:column;align-items:center;vertical-align:middle;
+    text-align:center;line-height:1.25}
+  .frac .n{padding:0 8px 3px}
+  .frac .d{padding:3px 8px 0;border-top:2px solid var(--muted)}
+  .eq .op{color:var(--muted)}
+  .eq var{font-style:italic;color:var(--teal)}
+  .eq sup{font-size:.72em;vertical-align:super;line-height:0}
+  .eqnote{font-size:13px;color:var(--faint);text-align:center;margin-top:var(--s2)}
+
+  details{border-bottom:1px solid var(--line)}
+  .rows{margin-top:var(--s4);border-top:1px solid var(--line)}
+  summary{display:flex;align-items:center;gap:var(--s3);padding:var(--s3) 0;min-height:52px;
+    cursor:pointer;list-style:none;font-size:16.5px;font-weight:600}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"";margin-left:auto;flex:none;width:9px;height:9px;
+    border-right:2px solid var(--teal);border-bottom:2px solid var(--teal);
+    transform:rotate(45deg) translateY(-2px);transition:transform .15s ease}
+  details[open] summary::after{transform:rotate(225deg) translateY(-2px)}
+  summary:hover{color:var(--teal)}
+  .body{padding:0 0 var(--s4);color:var(--muted);font-size:15px;max-width:40em}
+  .body p+p{margin-top:var(--s2)}
+  .body b{color:var(--ink);font-weight:600}
+
+  .talk{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+    padding:var(--s4);margin-top:var(--s4)}
+  .talk h3{font-size:18px;font-weight:700}
+  .talk p{color:var(--muted);font-size:15px;margin-top:6px;max-width:38em}
+  .ways{display:flex;gap:var(--s2);margin-top:var(--s3);flex-wrap:wrap}
+  .pick{display:flex;gap:var(--s2);margin-top:var(--s3);flex-wrap:wrap}
+  .pick button{min-height:44px;padding:0 16px;border-radius:10px;cursor:pointer;
+    background:rgba(0,0,0,.22);border:1px solid var(--line);color:var(--ink);
+    font:inherit;font-size:14.5px;font-weight:600}
+  .pick button:hover{border-color:var(--teal-d)}
+  .pick button[aria-pressed="true"]{background:var(--teal-dim);border-color:var(--teal);color:var(--teal)}
+  .talk .seek{margin:var(--s3) 0 0;max-width:none}
+
+  footer{padding:var(--s5) 0 var(--s6);border-top:1px solid var(--line);
+    font-size:13px;color:var(--faint);line-height:1.7}
+  footer a{color:var(--muted)}
+  footer .n{color:var(--ink);font-weight:700}
+</style>
+</head>
+<body id="top">
+<div class="wrap">
+
+  <header>
+    <a class="logo" href="#top" onclick="goHome(event)">Carbon<span>Keel</span></a>
+    <nav>
+      <a class="txt" href="#cost">What it costs</a>
+      <a class="txt" href="#order">What matters first</a>
+      <a class="txt" href="#talk">Talk to us</a>
+      <a class="go sm" href="https://app.carbonkeel.com">Check a ship</a>
+    </nav>
+  </header>
+
+  <!-- ============ HERO — cost first, because cost is what is live ============ -->
+  <div class="hero">
+    <h1>What is carbon costing your ships?</h1>
+    <p class="sub">EU ETS, FuelEU and your CII rating — shown in euros for any
+       vessel trading into Europe. Free, from emissions already on the public record.</p>
+
+    <form class="seek" action="https://app.carbonkeel.com" method="get">
+      <input id="q" name="q" type="search" autocomplete="off"
+             placeholder="Ship name or IMO number" aria-label="Ship name or IMO number">
+      <button class="go" type="submit">Check</button>
+    </form>
+
+    <p class="trylist"><span class="pre">No ship in mind? Try</span>
+      <button type="button" onclick="demo('PETER OLDENDORFF')">a bulk carrier</button>
+      <button type="button" onclick="demo('AIDADIVA')">a cruise ship</button>
+      <button type="button" onclick="demo('9464663')">an IMO number</button>
+    </p>
+
+    <p class="assure">
+      <span>16,673 ships already loaded</span>
+      <span>No account</span>
+      <span>Nothing to upload</span>
+    </p>
+  </div>
+
+  <!-- ============ SHOW THE ANSWER ============ -->
+  <div class="showcase">
+    <p class="eyebrow">What comes back</p>
+    <div class="sample">
+      <div class="ship">
+        <b>MV Example</b>
+        <span class="meta">Bulk carrier · 50,000 DWT · 2026</span>
+        <span class="ex">ILLUSTRATION</span>
+      </div>
+      <div class="mets">
+        <div class="met">
+          <div class="lbl">Carbon cost, one year</div>
+          <div class="val">€511k</div>
+          <div class="fine">EU ETS €363k + FuelEU €148k</div>
+        </div>
+        <div class="met">
+          <div class="lbl">CII rating</div>
+          <div class="val" style="color:var(--D)">D</div>
+          <div class="fine">5.36 against a 5.05 limit</div>
+        </div>
+        <div class="met">
+          <div class="lbl">EEXI</div>
+          <div class="val" style="color:var(--A)">Pass</div>
+          <div class="fine">9.5% under the required value</div>
+        </div>
+      </div>
+      <div class="bandwrap">
+        <div class="bandlbl"><span>Where this ship sits today</span><span>A is best</span></div>
+        <div class="band">
+          <div style="background:var(--A)">A</div><div style="background:var(--B)">B</div>
+          <div style="background:var(--C)">C</div><div style="background:var(--D)">D</div>
+          <div style="background:var(--E)">E</div>
+        </div>
+        <div class="pin"><b>▲ this ship</b></div>
+        <div class="bandlbl" style="margin-top:10px">
+          <span>Same ship, same operation — the limit tightens every year</span></div>
+        <div class="trail">
+          <div style="background:var(--C)"><span>2025</span>C</div>
+          <div style="background:var(--D)"><span>2026</span>D</div>
+          <div style="background:var(--D)"><span>2027</span>D</div>
+          <div style="background:var(--D)"><span>2028</span>D</div>
+          <div style="background:var(--D)"><span>2029</span>D</div>
+          <div style="background:var(--E)"><span>2030</span>E</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ IS YOUR COST HIGH? ============ -->
+  <section id="cost">
+    <h2>Is that a lot? Usually, yes.</h2>
+    <p class="lede">Most owners we show this to have never seen the four regimes
+       added up in one number. It is bigger than they expect, and more of it is
+       avoidable than they expect.</p>
+
+    <div class="costbox">
+      <h3>A single mid-size ship can carry a six-figure annual carbon bill.</h3>
+      <p>Across a fleet that becomes the kind of number a board asks about.
+         Three things usually drive it, and all three can be measured before you
+         change anything:</p>
+      <ul>
+        <li><b>Allowances you buy anyway.</b> From 2026 you surrender for 100%
+            of EU-scope emissions, and methane and nitrous oxide now count too.</li>
+        <li><b>A fuel penalty you may not have counted.</b> Ordinary fuel oil sits
+            above the FuelEU limit, so a shortfall accrues quietly all year.</li>
+        <li><b>A rating that drifts down while you do nothing.</b> The CII limit
+            tightens annually — the example above goes from C to E by 2030
+            without changing a thing.</li>
+      </ul>
+      <p style="margin-top:var(--s3)"><b style="color:var(--ink)">If your number
+         looks high, that is worth a conversation.</b> We will tell you which part
+         is real, which part is our estimate, and what it would take to move it.
+         If there is nothing worth doing, we will say so.</p>
+      <div class="ways">
+        <a class="go" href="#talk">Talk to us about your fleet</a>
+        <a class="go quiet" href="https://app.carbonkeel.com">Check a ship first</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ PRIORITY — the honest ordering ============ -->
+  <section id="order">
+    <h2>What actually matters first</h2>
+    <p class="lede">Not everything is equally urgent in 2026. This is the order
+       we would work in, and why.</p>
+
+    <div class="ranked">
+      <div class="rank">
+        <div class="no">1</div>
+        <div>
+          <span class="when">Cash, every year</span>
+          <h3>EU ETS and UK ETS</h3>
+          <p>Allowances you buy and surrender. From 2026 it is the full 100% of
+             EU-scope emissions, with methane and nitrous oxide included. This is
+             the largest single number for most fleets.</p>
+        </div>
+      </div>
+      <div class="rank">
+        <div class="no">2</div>
+        <div>
+          <span class="when">Cash, and a tradable position</span>
+          <h3>FuelEU Maritime</h3>
+          <p>A limit on the greenhouse-gas intensity of the energy you burn, not
+             on your tonnes. Running conventional fuel puts you over it, and the
+             shortfall is charged per tonne.</p>
+        </div>
+      </div>
+      <div class="rank">
+        <div class="no">3</div>
+        <div>
+          <span class="when">Rising every year to 2030</span>
+          <h3>CII rating</h3>
+          <p>No direct fine, but a poor rating has consequences: three years at D,
+             or one year at E, requires a documented corrective plan — and
+             charterers increasingly screen on it.</p>
+        </div>
+      </div>
+      <div class="rank low">
+        <div class="no">4</div>
+        <div>
+          <span class="when">Mostly settled</span>
+          <h3>EEXI</h3>
+          <p>A one-off design check that the existing fleet cleared back in 2023.
+             It matters again only for a newbuilding, a major conversion, or a
+             change in engine power limitation — so we keep the check free rather
+             than making it the headline.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TRUST + THE MATHS, DRAWN PROPERLY ============ -->
+  <section id="trust">
+    <h2>How the numbers are worked out</h2>
+    <p class="lede">No black box. Here is the actual arithmetic behind a CII
+       rating — the rest follows the same pattern.</p>
+
+    <div class="eq" aria-label="Attained carbon intensity equals carbon dioxide emitted divided by capacity times distance sailed">
+      <span>attained</span><span class="op">=</span>
+      <span class="frac">
+        <span class="n">CO<sub>2</sub> emitted</span>
+        <span class="d">capacity × distance sailed</span>
+      </span>
+    </div>
+    <p class="eqnote">How much carbon the ship emits to move one tonne of
+       capacity one mile.</p>
+
+    <div class="eq" aria-label="Required intensity equals one minus the reduction factor, times a times capacity to the power of minus c">
+      <span>required</span><span class="op">=</span>
+      <span>(1 − <var>Z</var>)</span><span class="op">×</span>
+      <span><var>a</var> × capacity<sup>−<var>c</var></sup></span>
+    </div>
+    <p class="eqnote"><var>a</var> and <var>c</var> set the 2019 fleet average
+       for that ship type; <var>Z</var> is how much tighter this year is.
+       Beat the required figure and you rate well.</p>
+
+    <div class="rows">
+      <details open>
+        <summary>We check ourselves against your verifier — and show you the result</summary>
+        <div class="body">
+          <p>The public register carries each ship's EU-scope CO<sub>2</sub> as
+             that ship's <b>accredited verifier</b> calculated it. We rebuild that
+             number independently and compare the two.</p>
+          <p>On a 400-ship sample we land on the <b>exact same tonne for about two
+             in three ships</b>, and within a couple of percent for roughly four in
+             five. Where it differs, the published figure usually covers only part
+             of the year or part of the operator's obligation — detail the public
+             record does not expose.</p>
+          <p>We show you that comparison on every vessel, so you can see which case
+             yours is rather than take our word for it.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Every figure traces to a named regulation</summary>
+        <div class="body">
+          <p>Carbon factors, reference lines, reduction factors and fuel
+             properties are taken from the IMO resolutions and EU regulations
+             themselves, checked line by line against the published texts — not
+             from secondary summaries.</p>
+          <p>No AI touches a compliance number. The calculations are ordinary
+             code built from the rules, and we will walk your verifier through
+             any of them.</p>
+        </div>
+      </details>
+      <details>
+        <summary>What is an estimate, and what is not</summary>
+        <div class="body">
+          <p>Anything rebuilt from public data is an <b>estimate</b> and says so
+             every time. Deadweight is not published, so a rating depends on the
+             capacity you give us. Send one noon-report file and the same screen
+             becomes your own verified position.</p>
+        </div>
+      </details>
+      <details>
+        <summary>Your data stays yours</summary>
+        <div class="body">
+          <p>If you operate a ship and would rather our figures about it were not
+             shown to anyone else, one click switches them off. Nothing here is
+             search-indexed.</p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- ============ TALK TO US ============ -->
+  <section id="talk">
+    <h2>Talk to someone, not a form</h2>
+    <p class="lede">There is one person behind this. Ask anything — including
+       whether this is worth your time.</p>
+
+    <div class="talk">
+      <h3>Send us your fleet and we will work out what it costs</h3>
+      <p>Give us your IMO numbers and we will come back with the whole fleet
+         costed, free. If you would rather just ask a question first, that is
+         fine too.</p>
+
+      <div class="pick" role="group" aria-label="What is this about">
+        <button type="button" aria-pressed="false" onclick="setTopic(this,'what our fleet costs')">What our fleet costs</button>
+        <button type="button" aria-pressed="false" onclick="setTopic(this,'a question about the numbers')">I have a question</button>
+        <button type="button" aria-pressed="false" onclick="setTopic(this,'our CII rating')">Our CII rating</button>
+        <button type="button" aria-pressed="false" onclick="setTopic(this,'something else')">Something else</button>
+      </div>
+
+      <form class="seek" onsubmit="return startChat(event)">
+        <input id="who" type="text" autocomplete="organization"
+               placeholder="Your company" aria-label="Your company">
+        <button class="go" type="submit">Start the conversation</button>
+      </form>
+
+      <p id="talkNote" style="font-size:13px;color:var(--faint);margin-top:12px">
+        Opens your email to us — nothing is sent from this page.
+        <a href="privacy.html" style="color:var(--faint)">Privacy notice</a></p>
+
+      <div class="ways">
+        <a class="go quiet" href="mailto:hello@carbonkeel.com">Email hello@carbonkeel.com</a>
+        <a class="go quiet" href="https://app.carbonkeel.com">Check a ship yourself</a>
+      </div>
+    </div>
+  </section>
+
+  <section style="text-align:center">
+    <h2>Start with one ship.</h2>
+    <p class="lede" style="margin:var(--s2) auto 0">Ten seconds, and you will
+       know whether there is anything here worth your time.</p>
+    <form class="seek" action="https://app.carbonkeel.com" method="get" style="justify-content:center">
+      <input name="q" type="search" placeholder="Ship name or IMO number"
+             aria-label="Ship name or IMO number">
+      <button class="go" type="submit">Check a ship</button>
+    </form>
+  </section>
+
+  <footer>
+    <p><span class="n">CarbonKeel</span> — what carbon costs your ships.</p>
+    <p style="margin-top:10px">Figures rebuilt from the EU MRV register are
+       estimates and are labelled as such. Source data is published by EMSA under
+       Article 21 of Regulation (EU) 2015/757. Operators can ask for our derived
+       figures to be withheld from third parties. Not search-indexed. Not legal
+       or investment advice. The example above is an illustration, not a real
+       vessel's filing.</p>
+    <p style="margin-top:14px">
+      <a href="mailto:hello@carbonkeel.com">hello@carbonkeel.com</a> ·
+      <a href="privacy.html">Privacy notice</a> ·
+      <a href="#top" onclick="goHome(event)">Back to top</a></p>
+  </footer>
+</div>
+
+<script>
+  /* The app lives at app.carbonkeel.com in production. Until that is
+     registered and deployed, point every link at the local server so the whole
+     journey is clickable. */
+  var LOCAL = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
+           || location.protocol === 'file:';
+  var APP = LOCAL ? 'http://127.0.0.1:8000' : 'https://app.carbonkeel.com';
+  if (LOCAL) {
+    document.querySelectorAll('a[href^="https://app.carbonkeel.com"]').forEach(function (a) {
+      a.href = a.href.replace('https://app.carbonkeel.com', APP); });
+    document.querySelectorAll('form[action^="https://app.carbonkeel.com"]').forEach(function (f) {
+      f.action = APP; });
+  }
+
+  /* The logo is home: back to the top of the opening page. */
+  function goHome(e) {
+    e.preventDefault();
+    window.scrollTo({top: 0, behavior: 'smooth'});
+    if (history.replaceState) history.replaceState(null, '', location.pathname);
+  }
+
+  function demo(q) {
+    var box = document.getElementById('q');
+    box.value = q; box.focus(); box.form.submit();
+  }
+
+  var TOPIC = '';
+  function setTopic(btn, label) {
+    document.querySelectorAll('.pick button').forEach(function (b) {
+      b.setAttribute('aria-pressed', b === btn ? 'true' : 'false'); });
+    TOPIC = label;
+  }
+
+  function startChat(e) {
+    e.preventDefault();
+    var who = document.getElementById('who').value.trim();
+    var note = document.getElementById('talkNote');
+    if (!who) {
+      document.getElementById('who').focus();
+      note.textContent = 'Add your company name so we know who we are talking to.';
+      return false;
+    }
+    var body = 'Company: ' + who +
+      '\n\nAbout: ' + (TOPIC || 'not stated') +
+      '\n\nIMO numbers (optional):\n\n\nAnything else:\n';
+    var url = 'mailto:hello@carbonkeel.com?subject=' +
+      encodeURIComponent('CarbonKeel — ' + who) + '&body=' + encodeURIComponent(body);
+    window.__ckMailto = url;               // exposed so the hand-off can be tested
+    note.textContent = 'Your email app should be opening. If not, write to hello@carbonkeel.com.';
+    if (!window.__ckDry) window.location.href = url;
+    return false;
+  }
+</script>
+<!-- ===================== TALK TO US (floating, right edge) =====================
+     A deliberate non-bot: it collects the category and the message, then hands
+     the whole thing to email. Nothing is sent from the page, nothing is stored,
+     and it never asks about budget or price. -->
+<style>
+  .ck-fab{position:fixed;right:20px;bottom:20px;z-index:9998;display:flex;align-items:center;
+    gap:9px;min-height:52px;padding:0 20px 0 17px;border:0;border-radius:26px;cursor:pointer;
+    background:#2dd4bf;color:#042f2a;font:700 15px/1 "Segoe UI",system-ui,sans-serif;
+    box-shadow:0 10px 30px rgba(0,0,0,.45)}
+  .ck-fab:hover{background:#5eead4}
+  .ck-fab svg{flex:none}
+  .ck-fab .ck-close-ico{display:none}
+  .ck-fab[aria-expanded="true"] .ck-open-ico{display:none}
+  .ck-fab[aria-expanded="true"] .ck-close-ico{display:block}
+  .ck-fab[aria-expanded="true"] .ck-fab-txt{display:none}
+  .ck-fab[aria-expanded="true"]{padding:0;width:52px;justify-content:center}
+
+  .ck-chat{position:fixed;right:20px;bottom:84px;z-index:9999;width:360px;max-width:calc(100vw - 40px);
+    max-height:min(620px,calc(100vh - 120px));display:flex;flex-direction:column;overflow:hidden;
+    background:#15314f;border:1px solid rgba(255,255,255,.14);border-radius:16px;
+    box-shadow:0 24px 60px rgba(0,0,0,.5);
+    font-family:"Segoe UI",system-ui,sans-serif;color:#f0f6fc}
+  .ck-chat[hidden]{display:none}
+  .ck-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.12);flex:none}
+  .ck-head b{display:block;font-size:16px}
+  .ck-head span{display:block;font-size:12.5px;color:#8aa2bb;margin-top:2px}
+  .ck-body{padding:16px 18px;overflow-y:auto;flex:1}
+  .ck-msg{background:rgba(0,0,0,.26);border-radius:12px;border-top-left-radius:4px;
+    padding:12px 14px;font-size:14px;line-height:1.5;color:#b3c6da}
+  .ck-msg b{color:#f0f6fc}
+  .ck-lbl{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:#8aa2bb;
+    font-weight:700;margin:18px 0 8px}
+  .ck-cats{display:flex;flex-wrap:wrap;gap:7px}
+  .ck-cats button{min-height:40px;padding:0 13px;border-radius:20px;cursor:pointer;
+    background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.14);color:#f0f6fc;
+    font:600 13.5px/1 inherit}
+  .ck-cats button:hover{border-color:#14b8a6}
+  .ck-cats button[aria-pressed="true"]{background:rgba(45,212,191,.16);border-color:#2dd4bf;color:#2dd4bf}
+  .ck-chat textarea,.ck-chat input{width:100%;min-height:44px;background:rgba(0,0,0,.28);color:#f0f6fc;
+    border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:11px 13px;
+    font:14px/1.5 inherit;margin-top:8px}
+  .ck-chat textarea{min-height:92px;resize:vertical}
+  .ck-chat textarea:focus,.ck-chat input:focus{outline:2px solid #14b8a6;border-color:transparent}
+  .ck-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.12);flex:none}
+  .ck-send{width:100%;min-height:46px;border:0;border-radius:10px;cursor:pointer;
+    background:#2dd4bf;color:#042f2a;font:700 15px/1 inherit}
+  .ck-send:hover{background:#5eead4}
+  .ck-note{font-size:11.5px;color:#8aa2bb;margin-top:9px;text-align:center;line-height:1.45}
+  .ck-chat :focus-visible{outline:2px solid #2dd4bf;outline-offset:2px}
+  @media(max-width:480px){
+    .ck-chat{right:12px;left:12px;width:auto;bottom:80px}
+    .ck-fab{right:12px;bottom:12px}
+  }
+</style>
+
+<button class="ck-fab" id="ckFab" aria-expanded="false" aria-controls="ckChat"
+        aria-label="Talk to us">
+  <svg class="ck-open-ico" width="19" height="19" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4 8.9 8.9 0 0 1-3.9-.9L3 21l1.9-4.6A8.4 8.4 0 0 1 12 3a8.4 8.4 0 0 1 9 8.5Z"/>
+  </svg>
+  <svg class="ck-close-ico" width="18" height="18" viewBox="0 0 24 24" fill="none"
+       stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+    <path d="M18 6 6 18M6 6l12 12"/>
+  </svg>
+  <span class="ck-fab-txt">Talk to us</span>
+</button>
+
+<div class="ck-chat" id="ckChat" role="dialog" aria-label="Talk to CarbonKeel" hidden>
+  <div class="ck-head">
+    <b>Talk to us</b>
+    <span>One person, not a bot. Usually replies same day.</span>
+  </div>
+  <div class="ck-body">
+    <div class="ck-msg">
+      Hello — tell me what you need and I will come back to you myself.
+      <b>What is this about?</b>
+    </div>
+
+    <p class="ck-lbl">Pick one</p>
+    <div class="ck-cats" id="ckCats" role="group" aria-label="Category">
+      <button type="button" aria-pressed="false" data-c="What my fleet owes">What my fleet owes</button>
+      <button type="button" aria-pressed="false" data-c="Our CII rating">Our CII rating</button>
+      <button type="button" aria-pressed="false" data-c="A question about a number">A question about a number</button>
+      <button type="button" aria-pressed="false" data-c="Something looks wrong about our ship">Something looks wrong</button>
+      <button type="button" aria-pressed="false" data-c="Access to the CII calculator">Calculator access</button>
+      <button type="button" aria-pressed="false" data-c="Something else">Something else</button>
+    </div>
+
+    <p class="ck-lbl">Your message</p>
+    <textarea id="ckMsg" placeholder="Ship names or IMO numbers help, but are not required."
+              aria-label="Your message"></textarea>
+
+    <p class="ck-lbl">Where to reply</p>
+    <input id="ckFrom" type="email" autocomplete="email" placeholder="you@company.com"
+           aria-label="Your email">
+    <input id="ckCo" type="text" autocomplete="organization" placeholder="Company (optional)"
+           aria-label="Company">
+  </div>
+  <div class="ck-foot">
+    <button class="ck-send" id="ckSend" type="button">Send</button>
+    <p class="ck-note" id="ckNote">Opens your email app. Nothing is sent from this page,
+      and nothing you type here is stored.</p>
+    <p class="ck-note" style="margin-top:4px"><a class="ck-priv" href="privacy.html"
+      target="_blank" rel="noopener" style="color:#8aa2bb">Privacy notice</a></p>
+  </div>
+</div>
+
+<script>
+(function () {
+  /* The notice is a static page on the main site. From the app (a different
+     host) it must be an absolute address; from the landing page, relative. */
+  (function () {
+    var h = location.hostname, base = '';
+    if (h.indexOf('app.') === 0) base = 'https://carbonkeel.com/';
+    else if (location.port === '8000') base = 'http://127.0.0.1:8112/';
+    document.querySelectorAll('.ck-priv').forEach(function (a) { a.href = base + 'privacy.html'; });
+  })();
+  var fab = document.getElementById('ckFab'),
+      box = document.getElementById('ckChat'),
+      note = document.getElementById('ckNote'),
+      cat = '';
+
+  function open(yes) {
+    box.hidden = !yes;
+    fab.setAttribute('aria-expanded', yes ? 'true' : 'false');
+    if (yes) { var f = document.querySelector('#ckCats button'); if (f) f.focus(); }
+    else fab.focus();
+  }
+  fab.addEventListener('click', function () { open(box.hidden); });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !box.hidden) open(false);
+  });
+
+  document.getElementById('ckCats').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (!b) return;
+    this.querySelectorAll('button').forEach(function (x) {
+      x.setAttribute('aria-pressed', x === b ? 'true' : 'false');
+    });
+    cat = b.dataset.c;
+  });
+
+  document.getElementById('ckSend').addEventListener('click', function () {
+    var msg = document.getElementById('ckMsg').value.trim(),
+        from = document.getElementById('ckFrom').value.trim(),
+        co = document.getElementById('ckCo').value.trim();
+    if (!cat && !msg) {
+      note.textContent = 'Pick a topic or write a line, so I know what you need.';
+      document.getElementById('ckMsg').focus(); return;
+    }
+    if (from && from.indexOf('@') < 0) {
+      note.textContent = 'That email does not look right — check it so I can reply.';
+      document.getElementById('ckFrom').focus(); return;
+    }
+    var body = 'About: ' + (cat || 'not stated') +
+      (co ? '\n\nCompany: ' + co : '') +
+      (from ? '\nReply to: ' + from : '') +
+      '\n\n' + (msg || '(no message)') + '\n';
+    var url = 'mailto:hello@carbonkeel.com?subject=' +
+      encodeURIComponent('CarbonKeel — ' + (cat || 'enquiry')) +
+      '&body=' + encodeURIComponent(body);
+    window.__ckMailto = url;               // exposed so the hand-off can be tested
+    note.textContent = 'Your email app should be opening. If it does not, write to hello@carbonkeel.com.';
+    if (!window.__ckDry) window.location.href = url;
+  });
+})();
+</script>
+<!-- =================== /TALK TO US =================== -->
+
+</body>
+</html>

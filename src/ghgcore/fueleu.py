@@ -1,0 +1,139 @@
+"""FuelEU Maritime engine — Regulation (EU) 2023/1805.
+
+GHG intensity of energy used onboard (well-to-wake, gCO2e/MJ) vs declining
+targets from the 91.16 gCO2e/MJ 2020 baseline. Computes compliance balance,
+penalty exposure (Art. 23), and the tradable surplus value (pooling, Art. 21).
+
+Fuel WtW default intensities & LCVs below are APPROXIMATE working values for
+prototyping — production must use Annex II defaults / certified actual values.
+"""
+from dataclasses import dataclass
+from typing import Optional
+from .schema import AnnualActivity, EngineType, FuelType, Vessel, VoyageScope
+
+BASELINE_GCO2E_MJ = 91.16
+REDUCTIONS = {2025: 0.02, 2030: 0.06, 2035: 0.145, 2040: 0.31, 2045: 0.62, 2050: 0.80}
+PENALTY_EUR_PER_T_VLSFO_EQ = 2400.0
+VLSFO_ENERGY_MJ_PER_T = 41_000.0
+
+# (LCV MJ per tonne, WtW gCO2e/MJ). Verified 8 Jul 2026 against Reg. (EU)
+# 2023/1805 Annex II default emission factors (EUR-Lex CELEX 32023R1805,
+# OJ L 234/90-95): WtW = WtT + (Cf_CO2 + Cf_CH4*25 + Cf_N2O*298)/LCV, with
+# LNG methane slip per Annex II column 9 (FuelEU uses AR4 GWP100 25/298 —
+# note EU ETS uses AR5 28/265; the regimes intentionally differ).
+#   HFO:  LCV 0.0405, WtT 13.5, Cf 3.114/0.00005/0.00018 -> 91.74
+#   LFO:  LCV 0.041,  WtT 13.2, Cf 3.151/0.00005/0.00018 -> 91.39
+#   MGO:  LCV 0.0427, WtT 14.4, Cf 3.206/0.00005/0.00018 -> 90.77
+#   LNG (Otto dual-fuel medium speed, 3.1% slip): LCV 0.0491, WtT 18.5,
+#     (0.969*(2.750+0.00011*298) + 0.031*25)/0.0491 + 18.5 -> 89.20
+#     (slow-speed Otto 1.7% / Diesel DF 0.2% / LBSI 2.6% differ — engine
+#     type must refine this in production)
+#   Methanol (fossil NG): LCV 0.0199, WtT 31.3, Cf 1.375 + class-default
+#     CH4/N2O per the TBM rule -> 103.15
+#   Biofuels: WtT = E - Cf_CO2/LCV per RED II; B100 uses the UCOME-class
+#     default E (pathway/certificate-specific — VERIFY per actual BDN)
+FUEL_PROPS = {
+    FuelType.HFO:        (40_500.0, 91.74),
+    FuelType.LFO:        (41_000.0, 91.39),
+    FuelType.MDO_MGO:    (42_700.0, 90.77),
+    FuelType.LNG:        (49_100.0, 89.20),   # Otto DF medium-speed default
+    FuelType.METHANOL:   (19_900.0, 103.15),  # fossil; e-MeOH far lower
+    FuelType.BIOFUEL_B24: (40_040.0, 74.8),   # 24% UCOME/76% LFO, energy-weighted
+    FuelType.BIOFUEL_B100: (37_000.0, 16.4),  # UCOME default pathway — VERIFY per BDN
+}
+
+# LNG WtW by consumer-unit class (Annex II col. 9 slip; same computation as
+# above with slip 3.1/1.7/0.2/2.6%):
+LNG_WTW_BY_ENGINE = {
+    EngineType.OTTO_MS: 89.20,
+    EngineType.OTTO_SS: 82.87,
+    EngineType.DIESEL_DF: 76.08,
+    EngineType.LBSI: 86.94,
+}
+
+
+def resolve_props(fuel: FuelType, vessel: Optional[Vessel] = None,
+                  overrides: Optional[dict] = None) -> tuple[float, float]:
+    """(LCV MJ/t, WtW gCO2e/MJ) for a fuel: certified override (Art. 10(4)/(5))
+    first, then engine-specific LNG default, then Annex II default."""
+    if overrides and fuel in overrides:
+        return overrides[fuel]
+    if fuel == FuelType.LNG and vessel is not None:
+        return FUEL_PROPS[fuel][0], LNG_WTW_BY_ENGINE[vessel.engine_type]
+    return FUEL_PROPS[fuel]
+
+
+def target_intensity(year: int) -> float:
+    red = 0.0
+    for y in sorted(REDUCTIONS):
+        if year >= y:
+            red = REDUCTIONS[y]
+    return BASELINE_GCO2E_MJ * (1 - red)
+
+
+@dataclass
+class FuelEUResult:
+    ghg_intensity: float          # attained gCO2e/MJ (EU-scoped energy)
+    target: float
+    energy_mj: float              # EU-scoped energy
+    compliance_balance_gco2e: float   # + surplus / - deficit
+    compliance_balance_tco2e: float
+    penalty_eur: float            # if deficit and unpooled/unbanked
+    surplus_value_note: str
+    notes: list[str]
+
+
+def _scope_share(scope: VoyageScope) -> float:
+    return {VoyageScope.INTRA_EEA: 1.0, VoyageScope.AT_BERTH_EEA: 1.0,
+            VoyageScope.EXTRA_EEA: 0.5, VoyageScope.OUT_OF_SCOPE: 0.0}[scope]
+
+
+def compute_fueleu(activity: AnnualActivity,
+                   certified_props: Optional[dict] = None) -> FuelEUResult:
+    """certified_props: {FuelType: (lcv_mj_per_t, wtw_gco2e_per_mj)} — actual
+    certified values per Art. 10(4)/(5) (e.g. from the biofuel's BDN/PoS);
+    they override the Annex II defaults for this computation."""
+    notes = ["Fuel LCV/WtW: Reg. 2023/1805 Annex II defaults (verified); "
+             "biofuel pathway values should come from certificates (Art. 10)."]
+    if certified_props:
+        notes.append(f"Certified values supplied for: "
+                     f"{', '.join(f.value for f in certified_props)} (Art. 10).")
+    energy = 0.0
+    emissions = 0.0  # gCO2e
+    for leg in activity.legs:
+        share = _scope_share(leg.scope)
+        if share == 0:
+            continue
+        for fc in leg.fuel_consumed:
+            lcv, wtw = resolve_props(fc.fuel, activity.vessel, certified_props)
+            e = fc.tonnes * lcv * share       # MJ in scope
+            energy += e
+            emissions += e * wtw
+
+    if energy == 0:
+        return FuelEUResult(0, target_intensity(activity.year), 0, 0, 0, 0,
+                            "No EU-scoped energy — FuelEU not applicable this year.", notes)
+
+    intensity = emissions / energy
+    tgt = target_intensity(activity.year)
+    cb_g = (tgt - intensity) * energy          # Annex IV: CB = (target - actual) x energy
+    cb_t = cb_g / 1e6
+
+    penalty = 0.0
+    if cb_g < 0:
+        # Art. 23: penalty = |CB| / (GHGIEactual x 41,000) x 2,400 EUR
+        penalty = abs(cb_g) / (intensity * VLSFO_ENERGY_MJ_PER_T) * PENALTY_EUR_PER_T_VLSFO_EQ
+
+    if cb_t > 0:
+        val = ("Surplus is bankable (Art. 20) or poolable (Art. 21). Market value is "
+               "negotiated, bounded above by counterparties' avoided penalty "
+               f"(≈€{penalty_equiv(cb_g, intensity):,.0f} if they paid instead).")
+    else:
+        val = "Deficit: options = pool with a surplus ship, borrow from next year (+10%), or pay penalty."
+
+    return FuelEUResult(round(intensity, 2), round(tgt, 2), round(energy, 0),
+                        round(cb_g, 0), round(cb_t, 1), round(penalty, 0), val, notes)
+
+
+def penalty_equiv(cb_g: float, intensity: float) -> float:
+    return abs(cb_g) / (intensity * VLSFO_ENERGY_MJ_PER_T) * PENALTY_EUR_PER_T_VLSFO_EQ

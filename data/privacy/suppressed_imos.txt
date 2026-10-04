@@ -1,0 +1,9 @@
+# Suppression list — IMOs whose operator asked us not to publish CarbonKeel's
+# DERIVED figures (cost exposure, ratings, penalty risk, lever savings) to
+# third parties. EMSA's Art. 21 verified facts stay visible: they are public
+# by law and available at the source regardless of us.
+#
+# Format: one IMO per line; text after '#' is a note. Edits take effect
+# immediately (the file's mtime is watched) — no restart needed.
+# Requests are appended automatically by POST /api/claim (kind=suppress)
+# and logged in requests.jsonl.
