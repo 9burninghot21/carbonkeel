@@ -123,6 +123,7 @@ def check_endpoints():
         ("/", 200, "landing shell"),
         ("/healthz", 200, "healthz"),
         ("/robots.txt", 200, "robots.txt"),
+        ("/privacy.html", 200, "app serves the privacy notice (relative links work)"),
         ("/api/search?q=OLDENDORFF", 200, "search"),
         ("/api/search?q=a", 422, "search rejects short query"),
         ("/api/lookup/9464663", 200, "lookup"),

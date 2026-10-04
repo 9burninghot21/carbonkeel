@@ -465,6 +465,16 @@ def healthz():
             "ships": len(_RECORDS) if _RECORDS else 0}
 
 
+@app.get("/privacy.html")
+def privacy_notice():
+    """The privacy notice, served by the app too, so a relative link to it
+    works on whatever host the app is on (a bare *.onrender.com address
+    during a staged rollout, app.carbonkeel.com later)."""
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "..", "site", "privacy.html"),
+        headers={"Cache-Control": "no-cache"})
+
+
 @app.get("/robots.txt")
 def robots():
     """Per-vessel derived figures must not be indexed: searching an operator's

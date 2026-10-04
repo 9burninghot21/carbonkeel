@@ -629,14 +629,6 @@
 
 <script>
 (function () {
-  /* The notice is a static page on the main site. From the app (a different
-     host) it must be an absolute address; from the landing page, relative. */
-  (function () {
-    var h = location.hostname, base = '';
-    if (h.indexOf('app.') === 0) base = 'https://carbonkeel.com/';
-    else if (location.port === '8000') base = 'http://127.0.0.1:8112/';
-    document.querySelectorAll('.ck-priv').forEach(function (a) { a.href = base + 'privacy.html'; });
-  })();
   var fab = document.getElementById('ckFab'),
       box = document.getElementById('ckChat'),
       note = document.getElementById('ckNote'),
