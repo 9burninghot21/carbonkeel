@@ -10,7 +10,15 @@ Budget: Part A about 45 minutes. Part B about 45 minutes, once.
 
 ## Before you start: the two automated gates
 
-Run both. If either is red, stop — do not start clicking.
+Run the one-command publish gate. It runs both suites and the publish checks
+(placeholders, secrets, personal files, deploy files). Red means stop.
+
+```bash
+python scripts/preflight.py -v
+```
+
+Exit 0 = ready, 1 = a check failed, 2 = code is fine but something is waiting
+on you (e.g. your name in the privacy notice). The two suites on their own:
 
 ```bash
 python tests/test_engines.py
@@ -22,7 +30,7 @@ just reproduced.
 ```bash
 python tests/test_smoke.py
 ```
-24 checks on everything the engine tests cannot see: that the page JavaScript
+48 checks on everything the engine tests cannot see: that the page JavaScript
 actually parses, that the endpoints answer correctly, that the CII calculator
 is really locked, and that no customer-facing copy leaks an API path or a
 price.
@@ -118,55 +126,84 @@ down what you expected instead.
 
 ---
 
-## Part B — publish, in this order
+## Part B — publish, slowly, in stages
 
-Each step has a gate. Do not pass a gate that is red.
+Each stage has a gate and a rollback. Do not start a stage until the one before
+it is green. **Nothing below happens without you.** Claude does not buy, sign up,
+push or deploy for you.
 
-### B1 · Legal, before anything is public
-- [ ] Write the **privacy notice** — what the chat and claim forms collect
-      (name, company, email), why, and how to have it deleted.
-      *(From `docs/LEGAL_REVIEW.md` §4. This is the one genuine blocker.)*
-- [ ] Confirm `data/access_keys.txt` and `data/privacy/requests.jsonl` are in
-      `.gitignore` — they are, but confirm after any repo change.
-- [ ] Start the **trademark search** (EUIPO/UKIPO, classes 9/35/42). It can run
-      in the background; it blocks incorporation, not launch.
+### Stage 0 · Local — DONE
+UAT passed (see `docs/UAT_REPORT.md`). Preflight: code green.
 
-### B2 · Register the domain — about 10 minutes
-- [ ] Buy `carbonkeel.com` at **Cloudflare Registrar** (~$10.44/yr, at cost).
-- [ ] Turn **WHOIS privacy** on.
-- [ ] Set up **Email Routing** so `hello@carbonkeel.com` forwards to your inbox.
-- [ ] Send yourself a test mail and confirm it arrives.
+### Stage 1 · Your blockers (before anything is public) — about 15 minutes
+- [ ] Edit `site/privacy.html`: replace `[[YOUR FULL NAME]]` and
+      `[[YOUR COUNTRY OF RESIDENCE]]`.
+- [ ] Read the retention (24 months) and provider list in the notice; change
+      anything you do not want to promise.
+- [ ] Generate a **new** access key and store it in a password manager:
+      `python -c "import secrets;print('ck-'+secrets.token_hex(8))"`
+      (the old one appeared in plain text — treat it as burnt).
+- [ ] Gate: `python scripts/preflight.py` exits **0**.
+- [ ] Start the trademark search (EUIPO/UKIPO, classes 9/35/42). Background task.
+- [ ] Take advice on the two flags in `docs/LEGAL_REVIEW.md` (EU representative,
+      international transfers). Not needed to test privately; needed before outreach.
 
-> Until this is done, every CTA falls back to `127.0.0.1:8000` automatically,
-> so nothing is broken locally — but nothing is shareable either.
+### Stage 2 · Private soft launch — Render's own address, only you
+- [ ] Create a **private** GitHub repo, push `main`.
+      Check first: `git log --stat | grep -Ei "access_keys|requests.jsonl|cv|resume"` prints nothing.
+- [ ] Render → New → Blueprint → pick the repo (reads `render.yaml`).
+- [ ] In the Render dashboard set the two secrets:
+      `CARBONKEEL_ACCESS_KEYS` = `your-new-key:founder`
+      `CARBONKEEL_SUPPRESSED_IMOS` = leave empty for now.
+      (`CARBONKEEL_PROXY_HOPS` is already `1`.)
+- [ ] Gate: `https://<name>.onrender.com/healthz` reports `"ships": 16673`.
+- [ ] Re-run UAT items **8, 10, 15, 25, 30–31, 35, 39** on that address, on your
+      phone. First load can take ~50 s while the free instance wakes.
+- [ ] Gate: `/privacy.html` loads; search works twice in a row from your phone
+      and your laptop (confirms the rate limit is per-visitor, not shared).
+- **Rollback:** suspend the Render service. Nothing else is public yet.
 
-### B3 · Push the code
-```bash
-git init && git add . && git commit -m "CarbonKeel"
-```
-- [ ] Push to a **private** GitHub repo.
-- [ ] Verify the two secret files are **not** in the commit:
-      `git log --stat | grep -E "access_keys|requests.jsonl"` returns nothing.
+### Stage 3 · Domain and landing page
+- [ ] Buy `carbonkeel.com` at Cloudflare Registrar (~$10.44/yr). WHOIS privacy on.
+- [ ] Email Routing: `hello@` forwards to you. Send yourself a test.
+- [ ] Cloudflare Pages → same repo → output directory `site`.
+- [ ] DNS: `@` → Pages, `app` → Render hostname. Add the custom domain in Render.
+- [ ] **If you turn Cloudflare's orange-cloud proxy on for `app`, set
+      `CARBONKEEL_PROXY_HOPS` to `2`.** Otherwise every visitor looks like
+      Cloudflare and shares one rate-limit bucket.
+- [ ] Gate: `https://carbonkeel.com` CTAs point at `app.carbonkeel.com`, not localhost.
+- [ ] `robots.txt` on the app returns the disallow rules; a Google search for a
+      ship name plus "carbonkeel" returns nothing.
+- **Rollback:** pause the Pages project; the app stays private by obscurity only,
+  so also suspend Render if you want it fully offline.
 
-### B4 · Deploy
-- [ ] **Render** → New → Blueprint → pick the repo. It reads `render.yaml`.
-- [ ] Wait for the build, then open `/healthz`. It must report
-      `"ships": 16673` — if it reports 0, the export did not ship.
-- [ ] **Cloudflare Pages** → new project → same repo → output directory `site`.
-- [ ] DNS: `@` → Pages, `app` → your Render hostname.
+### Stage 4 · A few friendly contacts
+- [ ] Send the link to 3–5 people you trust. Ask them the step-2 question:
+      "what did you think this did?"
+- [ ] Watch Render's log for `CLAIM_REQUEST` lines; reply to any within 1 working day.
+- **Rollback:** as Stage 3.
 
-### B5 · Prove it in public
-- [ ] Open `https://carbonkeel.com`. Confirm CTAs now point at
-      `app.carbonkeel.com`, **not** localhost.
-- [ ] Repeat UAT items **8, 10, 15, 25, 31** against the live site. The first
-      load may take ~50 s while the free instance wakes.
-- [ ] Check `https://app.carbonkeel.com/robots.txt` returns the disallow rules.
-- [ ] Search Google for a ship name plus "carbonkeel" — nothing should appear.
-
-### B6 · Only then, outreach
+### Stage 5 · Outreach
 - [ ] `python scripts/daily.py` and do the day it gives you.
 - [ ] Demos run **locally**, not on the free tier — the cold start will
       embarrass you mid-call.
+
+---
+
+## Operating procedure: when someone asks to hide their ships
+
+The website hides the figures **immediately** but a free host forgets on restart.
+To make it permanent:
+
+1. `scripts/daily.py` (local) or Render → Logs → search `CLAIM_REQUEST`.
+2. Render → Environment → `CARBONKEEL_SUPPRESSED_IMOS` → append the IMO,
+   comma-separated. Save (redeploys in ~2 min).
+3. Email the requester: "done — your figures are hidden."
+4. Also append to `data/privacy/suppressed_imos.txt` and commit, so a future
+   redeploy from git keeps it.
+
+The "Your data" page promises "straight away, and we confirm by email once it
+is permanent". This procedure is how that stays true.
 
 ---
 

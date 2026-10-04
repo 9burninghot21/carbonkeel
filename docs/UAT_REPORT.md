@@ -19,7 +19,7 @@
 
 ## 1. Headline
 
-**37 of 39 steps pass outright. Two need your eyes (steps 2 and 4's visual scroll), and four carry an asterisk** for things that only a real mail client, calendar app or phone can confirm.
+**33 of 39 steps pass outright. Six need you:** step 2 is a judgement only you can make, and steps 4, 13, 23, 26 and 39 pass in everything I can observe but need a real scroll, mail client, hover, calendar app or phone to finish.
 
 The UAT found **17 issues**. None are open. The three that mattered most:
 
