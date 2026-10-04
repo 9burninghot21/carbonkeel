@@ -47,7 +47,7 @@ The UAT found **17 issues**. None are open. The three that mattered most:
 | D-12 | Medium | Search was unthrottled — a route around the harvesting cap | Own budget of 900/hour (generous: ~15 calls per search), results clamped to 20 | 25 rapid searches served; clamp verified |
 | D-13 | Medium | Register cache keyed on file mtime, which changes on every `git clone` → ~17 s reparse on every deploy | Keyed on a content hash | Touched the file: 0.06 s, cache hit |
 | D-2 | Low | Chat email/company fields 39px | `min-height: 44px` | 0 targets under 40px |
-| D-3 | Low | "Price our fleet" chip could read as "what do you charge?" — against your no-price-talk rule | Reworded to "What our fleet costs"; other ambiguous "price" phrasing changed | Page scan: no price words |
+| D-3 | Low | "Price our fleet" chip and the browser-tab title ("…Compliance, Priced") could read as "what do you charge?" — against your no-price-talk rule | Chip now "What our fleet costs"; title now "Carbon cost and compliance for your ships". **Test widened to any form of the word *price*, and proven by re-injecting the old title (fails) — the earlier check had missed the title, and an escaping slip had silently disabled my first fix to the check** | Page scan: no price words |
 | D-8 | Low | App red text on navy was 4.29:1 (needs 4.5) | Lightened to match the landing page | Now 5.83:1 |
 | D-17 | Low | No security headers | `nosniff`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy` on the app and via `site/_headers` | Headers read from a live response |
 

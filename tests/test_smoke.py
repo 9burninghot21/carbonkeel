@@ -156,13 +156,13 @@ def check_customer_copy():
     for path, label in [(os.path.join(ROOT, "site", "index.html"), "landing"),
                         (os.path.join(ROOT, "api", "static", "index.html"), "app")]:
         html = open(path, encoding="utf-8").read()
-        visible = re.sub(r"<script.*?</script>|<style.*?</style>", "", html, flags=re.S)
+        visible = re.sub(r"<script.*?</script>|<style.*?</style>|<!--.*?-->", "", html, flags=re.S)
         text = re.sub(r"<[^>]+>", " ", visible)
         if re.search(r"/api/\w+/\{", text):
             bad(f"{label}: raw API path template in customer copy")
         else:
             ok(f"{label}: no raw API paths in copy")
-        money = re.search(r"(subscription|per month|per vessel/month|our fee|pricing page)",
+        money = re.search(r"(subscription|per month|per vessel/month|our fee|\bpric(e|ed|es|ing)\b)",
                           text, re.I)
         bad(f"{label}: service pricing language", money.group(0)) if money \
             else ok(f"{label}: no service-pricing language")
