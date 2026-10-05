@@ -170,3 +170,61 @@ These are invisible on a laptop and would have hurt on a real host. All are fixe
 | **Approved to begin the staged publish** | ☐ | ☐ | |
 
 **Approver:** ______________________  **Date:** ______________
+
+---
+
+# Addendum — 5 October 2026: the opening page was not visible, and was then rebuilt
+
+## Was the UAT complete?
+
+**Not as a whole.** The 3 Oct run covered the earlier landing page and the app. Two things followed:
+
+1. **D-18 · Critical for you: you could not see the first page.** The opening page needed a *second* server on a different port (`:8112`) to be started by hand, and both servers had stopped when the session ended. The page, opened directly, had nothing behind its search box. I should have caught that a founder double-clicking the file would hit this.
+   **Fix:** the app now serves the opening page itself at `/home`, so **one server, one address** shows the whole journey. A double-click launcher, `Start CarbonKeel.bat`, starts it and opens the page. If the app is ever off, the page now says so in plain words instead of failing silently.
+2. **You asked for a new opening page**, so steps 1–9 (front door) are **re-opened**: they were passed against a page that no longer exists.
+
+## What I checked on the new page
+
+Browser pane, desktop width 1360 and phone width 375, driven to each scroll position:
+
+| Check | Result |
+|---|---|
+| No console errors; all 3 inline scripts parse | PASS |
+| Hero: sunrise sky, sun, clouds, three layers of waves, four ships, CO₂ puffs, search box | PASS (seen) |
+| Counters finish on the exact register values (16,673 · 4,047 · 87.3 Mt · €6.1 bn · €511k · €367k) | PASS (read from the page after the count) |
+| **Voyage:** ship follows the route; stops 1–4 light up in order; text changes with each stop; stepper fills | PASS at four positions |
+| Services cards animate in with their own mini-graphic | PASS |
+| "Where we are strongest" band, five tiles | PASS |
+| Result card + three cost drivers; pin and trail animate | PASS |
+| Night harbour: stars, moon, lighthouse beam, moored ship, working search | PASS (after fixing D-19) |
+| Phone width: no sideways scroll; voyage stacks chart over text | PASS |
+| Reduced-motion, and a safe fallback if the motion script ever fails | In code and tested for presence; **not** seen on screen |
+
+**New defects found and fixed during this pass**
+
+| # | What was wrong | Fix |
+|---|---|---|
+| D-18 | First page not visible (above) | `/home` route, launcher, "app not running" notice |
+| D-19 | The final "Check a ship" button became a giant yellow circle, because its class name collided with the hero's sun | Renamed; verified |
+| D-20 | Logo showed "Carbon Keel" with a gap | Fixed |
+| D-21 | Ships bunched together at the left of the hero on load | Start positions spread out |
+| D-22 | Two voyage steps could briefly show at once during the cross-fade | Outgoing step now clears before the next appears |
+| D-23 | Footer text links were 18px tall (floor is 40px) | Enlarged |
+| D-24 | Browser-tab title read "…Compliance, Priced" (could suggest a price list) | Reworded; test widened and proven |
+
+**New automated guards (smoke suite now 66 checks)**
+- The numbers on the page must equal `data/market_stats.json`; I changed one figure and confirmed the test fails.
+- The page makes **no third-party requests** (no fonts, trackers or CDNs).
+- The sections the navigation relies on exist; reduced-motion and the fallback are present.
+- `/home` answers 200.
+
+## What I could not verify (yours)
+
+| # | What | Why it needs you |
+|---|---|---|
+| N1 | **Does it impress you?** Colour, mood, amount of movement | A judgement only you can make |
+| N2 | **Smoothness while scrolling** on your machine | The test pane does not run animation frames, so I saw each scroll position correctly but could not judge frame rate |
+| N3 | Real phone | I emulated phone width; I did not hold a phone |
+| N4 | The first-page "10-second" test, again | Step 2 must be re-done on the new page |
+
+**Please re-initial the A1 row of the sign-off table above** after you have looked at the new page. Until then A1 stands **re-opened**.

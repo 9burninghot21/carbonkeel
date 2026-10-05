@@ -465,6 +465,16 @@ def healthz():
             "ships": len(_RECORDS) if _RECORDS else 0}
 
 
+@app.get("/home")
+def landing_page():
+    """The public landing page, served by the app as well as by Cloudflare
+    Pages. One server and one address then show the whole journey locally
+    (the opening page and the app), and a bare onrender.com stage works too."""
+    return FileResponse(
+        os.path.join(os.path.dirname(__file__), "..", "site", "index.html"),
+        headers={"Cache-Control": "no-store, must-revalidate"})
+
+
 @app.get("/privacy.html")
 def privacy_notice():
     """The privacy notice, served by the app too, so a relative link to it

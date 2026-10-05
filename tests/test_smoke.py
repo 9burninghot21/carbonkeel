@@ -120,7 +120,8 @@ def serve():
 
 def check_endpoints():
     cases = [
-        ("/", 200, "landing shell"),
+        ("/", 200, "app shell"),
+        ("/home", 200, "app serves the landing page (one server shows the whole journey)"),
         ("/healthz", 200, "healthz"),
         ("/robots.txt", 200, "robots.txt"),
         ("/privacy.html", 200, "app serves the privacy notice (relative links work)"),
@@ -269,6 +270,43 @@ def check_privacy_notice():
         ok(f"{doc}: no raw API paths") if "/api/" not in txt             else bad(f"{doc}: no raw API paths")
 
 
+# ------------------------------------------------- 6. landing page ------
+def check_landing_page():
+    """The landing page quotes numbers from the register. They must come from
+    data/market_stats.json (scripts/market_data.py), never be typed by hand,
+    and the page must not call out to any third party."""
+    import json
+    html = open(os.path.join(ROOT, "site", "index.html"), encoding="utf-8").read()
+    stats_path = os.path.join(ROOT, "data", "market_stats.json")
+    if not os.path.exists(stats_path):
+        bad("data/market_stats.json exists (run scripts/market_data.py)")
+        return
+    st = json.load(open(stats_path, encoding="utf-8"))
+    want = {
+        "ships": st["ships"],
+        "companies": st["companies"],
+        "ETS-scope CO2 (Mt)": st["ets_scope_co2_mt"],
+        "annual cost at assumed allowance (bn EUR)": round(st["implied_ets_cost_eur_bn"][str(st["assumed_eua_eur"])], 1),
+        "average cost per ship (k EUR)": round(st["avg_cost_per_ship_eur"] / 1000),
+    }
+    found = [float(x) for x in re.findall(r'data-count="([0-9.]+)"', html)]
+    for label, val in want.items():
+        ok(f"landing number matches register data: {label}") if float(val) in found             else bad(f"landing number matches register data: {label}", f"want {val}, page has {found}")
+    ok(f"landing states the assumed allowance level (EUR {st['assumed_eua_eur']})")         if f"€{st['assumed_eua_eur']}" in html else bad("landing states the assumed allowance level")
+
+    # privacy: nothing loads from anywhere else
+    ext = re.findall(r'(?:src|href)="(https?://[^"]+)"', html)
+    ext = [u for u in ext if not u.startswith("https://app.carbonkeel.com")]
+    ok("landing makes no third-party requests") if not ext         else bad("landing makes no third-party requests", ext[:3])
+    ok("landing loads no external CSS or fonts") if "url(http" not in html and "@import" not in html         else bad("landing loads no external CSS or fonts")
+
+    # structure the nav and motion depend on
+    for sid in ["hero", "how", "services", "best", "cost", "talk", "finale"]:
+        ok(f"landing section #{sid} exists") if f'id="{sid}"' in html else bad(f"landing section #{sid} exists")
+    ok("landing respects reduced-motion") if "prefers-reduced-motion" in html         else bad("landing respects reduced-motion")
+    ok("landing motion has a safe fallback") if "motion disabled" in html         else bad("landing motion has a safe fallback")
+
+
 def main():
     print("JavaScript parses")
     check_js_parses(os.path.join(ROOT, "site", "index.html"), "landing")
@@ -279,6 +317,9 @@ def main():
 
     print("\nPrivacy notice")
     check_privacy_notice()
+
+    print("\nLanding page")
+    check_landing_page()
 
     print("\nHTTP endpoints")
     threading.Thread(target=serve, daemon=True).start()

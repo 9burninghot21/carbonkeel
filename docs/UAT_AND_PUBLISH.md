@@ -42,14 +42,19 @@ price.
 > the page. Now something is. The guard was verified by re-injecting that exact
 > bug and confirming it fails the build.
 
-Then start the two servers:
+Then start the app. **One server, one address**: double-click
+**`Start CarbonKeel.bat`** in the `ghg-platform` folder (or run
+`python -m uvicorn api.main:app --port 8000`). It opens
+`http://127.0.0.1:8000/home` for you.
 
-```bash
-python -m uvicorn api.main:app --port 8000
-```
-```bash
-cd site && python -m http.server 8112
-```
+| Address | What you see |
+|---|---|
+| `http://127.0.0.1:8000/home` | The opening page |
+| `http://127.0.0.1:8000/` | The app |
+
+> If the opening page says *"The app is not running yet"*, the server is off.
+> Start it and reload. (Until 5 Oct the opening page needed a second server on
+> a different port, which is why it could not be seen.)
 
 ---
 
@@ -58,19 +63,23 @@ cd site && python -m http.server 8112
 Mark each **PASS / FAIL**. Anything that makes you hesitate is a FAIL; write
 down what you expected instead.
 
-### A1 · The front door — `localhost:8112`
+### A1 · The front door — `127.0.0.1:8000/home`
 
 | # | Do this | Expect |
 |---|---|---|
 | 1 | Load the page cold | Headline reads *"What is carbon costing your ships?"*. No pooling, no deadline countdown, no price anywhere |
 | 2 | Read for 10 seconds only, then look away | You can say what this does and who it is for |
 | 3 | Click the **CarbonKeel** logo | Returns to the top; the address bar has no leftover `#anchor` |
-| 4 | Click **What it costs**, **What matters first**, **Talk to us** | Each scrolls to the right section |
-| 5 | Read the "What matters first" list | Order is ETS → FuelEU → CII → EEXI, and EEXI is marked *mostly settled* |
-| 6 | Look at the maths block | A real fraction (one line over another) and a raised exponent. No `^` and no `/` |
-| 7 | Open each disclosure under "How the numbers are worked out" | Opens and closes; the verifier claim states measured figures, not "always" |
+| 4 | Click **How it works**, **What we do**, **Why CarbonKeel**, **Talk to us** | Each scrolls to the right section, and the matching link highlights as you pass it |
+| 5 | Read the cards under **What we do** | Numbered ETS → FuelEU → CII → EEXI, and EEXI is marked *mostly settled · free* |
+| 6 | Scroll to **How the numbers are worked out** | A real fraction (one line over another) and a raised exponent. No `^` and no `/` |
+| 7 | Open each disclosure under that heading | Opens and closes; the verifier claim states measured figures, not "always" |
 | 8 | Type a ship name in the hero box and press Check | Lands in the app **with the result already on screen** — no second click |
 | 9 | Click **a bulk carrier**, then **a cruise ship** | Both go straight to a scored result |
+| 9a | Watch the opening page without touching it | Ships sail across the sea, waves move, smoke puffs rise from the near ship |
+| 9b | Scroll slowly through **How we get to the number** | The ship sails the route as you scroll; stops 1–4 light up and the text changes with each |
+| 9c | Scroll on to the end | Numbers count up; service cards animate in; the page ends at a night harbour with a lighthouse |
+| 9d | On a phone, or with the window narrowed to phone width | Same journey, no sideways scrolling |
 
 ### A2 · The chat
 

@@ -1,0 +1,80 @@
+{
+  "source": "thetis_mrv_2025_v6.xlsx",
+  "ships": 16673,
+  "companies": 4047,
+  "ets_scope_co2_mt": 87.3,
+  "assumed_eua_eur": 70,
+  "implied_ets_cost_eur_bn": {
+    "60": 5.24,
+    "70": 6.11,
+    "80": 6.99,
+    "90": 7.86
+  },
+  "ships_prev_year": 14152,
+  "ets_prev_year_mt": 87.5,
+  "avg_ets_t_per_ship": 5238,
+  "avg_cost_per_ship_eur": 366661,
+  "types": {
+    "container ship": {
+      "ships": 2368,
+      "ets_mt": 28.31
+    },
+    "oil tanker": {
+      "ships": 1990,
+      "ets_mt": 9.71
+    },
+    "ro-pax ship": {
+      "ships": 407,
+      "ets_mt": 9.04
+    },
+    "bulk carrier": {
+      "ships": 4718,
+      "ets_mt": 7.45
+    },
+    "chemical tanker": {
+      "ships": 1615,
+      "ets_mt": 5.49
+    },
+    "passenger ship (cruise passenger ship)": {
+      "ships": 206,
+      "ets_mt": 5.29
+    },
+    "general cargo ship": {
+      "ships": 2715,
+      "ets_mt": 5.15
+    },
+    "lng carrier": {
+      "ships": 406,
+      "ets_mt": 5.07
+    }
+  },
+  "size_bands": {
+    "1": {
+      "companies": 2333,
+      "ships": 2333,
+      "ets_t": 9122671
+    },
+    "2-9": {
+      "companies": 1326,
+      "ships": 5387,
+      "ets_t": 21154968
+    },
+    "10-50": {
+      "companies": 366,
+      "ships": 6916,
+      "ets_t": 37565763
+    },
+    "51+": {
+      "companies": 22,
+      "ships": 2037,
+      "ets_t": 19489919
+    }
+  },
+  "icp": {
+    "companies": 237,
+    "ships": 4518,
+    "ets_mt": 19.9,
+    "est_cost_eur_bn": 1.4
+  },
+  "top10pct_companies_share_of_ets": 0.764
+}
