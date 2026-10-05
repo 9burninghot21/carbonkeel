@@ -82,6 +82,8 @@ def compute_ets(activity: AnnualActivity, eua_price_eur: float = 70.0) -> ETSRes
     surrender = PHASE_IN.get(year, 1.0)
     allowances = co2e * surrender
     notes.append("Sustainable biofuel can be zero-rated if it is certified under the Renewable "
-                 "Energy Directive (RED). This estimate applies the fossil-fuel emission factor only.")
+                 "Energy Directive (RED). In what-if scenarios 100% biofuel (B100) is counted as "
+                 "zero-rated, which assumes it is certified; every other fuel uses its fossil "
+                 "emission factor.")
     return ETSResult(round(co2e, 1), surrender, round(allowances, 1),
                      round(allowances * eua_price_eur, 0), eua_price_eur, notes)

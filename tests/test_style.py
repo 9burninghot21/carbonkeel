@@ -108,6 +108,14 @@ def check_pages():
         m = re.search(r"[A-Za-z]'[A-Za-z]", text)
         check(not m, f"{label}: visible text uses typographic apostrophes", text[max(0, m.start() - 20):m.end() + 15] if m else "")
 
+    # accuracy of what the headline numbers claim
+    app = read("api/static/index.html")
+    check("Carbon bill for ${year} emissions" in app and "This year" not in app.split("<script>")[1][:200000].replace("This year&rsquo;s", "THIS"),
+          "app: the bill names the year of the emissions it covers")
+    check("before the cost of the biofuel itself" in app and "before fuel costs" in app,
+          "app: lever savings say they exclude the cost of the biofuel")
+    check("could be saved with standard levers" not in app, "app: lever value is not presented as a net saving")
+
     # attribution that EMSA's copyright notice and CC BY-style reuse call for
     for rel, label in [("site/index.html", "landing"), ("api/static/index.html", "app")]:
         t = re.sub(r"\s+", " ", visible_markup_text(read(rel)))

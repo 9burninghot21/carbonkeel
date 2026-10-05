@@ -732,8 +732,8 @@ async function whatIf() {
                           : d.ets.cost_eur + d.fueleu.penalty_eur;
   const delta = baseCost - cost;
   const banner = `<div class="banner ${delta >= 0 ? 'good' : 'bad'}">
-      <b>${delta >= 0 ? 'Saves' : 'Adds'} ${eur(Math.abs(delta))} a year</b>
-      against current operation (${bio}% B100, ${spd}% speed change)</div>`;
+      <b>Carbon cost ${delta >= 0 ? 'falls' : 'rises'} by ${eur(Math.abs(delta))} a year</b>
+      against current operation (${bio}% B100, ${spd}% speed change), before fuel costs</div>`;
   renderVessel(banner, true, d);   // scenario rendered; baseline kept in lastData
 }
 
@@ -758,9 +758,9 @@ async function probeValue() {
 }
 function teaserHtml() {
   return valueTeaser ? `<div class="banner good" style="cursor:pointer;font-size:14px"
-    onclick="applyTeaser()"><b>Value identified: up to ${eur(valueTeaser)} a year</b>
-    could be saved with standard levers (20% B100 biofuel on EU voyages and a 10% lower speed).
-    Show me &#9656;</div>` : '';
+    onclick="applyTeaser()"><b>Value identified: up to ${eur(valueTeaser)} a year in carbon costs</b>
+    could be avoided with standard levers (20% B100 biofuel on EU voyages and a 10% lower speed),
+    before the cost of the biofuel itself. Show me &#9656;</div>` : '';
 }
 function applyTeaser() {
   currentView = 'owner';
@@ -947,8 +947,14 @@ function shell(inner, src) {
 }
 
 /* bill block: hierarchy winner + bullet graphs (U2, Few) */
-function billBlock(items, nzfUsd) {
+function billBlock(items, nzfUsd, year, share) {
   const euros = items.filter(i => i.eur > 0);
+  /* Only part of the earlier years' emissions is surrendered (40% for 2024, 70% for
+     2025). Say so, and show what the same emissions cost at the 100% that applies from 2026. */
+  const etsEur = items[0].eur;
+  const fwd = (share && share < 1 && etsEur > 0)
+    ? `Only ${Math.round(share * 100)}% of ${year} emissions is surrendered. From 2026 it is 100%: the same emissions would cost about ${eur(items.reduce((t, i) => t + i.eur, 0) - etsEur + etsEur / share)}.`
+    : '';
   const total = items.reduce((t, i) => t + i.eur, 0);
   const max = Math.max(...items.map(i => i.eur), 1);
   const bars = items.map(i => `
@@ -961,9 +967,9 @@ function billBlock(items, nzfUsd) {
       <span class="due">${i.due}</span>
     </div>`).join('');
   return `<div class="bill">
-    <div class="k">This year&rsquo;s carbon bill</div>
+    <div class="k">Carbon bill for ${year} emissions</div>
     <div class="v num">${eur(total)}</div>
-    <div class="d">${euros.length ? '' : 'No payable exposure on the current data.'}</div>
+    <div class="d">${euros.length ? fwd : 'No payable exposure on the current data.'}</div>
   </div>
   <div class="bullets">${bars}
     <div class="bullet"><span class="lbl">IMO NZF, 2028</span>
@@ -986,7 +992,7 @@ function renderPartial(d, banner, keepOpen) {
       {label: 'FuelEU', eur: d.fueleu.penalty_eur,
        due: cb < 0 ? `Balance ${Math.round(cb).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
                    : `Balance +${Math.round(cb).toLocaleString('en-GB')} t. A surplus can be pooled.`}
-    ], d.nzf.remedial_cost_usd)}
+    ], d.nzf.remedial_cost_usd, d.year, d.ets.surrender_share)}
     <div class="statline">
       <span>CII rating <b class="dim">needs capacity</b>
         <span class="dwt-up" style="display:inline-flex;margin-left:6px">
@@ -1041,7 +1047,7 @@ function renderFull(d, banner, keepOpen) {
       {label: 'UK ETS', eur: sc.ukets.cost_gbp * 1.15,
        due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString('en-GB')} for UK domestic voyages`
                                   : 'No UK domestic voyages found'}
-    ], sc.nzf.remedial_cost_usd)}
+    ], sc.nzf.remedial_cost_usd, sc.year, sc.ets.surrender_share)}
     <div class="statline">
       <span>CII <b class="rating-${sc.cii.rating}">${sc.cii.rating}</b>
         <span class="dim num">(ratio ${sc.cii.ratio})</span></span>
