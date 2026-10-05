@@ -33,3 +33,6 @@ Claude outputs/
 *cv*.pdf
 *resume*
 *passport*
+
+# generated shareable walkthrough (large; regenerate with scripts/walkthrough/)
+docs/walkthrough/

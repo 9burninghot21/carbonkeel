@@ -79,6 +79,11 @@ def check_pages():
         bad_font = re.findall(r"font:\s*\d{3}\s+[\d.]+px\s*/\s*[\d.]+\s+inherit|font:\s*[\d.]+px\s*/\s*[\d.]+\s+inherit", src)
         check(not bad_font, f"{label}: no invalid font shorthand", bad_font[:1])
 
+        # numbers must not follow the visitor's own locale: an Indian-locale browser showed
+        # "$3,66,599" next to "€510,798". Every toLocaleString call names a locale.
+        bare = re.findall(r"toLocaleString\(\s*\)", src)
+        check(not bare, f"{label}: numbers are formatted in one locale, not the visitor's", len(bare))
+
         text = visible_markup_text(src)
         prose = script_prose(src)
         both = text + "\n" + prose

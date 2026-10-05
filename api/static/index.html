@@ -606,7 +606,7 @@
 const API = (location.protocol === 'http:' || location.protocol === 'https:')
   ? '' : 'http://127.0.0.1:8000';
 const E = id => document.getElementById(id);
-const eur = n => '€' + Math.round(n).toLocaleString();
+const eur = n => '€' + Math.round(n).toLocaleString('en-GB');
 let currentImo = null, currentDwt = null, baseCost = null,
     methodLoaded = false, privacyLoaded = false;
 
@@ -825,8 +825,8 @@ function renderSuppressed(d) {
     <div class="idstrip"><b>${d.vessel_name}</b> · IMO ${d.imo} · ${d.ship_type}</div>
     <div class="banner warn">${d.note}</div>
     <div class="statline">
-      <span>Verified CO₂ <b class="num">${Math.round(d.verified.co2_tonnes || 0).toLocaleString()} t</b></span>
-      <span>Verified fuel <b class="num">${Math.round(d.verified.fuel_tonnes || 0).toLocaleString()} t</b></span>
+      <span>Verified CO₂ <b class="num">${Math.round(d.verified.co2_tonnes || 0).toLocaleString('en-GB')} t</b></span>
+      <span>Verified fuel <b class="num">${Math.round(d.verified.fuel_tonnes || 0).toLocaleString('en-GB')} t</b></span>
       ${d.verified.tech_efficiency ? `<span>Design <b>${d.verified.tech_efficiency}</b></span>` : ''}
     </div>
     <p class="dim" style="font-size:12.5px;margin-top:10px">EMSA publishes these verified
@@ -858,7 +858,7 @@ function renderTech(d, banner, keepOpen) {
     <div class="statline">
       <span>CII <b class="rating-${sc.cii.rating}" style="font-size:22px">${sc.cii.rating}</b>
         <span class="dim num">(ratio ${sc.cii.ratio}, Z=${sc.cii.z_factor_pct}%)</span></span>
-      <span class="dim num">CO₂ ${Math.round(sc.cii.co2_tonnes).toLocaleString()} t this period</span>
+      <span class="dim num">CO₂ ${Math.round(sc.cii.co2_tonnes).toLocaleString('en-GB')} t this period</span>
     </div>
     ${ciiDetail(sc.cii)}`
     : `<div class="banner warn">The CII rating needs the ship&rsquo;s capacity:
@@ -890,13 +890,13 @@ function renderVerifier(d) {
   const etsOurs = full ? d.scorecard.ets.co2e_in_scope_t : d.ets.co2e_in_scope_t;
   const feu = full ? d.scorecard.fueleu : d.fueleu;
   const rows = [
-    ['Verified total CO₂ (EMSA filing)', `${Math.round(v.co2_tonnes || 0).toLocaleString()} t`],
-    ['Verified total fuel', `${Math.round(v.fuel_tonnes || 0).toLocaleString()} t`],
+    ['Verified total CO₂ (EMSA filing)', `${Math.round(v.co2_tonnes || 0).toLocaleString('en-GB')} t`],
+    ['Verified total fuel', `${Math.round(v.fuel_tonnes || 0).toLocaleString('en-GB')} t`],
     ['Distance (worked out from the filed CO₂ per nm)', v.est_distance_nm ?
-        `${Math.round(v.est_distance_nm).toLocaleString()} nm — ESTIMATE` : '—'],
+        `${Math.round(v.est_distance_nm).toLocaleString('en-GB')} nm — ESTIMATE` : '—'],
     ['ETS-scope CO₂, verifier-reported', v.ets_scope_co2_reported ?
-        `${Math.round(v.ets_scope_co2_reported).toLocaleString()} t` : '—'],
-    ['ETS-scope CO₂e, our rebuild', `${Math.round(etsOurs).toLocaleString()} t`],
+        `${Math.round(v.ets_scope_co2_reported).toLocaleString('en-GB')} t` : '—'],
+    ['ETS-scope CO₂e, our rebuild', `${Math.round(etsOurs).toLocaleString('en-GB')} t`],
     ['FuelEU intensity (Annex II defaults)', `${feu.ghg_intensity} against a target of ${feu.target} gCO₂e/MJ`],
     ['Technical efficiency as filed', v.tech_efficiency || '—'],
   ].map(([k, val]) => `<tr><td style="text-align:left;color:var(--muted)">${k}</td>
@@ -968,7 +968,7 @@ function billBlock(items, nzfUsd) {
   <div class="bullets">${bars}
     <div class="bullet"><span class="lbl">IMO NZF, 2028</span>
       <span class="track" style="background:none"></span>
-      <span class="val num">$${Math.round(nzfUsd).toLocaleString()}</span>
+      <span class="val num">$${Math.round(nzfUsd).toLocaleString('en-GB')}</span>
       <span class="due">Scenario only. Adoption vote expected October 2026.</span></div>
   </div>`;
 }
@@ -978,14 +978,14 @@ function renderPartial(d, banner, keepOpen) {
   E('out').innerHTML = shell(`
     ${viewBar()}${banner || ''}
     <div class="idstrip"><b>${d.vessel_name}</b> · IMO ${d.imo} · ${d.year}
-      · verified ${Math.round(d.verified.co2_tonnes).toLocaleString()} t CO₂
+      · verified ${Math.round(d.verified.co2_tonnes).toLocaleString('en-GB')} t CO₂
       ${d.verified.tech_efficiency ? ' · ' + d.verified.tech_efficiency : ''}</div>
     ${billBlock([
       {label: 'EU ETS', eur: d.ets.cost_eur,
-       due: `${Math.round(d.ets.allowances_due).toLocaleString()} EU allowances at €${d.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(d.ets.allowances_due*60)} · at €100: ${eur(d.ets.allowances_due*100)}`},
+       due: `${Math.round(d.ets.allowances_due).toLocaleString('en-GB')} EU allowances at €${d.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(d.ets.allowances_due*60)} · at €100: ${eur(d.ets.allowances_due*100)}`},
       {label: 'FuelEU', eur: d.fueleu.penalty_eur,
-       due: cb < 0 ? `Balance ${Math.round(cb).toLocaleString()} t. Pool it or pay by 30 June.`
-                   : `Balance +${Math.round(cb).toLocaleString()} t. A surplus can be pooled.`}
+       due: cb < 0 ? `Balance ${Math.round(cb).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
+                   : `Balance +${Math.round(cb).toLocaleString('en-GB')} t. A surplus can be pooled.`}
     ], d.nzf.remedial_cost_usd)}
     <div class="statline">
       <span>CII rating <b class="dim">needs capacity</b>
@@ -993,7 +993,7 @@ function renderPartial(d, banner, keepOpen) {
           <input id="dwtIn" type="number" placeholder="DWT (GT for ro-ro and cruise)" style="max-width:250px">
           <button class="ghost" onclick="addDwt()">Add</button></span></span>
       <span>ETS-scope check <b class="pos num">${d.verified.ets_scope_co2_reported ?
-        Math.round(d.verified.ets_scope_co2_reported).toLocaleString() + ' t ✓ matches verifier' : '—'}</b></span>
+        Math.round(d.verified.ets_scope_co2_reported).toLocaleString('en-GB') + ' t ✓ matches verifier' : '—'}</b></span>
     </div>
     <div id="fleetCtx"></div>
     ${whatIfBox(keepOpen)}
@@ -1033,13 +1033,13 @@ function renderFull(d, banner, keepOpen) {
     <div class="idstrip"><b>${sc.vessel_name}</b> · IMO ${sc.imo_number} · ${sc.year}</div>
     ${billBlock([
       {label: 'EU ETS', eur: sc.ets.cost_eur,
-       due: `${Math.round(sc.ets.allowances_due).toLocaleString()} EU allowances at €${sc.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(sc.ets.allowances_due*60)} · at €100: ${eur(sc.ets.allowances_due*100)}`},
+       due: `${Math.round(sc.ets.allowances_due).toLocaleString('en-GB')} EU allowances at €${sc.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(sc.ets.allowances_due*60)} · at €100: ${eur(sc.ets.allowances_due*100)}`},
       {label: 'FuelEU', eur: sc.fueleu.penalty_eur,
        due: sc.fueleu.compliance_balance_tco2e < 0
-        ? `Balance ${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t. Pool it or pay by 30 June.`
-        : `Balance +${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t. A surplus can be pooled.`},
+        ? `Balance ${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
+        : `Balance +${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString('en-GB')} t. A surplus can be pooled.`},
       {label: 'UK ETS', eur: sc.ukets.cost_gbp * 1.15,
-       due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString()} for UK domestic voyages`
+       due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString('en-GB')} for UK domestic voyages`
                                   : 'No UK domestic voyages found'}
     ], sc.nzf.remedial_cost_usd)}
     <div class="statline">
@@ -1146,7 +1146,7 @@ function renderEexi(d) {
   const cls = x.verdict.startsWith('N/A') || x.attained === null ? 'warn' : (good ? 'good' : 'bad');
   const custom = !d.imo;
   const head = custom
-    ? `<div class="idstrip"><b>Custom ship</b> · ${d.ship_type} · ${Number(d.dwt).toLocaleString()} DWT</div>`
+    ? `<div class="idstrip"><b>Custom ship</b> · ${d.ship_type} · ${Number(d.dwt).toLocaleString('en-GB')} DWT</div>`
     : `<div class="idstrip"><b>${d.name}</b> · IMO ${d.imo} · ${d.ship_type}</div>`;
   const band = custom ? 'FREE CHECK: your inputs, our verified reference tables'
                       : `FREE CHECK: from the ship&rsquo;s own EU MRV filing (${srcLabel(d.source)})`;
@@ -1311,7 +1311,7 @@ function renderFleet() {
      ${p.uncovered_imos.length ? 'The remaining ' + eur(p.uncovered_penalty_eur) +
        ' needs a surplus partner outside the fleet.' : ''}</div>` :
     (p && tot.cb < 0 ? `<div class="banner warn">There is no spare pooling capacity inside the fleet. The fleet&rsquo;s
-     FuelEU deficit of ${Math.round(Math.abs(tot.cb)).toLocaleString()} t (${eur(tot.pen)})
+     FuelEU deficit of ${Math.round(Math.abs(tot.cb)).toLocaleString('en-GB')} t (${eur(tot.pen)})
      needs a surplus partner outside the fleet, or biofuel.</div>` : '');
   const th = (label, k) => `<th onclick="sortFleet('${k}')">${label}
       ${sortKey === k ? (sortDir < 0 ? '▼' : '▲') : ''}</th>`;
@@ -1322,7 +1322,7 @@ function renderFleet() {
       <div class="score"><div class="k">EU ETS bill (fleet)</div><div class="v num">${eur(tot.ets)}</div></div>
       <div class="score"><div class="k">FuelEU penalty risk</div><div class="v num">${eur(tot.pen)}</div></div>
       <div class="score"><div class="k">FuelEU balance</div>
-        <div class="v num ${tot.cb < 0 ? 'neg' : 'pos'}">${Math.round(tot.cb).toLocaleString()} t</div></div>
+        <div class="v num ${tot.cb < 0 ? 'neg' : 'pos'}">${Math.round(tot.cb).toLocaleString('en-GB')} t</div></div>
     </div>
     ${pool}
     <div style="overflow-x:auto"><table class="data num">
@@ -1331,11 +1331,11 @@ function renderFleet() {
       ${vs.map(v => `<tr class="rowlink" onclick="showTab('vessel');E('q').value='${v.name.replace(/'/g, "\\'")}';pick('${v.imo}')">
         <td style="color:var(--accent);font-weight:700">${v.name}</td>
         <td>${v.co2_per_nm_kg ?? '—'}</td>
-        <td>${Math.round(v.co2_tonnes).toLocaleString()}</td>
-        <td>${Math.round(v.euas).toLocaleString()}</td>
-        <td>${Math.round(v.ets_cost_eur).toLocaleString()}</td>
-        <td class="${v.fueleu_cb_t < 0 ? 'neg' : 'pos'}">${Math.round(v.fueleu_cb_t).toLocaleString()}</td>
-        <td>${Math.round(v.fueleu_penalty_eur).toLocaleString()}</td></tr>`).join('')}
+        <td>${Math.round(v.co2_tonnes).toLocaleString('en-GB')}</td>
+        <td>${Math.round(v.euas).toLocaleString('en-GB')}</td>
+        <td>${Math.round(v.ets_cost_eur).toLocaleString('en-GB')}</td>
+        <td class="${v.fueleu_cb_t < 0 ? 'neg' : 'pos'}">${Math.round(v.fueleu_cb_t).toLocaleString('en-GB')}</td>
+        <td>${Math.round(v.fueleu_penalty_eur).toLocaleString('en-GB')}</td></tr>`).join('')}
     </table></div>
     ${bad.length ? `<div class="dim" style="font-size:12.5px;margin-top:8px">
       Not scored (type not yet supported): ${bad.map(v => v.imo).join(', ')}</div>` : ''}
@@ -1560,7 +1560,7 @@ function renderCii(d) {
   const traj = d.trajectory.map(p => `<div style="background:${BAND_COLOR[p.rating]};
       color:#04211c"><span class="yr">${p.year}</span>${p.rating}</div>`).join('');
   const fuelLine = Object.entries(d.fuel_tonnes)
-    .map(([f, t]) => `${f.toUpperCase().replace('_','/')} ${t.toLocaleString()} t`).join(' · ');
+    .map(([f, t]) => `${f.toUpperCase().replace('_','/')} ${t.toLocaleString('en-GB')} t`).join(' · ');
   const nextBand = d.gap_to_next_band_pct !== null
     ? `<div class="banner ${d.rating === 'E' || d.rating === 'D' ? 'bad' : 'warn'}">
         Cutting CO₂ by <b>${d.gap_to_next_band_pct}%</b> moves the ship up one band
@@ -1573,7 +1573,7 @@ function renderCii(d) {
       ${d.estimated_inputs ? 'ESTIMATE: fuel worked out from speed' : 'OWNER DATA: calculated from your figures'}</span>
     <div class="idstrip"><b>${d.vessel_name || 'Ship'}</b>
       ${d.imo_number ? '· IMO ' + d.imo_number : ''} · ${d.ship_type.replace(/_/g,' ')}
-      · ${Math.round(d.capacity).toLocaleString()} ${d.capacity_basis} · ${d.year}</div>
+      · ${Math.round(d.capacity).toLocaleString('en-GB')} ${d.capacity_basis} · ${d.year}</div>
 
     <div class="bill">
       <div class="k">Attained CII rating (${d.year})</div>
@@ -1598,8 +1598,8 @@ function renderCii(d) {
     <div class="traj">${traj}</div>
 
     <div class="statline">
-      <span>CO₂ <b class="num">${d.co2_tonnes.toLocaleString()} t</b></span>
-      <span>Distance <b class="num">${Math.round(d.distance_nm).toLocaleString()} nm</b></span>
+      <span>CO₂ <b class="num">${d.co2_tonnes.toLocaleString('en-GB')} t</b></span>
+      <span>Distance <b class="num">${Math.round(d.distance_nm).toLocaleString('en-GB')} nm</b></span>
       <span>Fuel <b class="num">${fuelLine}</b></span>
     </div>
     <details class="whatif" open>
