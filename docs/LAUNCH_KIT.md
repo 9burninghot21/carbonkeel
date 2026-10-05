@@ -97,13 +97,14 @@ openings. Send from `hello@carbonkeel.com`, sign with your own name.
 >
 > A one-page breakdown of every ship is attached. It is built entirely from the
 > figures your own verifier filed with EMSA, so please treat it as an estimate —
-> we label it as one. Where we can check ourselves against your verifier's own
-> ETS-scope number, we land on the same tonne.
+> we label it as one. We check ourselves against your verifier’s own ETS-scope
+> number: on a 400-ship sample we match it exactly for about two ships in three,
+> and to within 2% for about four in five.
 >
 > What we do, briefly: EU ETS and UK ETS cost, FuelEU balance and penalty, CII
 > rating and its trajectory to 2030, EEXI, and IMO Net-Zero exposure — all in
 > euros rather than letter grades, with an audit worksheet your verifier can
-> check. And the pooling match itself, which is the part that pays for us.
+> check. We can also help you work out whether pooling is worth doing.
 >
 > If the attached is roughly right, making it exact takes one noon-report export.
 > Worth twenty minutes before the window closes?

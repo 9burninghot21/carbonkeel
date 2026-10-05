@@ -126,35 +126,37 @@ def fleet_report_html(records: dict, imos: list[str], year_hint: int = None,
     html = f"""<!DOCTYPE html><html><head><meta charset=utf-8>
 <title>CarbonKeel Fleet Health Check</title><style>{CSS}</style></head><body>
 <div class=head><div class=logo>Carbon<span>Keel</span></div>
-<div class=sub>Fleet compliance health check · public THETIS-MRV data ·
-generated for outreach purposes</div></div>
-<span class=band>ESTIMATE — reconstructed from EMSA-published verified emissions</span>
+<div class=sub>Fleet carbon check · built from public EU MRV data</div></div>
+<span class=band>ESTIMATE: rebuilt from the verified emissions that EMSA publishes</span>
 <div class=wrap>
 <div class=kpis>
-<div class=kpi><div class=k>Vessels analysed</div><div class=v>{len(rows)}</div></div>
+<div class=kpi><div class=k>Ships analysed</div><div class=v>{len(rows)}</div></div>
 <div class=kpi><div class=k>Verified CO₂ (fleet)</div><div class=v>{tot['co2']:,.0f} t</div></div>
-<div class=kpi><div class=k>Est. EU ETS + FuelEU exposure</div><div class=v>{eur(exposure)}</div></div>
+<div class=kpi><div class=k>Estimated EU ETS and FuelEU cost</div><div class=v>{eur(exposure)}</div></div>
 <div class=kpi><div class=k>FuelEU balance</div>
 <div class="v {'neg' if tot['feu_cb'] < 0 else 'pos'}">{tot['feu_cb']:+,.0f} tCO₂e</div></div>
 </div>
-<h2>Per-vessel breakdown</h2>
-<table><tr><th>Vessel</th><th>IMO</th><th>Type</th><th>CO₂ (t)</th><th>CII</th>
-<th>EUAs due</th><th>ETS cost</th><th>FuelEU CB (t)</th><th>Penalty risk</th></tr>
+<h2>Breakdown by ship</h2>
+<table><tr><th>Ship</th><th>IMO</th><th>Type</th><th>CO₂ (t)</th><th>CII</th>
+<th>EUAs due</th><th>ETS cost</th><th>FuelEU balance (t)</th><th>Penalty risk</th></tr>
 {body_rows}
 <tr class=tot><td colspan=3>FLEET TOTAL</td><td>{tot['co2']:,.0f}</td><td></td>
 <td>{tot['euas']:,.0f}</td><td>{eur(tot['ets_eur'])}</td>
 <td>{tot['feu_cb']:+,.0f}</td><td>{eur(tot['feu_pen'])}</td></tr></table>
 {_pooling_section(cands)}
-<p class=note><b>How to read this.</b> ETS figures use the per-scope CO₂ splits your
-verifier reported to EMSA (spot-checks reproduce the reported ETS-scope figure
-exactly); FuelEU balance assumes an HFO-equivalent mix — owner fuel data will
-improve it. Negative FuelEU balance is a payable penalty OR a pooling
-opportunity; positive balance is a sellable asset. CII ratings require vessel
-DWT (not published by EMSA) — request the full check to add them.
-IMO Net-Zero Framework 2028 scenario exposure for this fleet:
-<b>${tot['nzf_usd']:,.0f}</b> in remedial units at current fuel mix.
-{('Missing from public export: ' + ', '.join(missing)) if missing else ''}</p>
-<p class=note>CarbonKeel · free fleet check · all figures ESTIMATE ·
-EUA price assumption €{EUA_PRICE:.0f}/t</p>
+<p class=note><b>How to read this.</b> ETS figures use the CO₂ split by scope that each ship’s
+verifier reported to EMSA. On a 400-ship sample our rebuild matches the verifier-reported
+ETS-scope figure exactly for about two ships in three, and to within 2% for about four in five.
+The FuelEU balance assumes a heavy-fuel-oil mix (LNG for LNG carriers); your own fuel data will
+improve it. A negative FuelEU balance is a penalty to pay or a shortfall to pool; a positive
+balance can be pooled with another ship. CII ratings need each ship’s deadweight, which EMSA does
+not publish: send us the figures and we will add the ratings.
+IMO Net-Zero Framework scenario for 2028: <b>${tot['nzf_usd']:,.0f}</b> in remedial units on today’s
+fuel mix. The framework has not been adopted.
+{('Not in the public register: ' + ', '.join(missing)) if missing else ''}</p>
+<p class=note>CarbonKeel · free fleet check · all figures are ESTIMATES · EU allowances assumed at
+€{EUA_PRICE:.0f} a tonne. Contains data from EMSA THETIS-MRV, published under Article 21 of
+Regulation (EU) 2015/757. CarbonKeel’s calculations are our own and are not endorsed by EMSA or
+the European Commission.</p>
 </div></body></html>"""
     return html

@@ -159,11 +159,12 @@ def estimate_attained_eexi(ship_type: ShipType, dwt: float, gt: float,
     p_me = 0.75 * mcr_kw
     p_ae = 0.025 * mcr_kw + 250 if mcr_kw >= 10_000 else 0.05 * mcr_kw
     attained = (p_me * cf * sfoc_me + p_ae * cf * sfoc_ae) / (cap * vref_kn)
-    notes = [f"Simplified estimate: P_ME=75% MCR ({p_me:,.0f} kW), "
-             f"P_AE={p_ae:,.0f} kW, SFOC {sfoc_me}/{sfoc_ae} g/kWh, "
-             f"CF({main_fuel.value})={cf}. Excludes PTO/PTI, shaft gen, "
-             "ice class, innovative tech, fw — certified Technical File "
-             "values will differ."]
+    notes = [f"Simplified estimate: main engine power (P_ME) = 75% of MCR ({p_me:,.0f} kW), "
+             f"auxiliary power (P_AE) = {p_ae:,.0f} kW, specific fuel consumption "
+             f"{sfoc_me} / {sfoc_ae} g/kWh, carbon factor ({main_fuel.value}) = {cf}. "
+             "It leaves out power take-off and take-in, shaft generators, ice class, "
+             "innovative technologies and the weather factor (fw), so the certified "
+             "Technical File values will differ."]
     return round(attained, 2), notes
 
 
@@ -199,9 +200,8 @@ def compute_eexi_custom(ship_type: ShipType, dwt: float, gt: float,
 
 def compute_eexi(ship_type: ShipType, dwt: float, gt: float,
                  tech_efficiency_raw: Optional[str]) -> EEXIResult:
-    notes = ["Reference lines / reduction factors per MARPOL Reg. 24-25 "
-             "(MEPC.231(65)); reduction factors per MARPOL Annex VI Reg. 25 "
-             "Table 3, verified 2 Oct 2026."]
+    notes = ["Reference lines follow MARPOL Annex VI, Regulations 24–25 (MEPC.231(65)). "
+             "Reduction factors follow Regulation 25, Table 3, and were verified on 2 October 2026."]
     attained, basis = parse_technical_efficiency(tech_efficiency_raw)
 
     if ship_type not in EEDI_REF:
@@ -233,11 +233,11 @@ def compute_eexi(ship_type: ShipType, dwt: float, gt: float,
     else:
         verdict = ("INDICATIVE " +
                    ("COMPLIANT" if attained <= required else "ABOVE REQUIRED"))
-        notes.append(f"Reported value is {basis}, not certified EEXI — "
-                     "design-index comparison, treat as indicative.")
+        notes.append(f"The reported value is {basis}, not a certified EEXI, so this is a "
+                     "design-index comparison and should be treated as indicative.")
     if verdict.endswith("ABOVE REQUIRED"):
-        notes.append("Typical EEXI remedies: Engine/Shaft Power Limitation "
-                     "(EPL/ShaPoLi), then energy-saving devices; the OMM must "
-                     "document the limitation.")
+        notes.append("Typical EEXI remedies: engine or shaft power limitation "
+                     "(EPL or ShaPoLi), then energy-saving devices. A power limitation "
+                     "must be documented in the ship’s Onboard Management Manual.")
     return EEXIResult(round(attained, 2), basis, round(required, 2), x,
                       round(reference, 2), round(margin, 1), verdict, notes)

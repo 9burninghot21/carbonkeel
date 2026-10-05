@@ -37,7 +37,7 @@
   /* ---------- buttons ---------- */
   .go{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:48px;padding:0 24px;
     border-radius:12px;border:0;background:linear-gradient(180deg,var(--btn1),var(--btn2));color:#fff;
-    font:700 15.5px/1 inherit;text-decoration:none;white-space:nowrap;cursor:pointer;
+    font-family:inherit;font-weight:700;font-size:15.5px;line-height:1;text-decoration:none;white-space:nowrap;cursor:pointer;
     box-shadow:0 8px 20px rgba(10,90,160,.28);transition:transform .15s,box-shadow .15s}
   .go:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(10,90,160,.34);color:#fff}
   .go.quiet{background:#fff;color:var(--ink);box-shadow:inset 0 0 0 2px var(--line)}
@@ -88,7 +88,7 @@
     animation:rise .9s .2s both}
   .seek{display:flex;gap:10px;margin:28px auto 0;max-width:560px;animation:rise .9s .35s both}
   .seek input{flex:1;min-width:0;min-height:56px;padding:0 20px;border-radius:14px;border:2px solid transparent;
-    background:#fff;color:var(--ink);font:500 17px/1 inherit;box-shadow:0 10px 30px rgba(11,37,69,.14)}
+    background:#fff;color:var(--ink);font-family:inherit;font-weight:500;font-size:17px;line-height:1;box-shadow:0 10px 30px rgba(11,37,69,.14)}
   .seek input::placeholder{color:var(--faint)}
   .seek input:focus{outline:3px solid var(--violet);outline-offset:2px}
   .seek .go{min-height:56px;padding:0 28px;font-size:16.5px}
@@ -375,7 +375,7 @@
   .talk p{color:var(--ink2);font-size:15.5px;margin-top:6px;max-width:38em}
   .pick{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}
   .pick button{min-height:46px;padding:0 18px;border-radius:12px;cursor:pointer;background:#f3f8fd;
-    border:2px solid transparent;color:var(--ink);font:600 15px/1 inherit}
+    border:2px solid transparent;color:var(--ink);font-family:inherit;font-weight:600;font-size:15px;line-height:1}
   .pick button:hover{border-color:var(--btn1)}
   .pick button[aria-pressed="true"]{background:rgba(10,111,183,.12);border-color:var(--btn1);color:var(--btn2)}
   .talk .seek{margin:18px 0 0;max-width:none;animation:none}
@@ -532,7 +532,7 @@
 
   <div class="wrap in">
     <h1>What is carbon costing <em>your ships?</em></h1>
-    <p class="sub">EU ETS, FuelEU and your CII rating, in euros, for any vessel trading into Europe.
+    <p class="sub">EU ETS, FuelEU and your CII rating, in euros, for any ship trading into Europe.
        Free, from emissions already on the public record.</p>
 
     <form class="seek" action="https://app.carbonkeel.com" method="get">
@@ -610,7 +610,7 @@
     <span class="kicker" data-reveal>Meet CarbonKeel</span>
     <h2 data-reveal style="--d:80">One ship in. The whole carbon bill out.</h2>
     <p class="lede" data-reveal style="--d:160">We turn the public emissions record into a plain answer: what each
-       regulation costs a vessel, in euros, and what would move it.</p>
+       regulation costs a ship, in euros, and what would move it.</p>
     <div class="flow3">
       <div class="st" data-reveal style="--d:0"><i>1</i><h3>Type a ship</h3><p>A name or an IMO number. That is all we ask for.</p></div>
       <div class="st" data-reveal style="--d:140"><i>2</i><h3>See the bill</h3><p>ETS, FuelEU and the CII rating, added up in euros.</p></div>
@@ -671,14 +671,14 @@
             <article class="vstep" data-pin="The rulebooks">
               <span class="tag">Step 2 · What we apply</span>
               <h3>We apply the rulebooks, line by line.</h3>
-              <p>EU ETS, UK ETS, FuelEU Maritime and the IMO's CII and EEXI, each coded from the regulation text.
+              <p>EU ETS, UK ETS, FuelEU Maritime and the IMO’s CII and EEXI, each coded from the regulation text.
                  Plain calculations. <b>No AI touches a number.</b></p>
               <span class="chip">IMO resolutions · EU regulations</span>
             </article>
             <article class="vstep" data-pin="Verifier check">
               <span class="tag">Step 3 · How we keep ourselves honest</span>
               <h3>We check ourselves against your verifier.</h3>
-              <p>We rebuild each ship's verified CO₂ and compare. On 400 ships: the <b>exact same tonne for about
+              <p>We rebuild each ship’s verified CO₂ and compare. On 400 ships: the <b>exact same tonne for about
                  two in three</b>, within a couple of percent for about four in five. You see the comparison on every ship.</p>
               <span class="chip">Measured, not promised</span>
             </article>
@@ -726,7 +726,7 @@
       <article class="card c2" data-reveal style="--d:120">
         <div class="rk"><b>2</b><span>Cash, and a limit that falls</span></div>
         <h3>FuelEU Maritime</h3>
-        <p>How far your fuel's greenhouse-gas intensity sits above the limit, and what the shortfall is charged at.</p>
+        <p>How far your fuel’s greenhouse-gas intensity sits above the limit, and what the shortfall is charged at.</p>
         <svg class="gfx g-fu" viewBox="0 0 140 64" aria-hidden="true">
           <path class="gap" d="M8 14L132 34V50L104 50L104 44L72 44L72 38L40 38L40 30L8 30Z" fill="#8b5cf6" fill-opacity=".16"/>
           <polyline class="ln" points="8,30 40,30 40,38 72,38 72,44 104,44 104,50 132,50" fill="none" stroke="#94a3b8" stroke-width="2.4" stroke-dasharray="5 4" style="stroke-dasharray:5 4;stroke-dashoffset:0"/>
@@ -788,7 +788,7 @@
       <article class="card low" data-reveal style="--d:240">
         <div class="rk"><b>4</b><span>Mostly settled · free</span></div>
         <h3>EEXI</h3>
-        <p>A one-off design check most ships cleared in 2023. It matters again for newbuilds, conversions and power-limit changes.</p>
+        <p>A one-off design check most ships cleared in 2023. It matters again for newbuildings, conversions and power-limit changes.</p>
         <svg class="gfx g-ex" viewBox="0 0 140 64" aria-hidden="true">
           <rect class="bar" style="--i:0" x="8" y="14" width="118" height="14" rx="7" fill="#cbd5e1"/>
           <rect class="bar" style="--i:1" x="8" y="38" width="98" height="14" rx="7" fill="#14b8a6"/>
@@ -923,11 +923,11 @@
       <details open>
         <summary>We check ourselves against your verifier, and show you the result</summary>
         <div class="body">
-          <p>The public register carries each ship's EU-scope CO<sub>2</sub> as its <b>accredited verifier</b> calculated it.
+          <p>The public register carries each ship’s EU-scope CO<sub>2</sub> as its <b>accredited verifier</b> calculated it.
              We rebuild that number independently and compare the two.</p>
           <p>On a 400-ship sample we land on the <b>exact same tonne for about two in three ships</b>, and within a couple of
              percent for roughly four in five. Where it differs, the published figure usually covers only part of the year or
-             part of the operator's obligation, which the public record does not expose.</p>
+             part of the operator’s obligation, which the public record does not expose.</p>
         </div>
       </details>
       <details>
@@ -1015,10 +1015,11 @@
   <footer class="f">
     <div class="wrap">
       <p><span class="n">CarbonKeel</span> — what carbon costs your ships.</p>
-      <p style="margin-top:10px">Figures rebuilt from the EU MRV register are estimates and are labelled as such. Source data is
-         published by EMSA under Article 21 of Regulation (EU) 2015/757. Operators can ask for our derived figures to be withheld
+      <p style="margin-top:10px">Figures rebuilt from the EU MRV register are estimates and are labelled as such. Contains data from EMSA
+         THETIS-MRV, published under Article 21 of Regulation (EU) 2015/757. Our calculations are our own and are not
+         endorsed by EMSA or the European Commission. Operators can ask for our derived figures to be withheld
          from third parties. Not search-indexed. Not legal or investment advice. The example above is an illustration, not a real
-         vessel's filing.</p>
+         ship’s filing.</p>
       <p style="margin-top:14px"><a href="mailto:hello@carbonkeel.com">hello@carbonkeel.com</a> ·
         <a href="privacy.html">Privacy notice</a> · <a href="#top" onclick="goHome(event)">Back to top</a></p>
     </div>
@@ -1265,17 +1266,17 @@
   .ck-cats{display:flex;flex-wrap:wrap;gap:7px}
   .ck-cats button{min-height:40px;padding:0 13px;border-radius:20px;cursor:pointer;
     background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.14);color:#f0f6fc;
-    font:600 13.5px/1 inherit}
+    font-family:inherit;font-weight:600;font-size:13.5px;line-height:1}
   .ck-cats button:hover{border-color:#14b8a6}
   .ck-cats button[aria-pressed="true"]{background:rgba(45,212,191,.16);border-color:#2dd4bf;color:#2dd4bf}
   .ck-chat textarea,.ck-chat input{width:100%;min-height:44px;background:rgba(0,0,0,.28);color:#f0f6fc;
     border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:11px 13px;
-    font:14px/1.5 inherit;margin-top:8px}
+    font-family:inherit;font-size:14px;line-height:1.5;margin-top:8px}
   .ck-chat textarea{min-height:92px;resize:vertical}
   .ck-chat textarea:focus,.ck-chat input:focus{outline:2px solid #14b8a6;border-color:transparent}
   .ck-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.12);flex:none}
   .ck-send{width:100%;min-height:46px;border:0;border-radius:10px;cursor:pointer;
-    background:#2dd4bf;color:#042f2a;font:700 15px/1 inherit}
+    background:#2dd4bf;color:#042f2a;font-family:inherit;font-weight:700;font-size:15px;line-height:1}
   .ck-send:hover{background:#5eead4}
   .ck-note{font-size:11.5px;color:#9db6d1;margin-top:9px;text-align:center;line-height:1.45}
   .ck-chat :focus-visible{outline:2px solid #2dd4bf;outline-offset:2px}
@@ -1298,7 +1299,7 @@
 <div class="ck-chat" id="ckChat" role="dialog" aria-label="Talk to CarbonKeel" hidden>
   <div class="ck-head">
     <b>Talk to us</b>
-    <span>One person, not a bot. Usually replies same day.</span>
+    <span>One person, not a bot. Usually replies the same day.</span>
   </div>
   <div class="ck-body">
     <div class="ck-msg">Hello. Tell me what you need and I will come back to you myself. <b>What is this about?</b></div>

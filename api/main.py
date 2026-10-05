@@ -24,6 +24,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 from ghgcore import (Vessel, AnnualActivity, VoyageLeg, FuelConsumption,
                      FuelType, ShipType, VoyageScope, build_scorecard)
 from ghgcore.thetis import load_thetis_cached, record_to_activity
+from ghgcore.exports import ordered as _ordered_exports
 from ghgcore.fueleu import compute_fueleu
 from ghgcore.euets import compute_ets
 from ghgcore.nzf import compute_nzf
@@ -63,9 +64,9 @@ def _guard(request: Optional[Request], cost: int = 1) -> None:
     key = _client_key(request)
     for _ in range(max(1, cost)):
         if not privacy.rate_limit_ok(key):
-            raise HTTPException(429, "Hourly lookup limit reached for anonymous "
-                                     "use. Claim your fleet for unlimited access "
-                                     "— see 'Is this your ship?'.")
+            raise HTTPException(429, "You have reached the hourly limit for anonymous "
+                                     "lookups. If you operate these ships, claim them "
+                                     "under “Your data” for full access.")
 
 
 def _suppressed_payload(rec) -> dict:
@@ -97,11 +98,10 @@ def records() -> dict:
         with _LOAD_LOCK:
             if _RECORDS is None:
                 fx = os.path.join(os.path.dirname(__file__), "..", "fixtures")
-                files = sorted(glob.glob(os.path.join(fx, "thetis_mrv_*.xlsx")))
+                files = _ordered_exports(fx)
                 if not files:
-                    raise HTTPException(503, "No THETIS export on server — see "
-                                             "thetis.py docstring for the EMSA "
-                                             "download API.")
+                    raise HTTPException(503, "The ship register is not available right now. "
+                                             "Please try again shortly.")
                 _EXPORT_NAME = os.path.basename(files[-1])
                 _RECORDS = load_thetis_cached(files[-1])
     return _RECORDS
@@ -128,6 +128,14 @@ async def _security_headers(request, call_next):
     resp.headers.setdefault("Permissions-Policy",
                             "camera=(), microphone=(), geolocation=()")
     return resp
+
+
+def _unsupported(raw):
+    """Message for a ship type we do not cover yet. The page looks for the
+    phrase 'not yet supported' to offer the custom EEXI check instead."""
+    return (f"Ship type “{raw}” is not yet supported. We cover 12 ship types, "
+            "including container ships, bulk carriers, tankers, LNG carriers, "
+            "ro-ro, ro-pax and cruise ships.")
 
 
 @app.get("/")
@@ -202,13 +210,11 @@ def lookup(imo: str, request: Request = None,
     _guard(request)
     rec = records().get(imo)
     if rec is None:
-        raise HTTPException(404, f"IMO {imo} not in the public export.")
+        raise HTTPException(404, f"IMO {imo} was not found in the public EU MRV register.")
     if privacy.is_suppressed(imo):
         return _suppressed_payload(rec)
     if rec.ship_type is None:
-        raise HTTPException(422, f"Ship type {rec.ship_type_raw!r} not yet "
-                                 "supported — 12 CII types are live incl. "
-                                 "LNG carrier, ro-ro, ro-pax, cruise.")
+        raise HTTPException(422, _unsupported(rec.ship_type_raw))
     y = year or rec.reporting_period or 2025
     verified = {"co2_tonnes": rec.co2_tonnes, "fuel_tonnes": rec.fuel_tonnes,
                 "ets_scope_co2_reported": rec.co2_ets_reported_t,
@@ -239,10 +245,10 @@ def fleet(imos: str = Query(min_length=7), request: Request = None):
     wanted = _parse_imos(imos)
     if len(wanted) > privacy.ANON_FLEET_MAX_VESSELS:
         raise HTTPException(403,
-            f"Anonymous fleet analysis is capped at "
-            f"{privacy.ANON_FLEET_MAX_VESSELS} vessels (you sent {len(wanted)}). "
-            "This limit exists to stop bulk harvesting of other operators' "
-            "data. Claim your fleet — 'Is this your ship?' — for the full list.")
+            f"Anonymous fleet analysis is limited to "
+            f"{privacy.ANON_FLEET_MAX_VESSELS} ships (you sent {len(wanted)}). "
+            "The limit stops bulk copying of other operators’ data. If these are "
+            "your ships, claim them under “Your data” to analyse the full list.")
     _guard(request, cost=len(wanted))
     recs = records()
     out, cands, hidden = [], [], []
@@ -291,11 +297,11 @@ def eexi(imo: str, dwt: float = Query(gt=0), gt: Optional[float] = Query(None, g
     _guard(request)
     rec = records().get(imo)
     if rec is None:
-        raise HTTPException(404, f"IMO {imo} not in the public export.")
+        raise HTTPException(404, f"IMO {imo} was not found in the public EU MRV register.")
     if privacy.is_suppressed(imo):
         return _suppressed_payload(rec)
     if rec.ship_type is None:
-        raise HTTPException(422, f"Ship type {rec.ship_type_raw!r} not yet supported.")
+        raise HTTPException(422, _unsupported(rec.ship_type_raw))
     r = compute_eexi(rec.ship_type, dwt, gt or dwt, rec.tech_efficiency)
     return {"imo": rec.imo, "name": rec.name, "ship_type": rec.ship_type_raw,
             "reported_raw": rec.tech_efficiency, "source": _EXPORT_NAME,
@@ -311,7 +317,7 @@ def siblings(imo: str, limit: int = 60):
     recs = records()
     rec = recs.get(imo)
     if rec is None:
-        raise HTTPException(404, f"IMO {imo} not in the public export.")
+        raise HTTPException(404, f"IMO {imo} was not found in the public EU MRV register.")
     if not rec.company or privacy.is_suppressed(imo):
         return {"imo": imo, "company": None, "siblings": []}
     fleet = [r for r in recs.values() if r.company == rec.company
@@ -361,11 +367,11 @@ def audit(imo: str, dwt: float = Query(gt=0), year: Optional[int] = None):
     from ghgcore.audit import build_audit
     rec = records().get(imo)
     if rec is None:
-        raise HTTPException(404, f"IMO {imo} not in the public export.")
+        raise HTTPException(404, f"IMO {imo} was not found in the public EU MRV register.")
     if privacy.is_suppressed(imo):
         raise HTTPException(403, privacy.SUPPRESSION_NOTE)
     if rec.ship_type is None:
-        raise HTTPException(422, f"Ship type {rec.ship_type_raw!r} not yet supported.")
+        raise HTTPException(422, _unsupported(rec.ship_type_raw))
     y = year or rec.reporting_period or 2025
     return build_audit(record_to_activity(rec, year=y, dwt=dwt), estimate=True)
 
@@ -381,9 +387,9 @@ def method():
 def _require_key(key: Optional[str]) -> str:
     from ghgcore import access
     if not access.is_valid(key):
-        raise HTTPException(401, "This tool is for vessel operators. Enter your "
-                                 "access key, or request one — we issue them to "
-                                 "design partners.")
+        raise HTTPException(401, "This tool is for ship operators. Enter your "
+                                 "access key, or ask us for one. We issue keys to "
+                                 "operators and design partners.")
     return access.label_for(key)
 
 
@@ -522,11 +528,11 @@ def claim(inp: ClaimIn, request: Request = None):
                     "from third parties straight away, and we will confirm by "
                     "email once it is permanent. The EMSA-published figures "
                     "stay visible because Article 21 requires their publication.",
-        "claim": "Claim received. We'll verify against your company domain or "
+        "claim": "Claim received. We will check it against your company domain or "
                  "Document of Compliance and come back to you.",
         "correct": "Correction received. Send the underlying data (noon reports "
-                   "or BDNs) and we'll replace the estimate and label it as "
-                   "owner-verified.",
+                   "or bunker delivery notes) and we will replace the estimate and "
+                   "label it as owner-verified.",
     }[inp.kind]
     return {"ok": True, "kind": req.kind, "imos": req.imos, "message": msg}
 
@@ -571,7 +577,7 @@ def pool_agreement(imos: str = Query(min_length=7), year: int = 2026,
         cands.append(PoolCandidate(imo, rec.name, feu.compliance_balance_tco2e,
                                    feu.ghg_intensity))
     if not cands:
-        raise HTTPException(422, "No scorable ships in the list.")
+        raise HTTPException(422, "None of those ships can be scored yet.")
     return PlainTextResponse(draft_agreement(suggest_pool(cands), year, organiser),
                              media_type="text/markdown")
 
@@ -587,8 +593,9 @@ def report(imos: str = Query(min_length=7), year: Optional[int] = None,
         raise HTTPException(403, privacy.SUPPRESSION_NOTE)
     if len(wanted) > privacy.ANON_FLEET_MAX_VESSELS:
         raise HTTPException(403,
-            f"Anonymous reports are capped at {privacy.ANON_FLEET_MAX_VESSELS} "
-            "vessels. Claim your fleet for the full report.")
+            f"Anonymous reports are limited to {privacy.ANON_FLEET_MAX_VESSELS} "
+            "ships. If these are your ships, claim them under “Your data” "
+            "for the full report.")
     _guard(request, cost=len(wanted))
     return HTMLResponse(fleet_report_html(records(), wanted, year))
 
@@ -601,7 +608,7 @@ def _parse_imos(raw: str) -> list[str]:
             seen.add(m)
             out.append(m)
     if not out:
-        raise HTTPException(422, "No 7-digit IMO numbers found in input.")
+        raise HTTPException(422, "No 7-digit IMO numbers found in the text you pasted.")
     return out
 
 

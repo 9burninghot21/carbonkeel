@@ -15,12 +15,13 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 
 from ghgcore import build_scorecard
+from ghgcore.exports import ordered as _ordered_exports
 from ghgcore.thetis import load_thetis_xlsx, record_to_activity
 
 
 def newest_export() -> str:
     fx = os.path.join(os.path.dirname(__file__), "..", "fixtures")
-    files = sorted(glob.glob(os.path.join(fx, "thetis_mrv_*.xlsx")))
+    files = _ordered_exports(fx)
     if not files:
         sys.exit("No fixtures/thetis_mrv_*.xlsx found — download via the "
                  "public API (see thetis.py docstring).")

@@ -18,6 +18,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 warnings.filterwarnings("ignore")
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
+sys.path.insert(0, os.path.join(ROOT, "src"))
+from ghgcore.exports import newest_per_year
 FOCUS = {"container ship", "bulk carrier", "oil tanker", "chemical tanker"}
 EUA_PRICES = (60, 70, 80, 90)
 BASE_PRICE = 70
@@ -51,7 +53,9 @@ def read(path):
 
 
 def main():
-    files = sorted(glob.glob(os.path.join(ROOT, "fixtures", "thetis_mrv_*.xlsx")))
+    per_year = newest_per_year(os.path.join(ROOT, "fixtures"))
+    years = sorted(per_year)
+    files = [per_year[y] for y in years]
     cur = read(files[-1])
     prev = read(files[-2]) if len(files) > 1 else []
 

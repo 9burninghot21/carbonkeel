@@ -62,6 +62,14 @@ def gate_tests():
     else:
         failed = next((l for l in lines if l.startswith("FAILED")), summary)
         add("FAIL", "tests", f"smoke suite failed - {failed}")
+    r = run([sys.executable, "tests/test_style.py"])
+    lines = r.stdout.strip().splitlines()
+    summary = next((l for l in reversed(lines) if "passed" in l), "(no summary)")
+    if r.returncode == 0:
+        add("PASS", "tests", f"style and data-source suite - {summary}")
+    else:
+        failed = next((l for l in lines if l.startswith("FAILED")), summary)
+        add("FAIL", "tests", f"style suite failed - {failed}")
 
 
 # ----------------------------------------------------- founder blanks -----

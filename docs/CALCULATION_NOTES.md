@@ -1,9 +1,9 @@
 # Calculation notes — audit this by hand
 
-Every number CarbonKeel shows comes from one of six deterministic engines.
+Every number CarbonKeel shows comes from one of seven deterministic engines.
 This document states each engine's formula, parameters (with source), and a
 worked example you can recompute on a calculator. The same examples run as
-assertions in `tests/test_engines.py` (96 checks) — if you change a table,
+assertions in `tests/test_engines.py` (144 checks) — if you change a table,
 the tests force the hand-computation to be redone.
 
 ## 1. CII (MARPOL Annex VI Reg. 28 — `cii.py`)
@@ -47,7 +47,7 @@ verdict: reported attained (from the ship's own MRV filing) vs required
   non-conventional propulsion and is measured in GT.
 - **Capacity basis per MEPC.364(79) §2.2.3** (verified 2 Oct 2026):
   - §2.2.3.1 bulk, tanker, gas, LNG, ro-ro cargo (incl. vehicle carrier),
-    ro-ro passenger, general cargo, reefer, combination -> **deadweight**
+    ro-ro passenger, general cargo, refrigerated cargo, combination → **deadweight**
   - §2.2.3.2 passenger and cruise passenger ships -> **gross tonnage**
   - §2.2.3.3 containerships -> **70% deadweight for the attained index**, but
     §2.2.3.3.3-.4 state a = 174.22 and c = 0.201 were fitted against *100%*
@@ -74,9 +74,12 @@ EUAs = CO₂e × phase-in (2024: 40%, 2025: 70%, 2026+: 100%)
 - Liquid-fuel EFs 0.00005/0.00018 t/t (verified vs Annex II/Reg. 2015/757);
   LNG methane = engine-type slip: Otto-MS 3.1%, Otto-SS 1.7%, Diesel-DF
   0.2%, LBSI 2.6% of fuel mass.
-- Validation: our scope reconstruction reproduces the verifier-reported
-  "CO2 to be reported under Directive 2003/87/EC" figure exactly on spot
-  checks (e.g. IMO 9464663: 7,409.0 t both).
+- Validation: we compare our scope reconstruction with the verifier-reported
+  "CO2 to be reported under Directive 2003/87/EC" figure. On a random sample of
+  400 ships it matches exactly for 67.5%, to within 1% for 76.0% and to within
+  2% for 78.2%; the other 21.8% differ by more, usually because the filed figure
+  covers only part of the year or part of the operator’s obligation. Example
+  of an exact match: IMO 9464663, 7,409.0 t both.
 
 ## 4. FuelEU Maritime (Reg. (EU) 2023/1805 — `fueleu.py`)
 
@@ -98,8 +101,8 @@ penalty = 292×10⁶/(91.74×41,000)×2,400 = **€186,310**.
 
 ## 5. UK ETS (`ukets.py`)
 Same gas basis as EU ETS; scope = UK domestic voyages/berth at 100%,
-GB↔NI 50% (leg `uk_share` from port pairs); no phase-in; first period
-H2 2026. UKA price is an input (default £40, indicative).
+GB↔NI 50% (each leg’s UK share comes from its port pair); no phase-in; the first
+period is the second half of 2026. UKA price is an input (default £40, indicative).
 
 ## 6. IMO Net-Zero Framework (`nzf.py`) — SCENARIO until adopted
 ```
@@ -108,8 +111,8 @@ above Base target   → Tier 2 units @ $380/t (plus Tier 1 band)
 Base…Direct band    → Tier 1 units @ $100/t
 below Direct target → Surplus Units
 ```
-Targets per MEPC 83 approval (2028 Base −4%/Direct −17% vs 93.3). Every
-output carries the "not yet adopted" note; vote ~Oct 2026.
+Targets per MEPC 83 approval (2028 Base −4% and Direct −17% against 93.3). Every
+output carries the "not yet adopted" note. The adoption vote is expected in October 2026.
 
 ## 7. Pooling optimizer (`pooling.py`)
 0/1 knapsack: admit deficit ships (weight = |CB|, value = standalone
@@ -120,7 +123,8 @@ density fallback above. Test pins the optimum against a hand-built case.
 ## Cross-cutting rules
 - No LLM ever produces a number (architecture rule 1; the LLM only maps
   column names, and its output is validated then applied by code).
-- ESTIMATE labelling on all public-data outputs; audit worksheet with every
-  parameter + source, available as a full calculation worksheet from the Verifier view of any vessel.
-- Currency/price assumptions (EUA €70, UKA £40, €/£ 1.15) are inputs, not
-  facts — the UI shows EUA sensitivity at €60/80/100.
+- ESTIMATE labelling on all public-data outputs. Every parameter and its source is
+  listed in a full calculation worksheet, available from the Verifier view of any ship.
+- Currency and allowance-cost assumptions (EU allowance €70, UK allowance £40,
+  €/£ 1.15) are inputs, not facts. The app also shows the EU allowance cost at
+  €60 and €100.

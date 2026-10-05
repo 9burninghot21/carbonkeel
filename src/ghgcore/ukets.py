@@ -31,8 +31,9 @@ class UKETSResult:
 
 def compute_ukets(activity: AnnualActivity,
                   uka_price_gbp: float = DEFAULT_UKA_PRICE_GBP) -> UKETSResult:
-    notes = ["UK ETS covers UK domestic voyages/berth only (GB<->NI at 50%); "
-             "international voyages are under consultation, not yet in scope."]
+    notes = ["UK ETS covers domestic UK voyages and time at berth only (voyages between Great "
+             "Britain and Northern Ireland count at 50%). International voyages are under "
+             "consultation and are not yet in scope."]
     co2e = 0.0
     any_uk = False
     for leg in activity.legs:
@@ -45,9 +46,9 @@ def compute_ukets(activity: AnnualActivity,
             ch4, n2o = _non_co2(fc.fuel, activity.vessel.engine_type)
             co2e += t * (CF_TCO2_PER_T[fc.fuel] + ch4 * GWP_CH4 + n2o * GWP_N2O)
     if not any_uk:
-        notes.append("No UK-scoped legs in activity (uk_share unset or zero).")
+        notes.append("No UK domestic voyages were found in this ship's data.")
     if activity.year == 2026:
-        notes.append("2026 scheme period runs 1 Jul-31 Dec only — supply "
-                     "second-half activity, engine does not prorate.")
+        notes.append("The 2026 UK ETS period runs only from 1 July to 31 December. Enter "
+                     "second-half activity; this estimate does not pro-rate.")
     return UKETSResult(round(co2e, 1), round(co2e, 1),
                        round(co2e * uka_price_gbp, 0), uka_price_gbp, notes)

@@ -10,7 +10,7 @@ Budget: Part A about 45 minutes. Part B about 45 minutes, once.
 
 ## Before you start: the two automated gates
 
-Run the one-command publish gate. It runs both suites and the publish checks
+Run the one-command publish gate. It runs all three suites and the publish checks
 (placeholders, secrets, personal files, deploy files). Red means stop.
 
 ```bash
@@ -152,6 +152,12 @@ UAT passed (see `docs/UAT_REPORT.md`). Preflight: code green.
 - [ ] Generate a **new** access key and store it in a password manager:
       `python -c "import secrets;print('ck-'+secrets.token_hex(8))"`
       (the old one appeared in plain text — treat it as burnt).
+- [ ] **Refresh the data** (our copy is 54 versions behind EMSA's):
+      `python scripts/fetch_thetis.py` to see what is stale, then
+      `python scripts/fetch_thetis.py --download 2025 2024 --yes`, then
+      `python scripts/market_data.py`. Update the numbers on the opening page, then
+      regenerate the outreach reports (`python scripts/make_reports.py --top 10 --pdf`).
+- [ ] Ask the THETIS helpdesk to confirm reuse in writing (draft in `docs/DATA_SOURCES.md`).
 - [ ] Gate: `python scripts/preflight.py` exits **0**.
 - [ ] Start the trademark search (EUIPO/UKIPO, classes 9/35/42). Background task.
 - [ ] Take advice on the two flags in `docs/LEGAL_REVIEW.md` (EU representative,

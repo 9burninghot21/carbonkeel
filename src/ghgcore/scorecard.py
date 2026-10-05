@@ -56,15 +56,15 @@ def build_scorecard(activity: AnnualActivity, eua_price: float = 70.0,
         asset = 0.5 * penalty_equiv(feu.compliance_balance_gco2e, feu.ghg_intensity)
 
     if nzf.surplus_units_tco2e > 0:
-        readiness = f"Compliant under NZF {nzf.year}: earns {nzf.surplus_units_tco2e:,.0f} t Surplus Units"
+        readiness = f"Compliant under the IMO NZF scenario for {nzf.year}: earns {nzf.surplus_units_tco2e:,.0f} t of Surplus Units"
     else:
-        readiness = (f"NZF {nzf.year} exposure: ${nzf.remedial_cost_usd:,.0f} in remedial units "
-                     f"(T1 {nzf.tier1_deficit_tco2e:,.0f} t / T2 {nzf.tier2_deficit_tco2e:,.0f} t)")
+        readiness = (f"IMO NZF scenario, {nzf.year}: ${nzf.remedial_cost_usd:,.0f} in remedial units "
+                     f"(Tier 1: {nzf.tier1_deficit_tco2e:,.0f} t, Tier 2: {nzf.tier2_deficit_tco2e:,.0f} t)")
 
     actions = _actions(cii, feu, ets, nzf)
     if ukets.cost_gbp > 0:
-        actions.append(f"UK ETS: {ukets.allowances_due:,.0f} UKAs due "
-                       f"(~GBP {ukets.cost_gbp:,.0f}) for UK domestic legs.")
+        actions.append(f"UK ETS: {ukets.allowances_due:,.0f} UK allowances (UKAs) due, about "
+                       f"£{round(ukets.cost_gbp, -3):,.0f}, for UK domestic voyages.")
     return Scorecard(activity.vessel.name, activity.vessel.imo_number, activity.year,
                      health, round(cost, 0), round(asset, 0), readiness,
                      cii, feu, ets, nzf, ukets, actions)
@@ -73,24 +73,27 @@ def build_scorecard(activity: AnnualActivity, eua_price: float = 70.0,
 def _actions(cii, feu, ets, nzf) -> list[str]:
     a = []
     if cii.rating in ("D", "E"):
-        a.append(f"CII rated {cii.rating} (ratio {cii.ratio}). If E, or 3rd consecutive D: "
-                 "corrective action plan required in SEEMP Part III before SoC. "
-                 "Levers: speed optimisation, hull/propeller cleaning, biofuel blending, weather routing.")
+        need = ("A rating of E requires" if cii.rating == "E" else
+                "Three years in a row at D, or one year at E, requires")
+        a.append(f"CII rating {cii.rating} (ratio {cii.ratio}). {need} a corrective action "
+                 "plan in SEEMP Part III. Levers: slower speed, hull and propeller cleaning, "
+                 "biofuel blending, weather routing.")
     elif cii.rating == "C":
-        a.append(f"CII C (ratio {cii.ratio}) — margin to D is thin; Z factor tightens to "
-                 f"{13.625}% in 2027. Model next year now.")
+        a.append(f"CII rating C (ratio {cii.ratio}). The margin to D is thin and the "
+                 "reduction factor keeps rising, so model next year now.")
     if feu.compliance_balance_tco2e < 0:
-        a.append(f"FuelEU deficit {abs(feu.compliance_balance_tco2e):,.0f} tCO2e "
-                 f"(penalty €{feu.penalty_eur:,.0f}). Options ranked: 1) pool with surplus "
-                 "vessel, 2) bank-borrow from next year (+10%), 3) biofuel on EU legs.")
+        a.append(f"FuelEU deficit of {abs(feu.compliance_balance_tco2e):,.0f} tCO₂e "
+                 f"(penalty about €{feu.penalty_eur:,.0f}). Options: pool with a surplus "
+                 "ship, borrow from next year (with 10% added), or use biofuel on EU voyages.")
     elif feu.compliance_balance_tco2e > 0:
-        a.append(f"FuelEU SURPLUS {feu.compliance_balance_tco2e:,.0f} tCO2e — monetisable via "
-                 "pooling (register pool in FuelEU Database by 30 April).")
-    a.append(f"EU ETS: {ets.allowances_due:,.0f} EUAs due (~€{ets.cost_eur:,.0f}) — "
-             "surrender deadline 30 September; hedge EUA purchases across the year.")
+        a.append(f"FuelEU surplus of {feu.compliance_balance_tco2e:,.0f} tCO₂e. It can be "
+                 "pooled with another ship; register a pool in the FuelEU Database by 30 April.")
+    a.append(f"EU ETS: {ets.allowances_due:,.0f} EU allowances (EUAs) due, about "
+             f"€{round(ets.cost_eur, -3):,.0f}, to be surrendered by 30 September.")
     if nzf.remedial_cost_usd > 0:
-        a.append(f"NZF scenario {nzf.year}: budget ${nzf.remedial_cost_usd:,.0f} or shift fuel "
-                 "mix before entry into force (adoption vote Oct 2026).")
+        a.append(f"IMO Net-Zero Framework scenario for {nzf.year}: about "
+                 f"${round(nzf.remedial_cost_usd, -3):,.0f} on today's fuel mix. The adoption vote "
+                 "is expected in October 2026.")
     return a
 
 

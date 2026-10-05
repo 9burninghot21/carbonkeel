@@ -228,3 +228,65 @@ Browser pane, desktop width 1360 and phone width 375, driven to each scroll posi
 | N4 | The first-page "10-second" test, again | Step 2 must be re-done on the new page |
 
 **Please re-initial the A1 row of the sign-off table above** after you have looked at the new page. Until then A1 stands **re-opened**.
+
+
+---
+
+# Addendum 2 — 5 October 2026: grammar and usage audit, the app restyled, and the data source checked
+
+You asked for three things. This is what I did, what I found, and what is still yours to approve.
+
+## 1. Grammar and usage audit
+
+Method: I extracted every sentence a person can read (page markup, the text the scripts build, the text the server sends, and the two documents the app displays), ran a spell checker, then read it all against a house style: **British English; "ship", not "vessel"; "Article 21", not "Art. 21"; "EU MRV", not "EU-MRV"; "about", not "~"; acronyms spelled out on first use; typographic apostrophes**.
+
+Spelling was clean. The real findings were in usage:
+
+| # | Severity | What was wrong | Fixed |
+|---|---|---|---|
+| D-25 | **High** | The compliance calendar showed the placeholder **"year-Y"** to users, and repeated "(compliance year 2026)" on every line | Yes. Dates also now read "31 Jan 2027", not "2027-01-31" |
+| D-26 | **High** | **Every button and input on both pages rendered at 13px, not the intended 15px**, because `font: 700 15px/1.2 inherit` is invalid CSS and browsers drop the whole line. It was on the opening page too | Yes (14 declarations). Guarded by a test I proved by re-injecting the bug |
+| D-27 | **High** | **An unmeasured accuracy claim in three more places**: the Method page ("exactly on spot checks"), the printable fleet report ("spot-checks reproduce the reported figure exactly") and the launch-kit cold email ("we land on the same tonne"). Our measured result is exact for about two ships in three | Yes: all three now state the measured figures |
+| D-28 | **High** | **A wrong legal citation.** The "Your data" page and the legal review cited "Article 21(6)" for alternative publication. Paragraph 6 is about EMSA assisting the Commission; the right is **Article 21(3)** and applies only to aggregated data *not relating to emissions*. The legal review also said EMSA imposes "no licence restriction", which I could not support | Yes, corrected, with sources in `docs/DATA_SOURCES.md` |
+| D-29 | Medium | **Data-file selection sorted names as text**, so once EMSA's version reached three digits the app would load v60 instead of v100 | Yes: one shared helper orders by (year, version). Proven with a test |
+| D-30 | Medium | A raw file name ("thetis_mrv_2025_v6.xlsx") was shown as the data source | Yes: "EMSA THETIS-MRV, 2025 report, version 6" |
+| D-31 | Medium | **Contradictory and unclear wording**: "CII rated E… If E, or 3rd consecutive D…"; "bank-borrow"; unexplained SoC, fw, OMM, EPL/ShaPoLi, BDN, DoC, STS; "hedge EUA purchases" (reads as trading advice); Python-style quotes in the unsupported-ship message; "registry" (means a flag registry, not the public register); "the matchmaking service" for a service that does not exist; a leaked internal field name (`uk_share`); an emoji; a raw "Request failed: TypeError" shown to users | Yes, all |
+| D-32 | Medium | Method page quoted "96 checks" (now 144) and "six engines" (there are seven sections) | Yes |
+| D-33 | Low | The CII pointer label wrapped over the band labels at the right edge | Yes |
+| D-34 | Low | Under a D rating the page said the next band is C, then repeated "reaching C needs 0.2%" | Yes |
+| D-35 | Low | The "IMO NZF" bill row was built differently from the other rows and cramped on a phone | Yes |
+| D-36 | Low | A missed "vessel" in the opening page's intro, found by the new test | Yes |
+
+A **style and data-source suite** (`tests/test_style.py`, 64 checks) now guards all of this, and the publish gate runs it.
+
+## 2. The app restyled
+
+Same palette, type, buttons and focus ring as the opening page, but calm and data-first: light surfaces, one accent, **no artwork or motion**. The bill is the largest thing on the screen. Equations on the Method page are drawn as fractions and superscripts, like the opening page.
+
+| Check | Result |
+|---|---|
+| Text contrast, WCAG AA (4.5:1), **525 text elements across six tabs, measured from the rendered colours** | **0 failures.** (The checker flags the gradient buttons; those are white on blue at 5.3:1 or better) |
+| Tap targets at phone width, seven tabs | none under 40px |
+| Sideways scroll at 375px, seven tabs | none |
+| Result view, CII calculator, EEXI, fleet, calendar, Method | seen on screen |
+| Key file | a temporary test key was added to your local key file for the CII check and the file was **restored byte-for-byte** afterwards |
+
+## 3. The data source
+
+See `docs/DATA_SOURCES.md`. In short:
+
+- **Public by law:** yes (Article 21(1)–(2), including the company name). EMSA says the files can be "exported in a spreadsheet for further analysis".
+- **Reuse:** EMSA's copyright notice authorises reproduction "provided the source is acknowledged". We acknowledge EMSA, label our figures as rebuilt, and say EMSA does not endorse us. **Gap:** no licence text written for these files, so a written confirmation is worth asking for (draft included).
+- **Fetchable:** yes, no login. `python scripts/fetch_thetis.py` checks; `--download 2025 --yes` fetches.
+- **Our copy is stale:** we hold 2025 **v6**; EMSA lists **v60**, generated the morning of 5 October.
+
+**I did not download anything.** It needs your approval (see the summary).
+
+## Still open from this round
+
+| # | Item | Owner |
+|---|---|---|
+| N5 | Approve the data refresh (about 21 MB: 2025 v60 and 2024 v246). Then the landing-page numbers and the outreach reports must be regenerated | You |
+| N6 | The 11 outreach reports already generated still contain the old accuracy claim and must be regenerated before any is sent | After N5 |
+| N7 | Send (or decline to send) the reuse-confirmation message to the THETIS helpdesk | You |
+| N8 | The cold-email draft in `docs/LAUNCH_KIT.md` still **leads with pooling and the 30 April deadline**, which you said you do not want to lead with on the front page. I fixed its accuracy claim and removed "the part that pays for us", but left the framing for you to decide | You |

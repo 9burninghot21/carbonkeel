@@ -10,6 +10,9 @@ tanker, meaningful EU exposure), and writes:
 Usage: python scripts/build_targets.py [--min 8] [--max 60]
 """
 import argparse, csv, glob, io, os, sys, warnings
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+from ghgcore.exports import latest as _latest_export
 from collections import defaultdict
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
@@ -32,7 +35,7 @@ def main():
 
     import openpyxl
     root = os.path.join(os.path.dirname(__file__), "..")
-    path = sorted(glob.glob(os.path.join(root, "fixtures", "thetis_mrv_*.xlsx")))[-1]
+    path = _latest_export(os.path.join(root, "fixtures"))
     print(f"Aggregating {os.path.basename(path)} by company ...")
     wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
     ws = wb[wb.sheetnames[0]]

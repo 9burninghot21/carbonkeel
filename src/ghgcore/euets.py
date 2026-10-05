@@ -63,7 +63,7 @@ def compute_ets(activity: AnnualActivity, eua_price_eur: float = 70.0) -> ETSRes
     year = activity.year
     include_non_co2 = year >= 2026
     if not include_non_co2:
-        notes.append("Pre-2026: CO2 only in ETS scope.")
+        notes.append("Before 2026 only CO₂ is in the ETS scope; from 2026 methane and nitrous oxide count too.")
 
     co2e = 0.0
     for leg in activity.legs:
@@ -81,7 +81,7 @@ def compute_ets(activity: AnnualActivity, eua_price_eur: float = 70.0) -> ETSRes
 
     surrender = PHASE_IN.get(year, 1.0)
     allowances = co2e * surrender
-    notes.append("Biofuel share may qualify for zero-rating under MRV rules if RED-certified — "
-                 "prototype applies fossil-share CF only.")
+    notes.append("Sustainable biofuel can be zero-rated if it is certified under the Renewable "
+                 "Energy Directive (RED). This estimate applies the fossil-fuel emission factor only.")
     return ETSResult(round(co2e, 1), surrender, round(allowances, 1),
                      round(allowances * eua_price_eur, 0), eua_price_eur, notes)

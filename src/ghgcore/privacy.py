@@ -165,9 +165,9 @@ def rate_limit_ok(key: str, limit: int = ANON_LOOKUPS_PER_HOUR,
 
 
 SUPPRESSION_NOTE = (
-    "This vessel's operator has asked us not to publish CarbonKeel's derived "
+    "This ship’s operator has asked us not to show CarbonKeel’s derived "
     "estimates (cost exposure, ratings, penalty risk) to third parties. The "
-    "verified figures below remain public because EU MRV Regulation Art. 21 "
-    "requires their publication — they are available from EMSA directly. "
-    "If you operate this ship, you can see the full analysis by claiming it."
+    "verified figures below stay public because Article 21 of the EU MRV "
+    "Regulation requires their publication; they are also available from EMSA "
+    "directly. If you operate this ship, claim it to see the full analysis."
 )

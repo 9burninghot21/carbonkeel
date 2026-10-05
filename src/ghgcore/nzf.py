@@ -43,8 +43,10 @@ def compute_nzf(activity: AnnualActivity, scenario_year: int = 2028) -> NZFResul
 
     NZF scope = ALL international energy (not just EU) — we include every leg.
     """
-    notes = ["NZF not yet adopted — scenario simulation only (adoption vote ~Oct 2026).",
-             "Fuel WtW values are prototype defaults; final regime uses IMO LCA Guidelines (MEPC.391(81))."]
+    notes = ["The IMO Net-Zero Framework (NZF) has not been adopted. This is a scenario only; "
+             "the adoption vote is expected in October 2026.",
+             "Well-to-wake fuel values here are provisional defaults. The final regime will use the "
+             "IMO life-cycle assessment guidelines (MEPC.391(81))."]
     energy = 0.0
     emissions = 0.0
     for leg in activity.legs:

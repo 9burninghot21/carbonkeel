@@ -18,6 +18,7 @@ warnings.filterwarnings("ignore")
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
+from ghgcore.exports import latest as _latest_export
 
 EDGE_PATHS = [
     r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe",
@@ -65,7 +66,7 @@ def main():
     from api.report import fleet_report_html
     from ghgcore.thetis import load_thetis_xlsx
 
-    xlsx = sorted(glob.glob(os.path.join(ROOT, "fixtures", "thetis_mrv_*.xlsx")))[-1]
+    xlsx = _latest_export(os.path.join(ROOT, "fixtures"))
     print(f"Loading {os.path.basename(xlsx)} ...")
     records = load_thetis_xlsx(xlsx)
     fleets = company_fleets(xlsx)

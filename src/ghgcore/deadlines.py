@@ -19,24 +19,24 @@ class Deadline:
 # (month, day, years_after_Y, regime, what, basis)
 _CALENDAR = [
     (1, 31, 1, "FuelEU", "FuelEU report for year Y to the verifier",
-     "Reg. (EU) 2023/1805 Art. 15"),
-    (3, 31, 1, "EU MRV / DCS", "Verified MRV emissions report submitted via "
-     "THETIS-MRV; IMO DCS fuel data to flag administration",
-     "Reg. (EU) 2015/757 Art. 11; MARPOL VI Reg. 27"),
-    (4, 30, 1, "FuelEU", "Compliance balance recorded; pooling registration "
-     "and banking/borrowing elections in the FuelEU Database",
-     "Reg. (EU) 2023/1805 Arts. 20-21"),
-    (5, 31, 1, "IMO CII", "Statement of Compliance (DCS/CII) issued; CII "
-     "rating determined — 3rd consecutive D or any E triggers SEEMP III "
-     "corrective plan", "MARPOL VI Reg. 28"),
-    (6, 30, 1, "FuelEU / EU MRV", "FuelEU Document of Compliance issued and "
-     "carried on board; MRV DoC on board",
-     "Reg. (EU) 2023/1805 Art. 24"),
-    (9, 30, 1, "EU ETS", "Surrender allowances covering year-Y verified "
-     "emissions (40%/70%/100% phase-in)", "Directive 2003/87/EC Art. 12"),
-    (3, 31, 1, "UK ETS", "UK ETS verified emissions report for year Y",
-     "UK ETS (Maritime) Order 2026 — first period H2 2026"),
-    (4, 30, 1, "UK ETS", "Surrender UKAs for year-Y UK domestic emissions",
+     "Regulation (EU) 2023/1805, Article 15"),
+    (3, 31, 1, "EU MRV / DCS", "Verified EU MRV emissions report for year Y submitted "
+     "through THETIS-MRV; IMO DCS fuel data for year Y sent to the flag administration",
+     "Regulation (EU) 2015/757, Article 11; MARPOL Annex VI, Regulation 27"),
+    (4, 30, 1, "FuelEU", "FuelEU compliance balance for year Y recorded; pooling, banking and "
+     "borrowing choices entered in the FuelEU Database",
+     "Regulation (EU) 2023/1805, Articles 20–21"),
+    (5, 31, 1, "IMO CII", "Statement of Compliance issued and CII rating for year Y set. "
+     "A rating of D for three years running, or E in any year, requires a "
+     "corrective action plan in SEEMP Part III", "MARPOL Annex VI, Regulation 28"),
+    (6, 30, 1, "FuelEU / EU MRV", "FuelEU Document of Compliance for year Y issued and "
+     "kept on board, alongside the EU MRV Document of Compliance",
+     "Regulation (EU) 2023/1805, Article 24"),
+    (9, 30, 1, "EU ETS", "Surrender EU allowances for verified year Y "
+     "emissions (phase-in: 40% of 2024, 70% of 2025, 100% from 2026)", "Directive 2003/87/EC, Article 12"),
+    (3, 31, 1, "UK ETS", "UK ETS verified emissions report for year Y submitted",
+     "UK ETS (Maritime) Order 2026; first period is the second half of 2026"),
+    (4, 30, 1, "UK ETS", "Surrender UK allowances (UKAs) for year Y domestic emissions",
      "UK ETS Order 2026"),
 ]
 
@@ -44,7 +44,7 @@ _CALENDAR = [
 def deadlines_for(year: int) -> list[Deadline]:
     """All dated obligations arising from compliance year `year`, sorted."""
     out = [Deadline(date(year + off, m, d), regime,
-                    what.replace("year Y", str(year)) + f" (compliance year {year})",
+                    what.replace("year Y", str(year)),
                     basis)
            for m, d, off, regime, what, basis in _CALENDAR]
     return sorted(out, key=lambda x: x.due)

@@ -25,6 +25,7 @@ warnings.filterwarnings("ignore")
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 sys.path.insert(0, ROOT)
 sys.path.insert(0, os.path.join(ROOT, "src"))
+from ghgcore.exports import latest as _latest_export
 
 PIPELINE = os.path.join(ROOT, "outreach", "pipeline.csv")
 TARGETS = os.path.join(ROOT, "outreach", "targets_2025.csv")
@@ -278,7 +279,7 @@ def targets_view(args):
         sys.exit("No untouched targets left in the ICP list.")
 
     print("\nLoading verified fleet data ...")
-    path = sorted(glob.glob(os.path.join(ROOT, "fixtures", "thetis_mrv_*.xlsx")))[-1]
+    path = _latest_export(os.path.join(ROOT, "fixtures"))
     recs = load_thetis_cached(path)
     by_company = {}
     for r in recs.values():
@@ -344,7 +345,7 @@ def surplus_view(args):
     from ghgcore.fueleu import compute_fueleu
 
     print("\nScanning the register for surplus holders ...")
-    path = sorted(glob.glob(os.path.join(ROOT, "fixtures", "thetis_mrv_*.xlsx")))[-1]
+    path = _latest_export(os.path.join(ROOT, "fixtures"))
     recs = load_thetis_cached(path)
     by_company = {}
     for r in recs.values():

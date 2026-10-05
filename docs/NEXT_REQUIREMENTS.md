@@ -23,6 +23,27 @@ attached.
 
 ---
 
+## 1b. Found on 5 October: our data is stale, and that comes first
+
+EMSA regenerates its public files as operators and verifiers submit amendments.
+**We hold 2025 v6; EMSA now lists v60** (generated 5 October). 2024 is v228 against
+v246. Every figure on the opening page, in the reports and in this document comes from
+the older file. So before outreach:
+
+1. **Approve and run the refresh**: `python scripts/fetch_thetis.py --download 2025 2024 --yes`
+   (about 21 MB; it validates the files before keeping them).
+2. `python scripts/market_data.py`, then update the numbers on the opening page (the
+   test in `tests/test_smoke.py` names any that no longer match).
+3. **Regenerate the outreach reports.** The 11 already generated carry the old
+   accuracy claim and the old data.
+4. Test the hypothesis that the **Partial ERs sheet** (1,505 reports in the v6 file,
+   which the loader does not read) explains part of the 21.8% of ships where our
+   rebuild and the verifier disagree.
+
+Full source and licence analysis: `docs/DATA_SOURCES.md`.
+
+---
+
 ## 2. What the data says about *who* to approach
 
 ### Where the carbon is, by company size
@@ -83,7 +104,7 @@ Ranked by how much of the data's carbon and money each item touches.
 | # | Requirement | Why the data says it | Size of the prize |
 |---|---|---|---|
 | 1 | **Make the first-contact report excellent** (`make_reports.py --top 10 --pdf`) | It is the only asset sent *before* anyone has heard of you. 311 target companies already have fleets mapped | Each report carries a real number, e.g. a top target shows **€37.9 m** of ETS exposure |
-| 2 | **Close the verifier-match gap** | We match exactly on **67.5%** of ships, within 2% on 78%; **21.8% differ by more than 2%**. An operator who checks one of those will doubt everything | Every point of match rate is trust. Analyse the 21.8% for the common cause (partial year, ETS 50% voyage rule) |
+| 2 | **Close the verifier-match gap** | We match exactly on **67.5%** of ships, within 2% on 78%; **21.8% differ by more than 2%**. An operator who checks one of those will doubt everything | Every point of match rate is trust. Test whether the partial-reports sheet (1,505 rows, not yet read) explains the common cause, alongside part-year filings and the 50% voyage rule |
 | 3 | **Remove the capacity (DWT/GT) friction for CII** | The register does not publish capacity, so every CII rating needs a typed number. CII sits third in priority but is the most-asked-about | Pre-filling capacity for the 4,518 ships in the 237 target fleets would turn a form into a result |
 | 4 | **Let an operator state their fuel** | FuelEU is currently estimated by assuming heavy fuel oil (LNG for LNG carriers). It is the second-largest cash item | Any operator running LNG, methanol or biofuel will see a wrong number until they can say so |
 | 5 | **Container and ro-pax drill-down** | Together 43% of all ETS CO₂ from 2,775 ships | Voyage-level views matter most where each ship's bill is seven figures |

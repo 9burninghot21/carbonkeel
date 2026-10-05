@@ -11,18 +11,31 @@ worth a paid hour with a lawyer before revenue.
 **What we do.** Republish verified emissions for ~16,673 ships, and publish our
 own derived figures about them.
 
-**Why it is lawful.** Article 21 of Regulation (EU) 2015/757 *obliges* the
-Commission to publish this data annually per ship. EMSA makes it downloadable
-with no account, no terms gate and no licence restriction. EU open-data policy
-permits commercial reuse with attribution. We attribute on every surface.
+**Why it is lawful.** Article 21(1)–(2) of Regulation (EU) 2015/757 (consolidated
+text of 1 January 2024) *obliges* the Commission to make this data publicly
+available by 30 June each year, including each ship’s name, **company**, IMO
+number, annual emissions and fuel use. EMSA publishes it for download with no
+login (checked 5 October 2026). EMSA’s own page says the information "can be
+exported in a spreadsheet for further analysis", and its copyright notice says
+reproduction is authorised provided the source is acknowledged. We acknowledge
+EMSA on every surface, say that figures are rebuilt, and say that EMSA does not
+endorse them. **Full analysis, with sources: `docs/DATA_SOURCES.md`.**
+
+**What we could not find.** A licence statement written specifically for the
+THETIS-MRV files. The general EU reuse position (attribution, no distortion of
+meaning) applies, but a one-line written confirmation from the THETIS helpdesk
+costs nothing and closes the gap. A draft is in `docs/DATA_SOURCES.md`.
 
 **No personal data is involved in the ship data itself.** Ships and shipping
 companies are legal entities; GDPR protects natural persons. (A sole trader
 operating under a personal name is a theoretical edge case; none appear in the
 ICP.)
 
-**Residual risk: low.** Keep attribution, keep refreshing from source so any
-Article 21(6) alternative-publication decisions carry through.
+**Residual risk: low.** Keep attribution, and refresh from source
+(`python scripts/fetch_thetis.py`) so corrections EMSA publishes carry through.
+Note that Article 21(3) lets a company ask for a different level of
+aggregation only for aggregated data *that does not relate to greenhouse-gas
+emissions*; it gives no right to hide emissions or fuel figures.
 
 ## 2. Our *derived* figures about third parties — MANAGED
 
@@ -31,8 +44,8 @@ ship. Nobody can compel us to publish them, and nobody can compel us to stop
 publishing the EMSA facts.
 
 **Controls in place:** immediate suppression on request (no human in the loop,
-no negotiation), `noindex` plus robots.txt, anonymous rate limiting, an
-8-vessel cap on anonymous fleet analysis, and no bulk export.
+no negotiation), `noindex` plus robots.txt, anonymous rate limiting, a
+8-ship cap on anonymous fleet analysis, and no bulk export.
 
 **Residual risk: low**, provided the ESTIMATE labelling stays. The single
 biggest legal protection we have is that we never present a derived figure as

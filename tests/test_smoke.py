@@ -226,7 +226,8 @@ def check_hosting_readiness():
     # (c) the register cache must survive a changed mtime (git clone/deploy).
     import glob
     from ghgcore.thetis import load_thetis_cached
-    xlsx = sorted(glob.glob(os.path.join(ROOT, "fixtures", "thetis_mrv_*.xlsx")))[-1]
+    from ghgcore.exports import latest as _latest_export
+    xlsx = _latest_export(os.path.join(ROOT, "fixtures"))
     load_thetis_cached(xlsx)                       # make sure a cache exists
     os.utime(xlsx, None)                           # what a fresh checkout does
     t0 = time.time()

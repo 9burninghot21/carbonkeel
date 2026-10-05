@@ -8,197 +8,227 @@
 <meta name="robots" content="noindex, nofollow">
 <title>CarbonKeel — Carbon cost and compliance for your ships</title>
 <style>
+  /* CarbonKeel app theme: the same palette, type and buttons as the opening
+     page, but calm and data-first. Light surfaces, one accent, no artwork.
+     Text colours were chosen to clear WCAG AA (4.5:1) on white. */
   :root {
-    --navy: #0b2239; --deep: #071627; --teal: #14b8a6; --teal-dim: #0d9488;
-    --amber: #f59e0b; --red: #f87171; --green: #22c55e;
-    --ink: #e7eef6; --muted: #93a7bd;
+    --ink: #0b2545; --muted: #46607e; --faint: #586f8c;
+    --bg: #f3f8fd; --card: #ffffff;
+    --line: rgba(11,37,69,0.13); --line2: rgba(11,37,69,0.07);
+    --accent: #0a5aa0; --accent2: #0a6fb7; --accent-soft: rgba(10,111,183,0.10);
+    --violet: #7c3aed; --coral: #ff6b57;
+    --green: #0f7a52; --amber: #9a5b00; --red: #b42318;
     --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px;
   }
   * { box-sizing: border-box; margin: 0; }
-  body { font-family: "Segoe UI", system-ui, sans-serif; background:
-         linear-gradient(180deg, var(--deep) 0%, var(--navy) 100%);
-         color: var(--ink); min-height: 100vh; }
+  body { font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+         background: linear-gradient(180deg, #e9f6ff 0, #f3f8fd 360px, #f3f8fd 100%) no-repeat, var(--bg);
+         color: var(--ink); min-height: 100vh; line-height: 1.5;
+         -webkit-font-smoothing: antialiased; }
+  body::before { content: ""; position: fixed; top: 0; left: 0; right: 0; height: 4px; z-index: 50;
+         background: linear-gradient(90deg, #2dd4bf, #0a6fb7, #7c3aed); }
+  a { color: var(--accent); }
   .num { font-variant-numeric: tabular-nums; }
-  .wrap { max-width: 940px; margin: 0 auto; padding: var(--s5) 20px; }
+  .wrap { max-width: 960px; margin: 0 auto; padding: var(--s5) 20px; }
 
-  /* ---- global top bar (U1) ---- */
+  /* ---- global top bar ---- */
   .topbar { display: flex; align-items: center; gap: var(--s4); flex-wrap: wrap;
-       padding-bottom: var(--s3); border-bottom: 1px solid rgba(255,255,255,0.12);
+       padding: var(--s3) 0 var(--s4); border-bottom: 1px solid var(--line);
        margin-bottom: var(--s5); }
-  .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; cursor: pointer; }
-  .logo span { color: var(--teal); }
+  .logo { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; cursor: pointer;
+       display: inline-flex; align-items: center; gap: 9px; color: var(--ink); }
+  .logo svg { width: 30px; height: 30px; flex: none; }
+  .logo span { color: var(--accent2); }
   nav { display: flex; gap: 2px; flex-wrap: wrap; }
   nav button { background: none; border: none; color: var(--muted); padding: 9px 13px;
-       font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 8px; }
-  nav button.on { color: var(--teal); background: rgba(20,184,166,0.1); }
-  nav button:hover { color: var(--ink); }
-  nav .free { background: rgba(20,184,166,0.15); color: var(--teal);
+       font-family:inherit;font-weight:600;font-size:14.5px;line-height:1.2; cursor: pointer; border-radius: 9px; }
+  nav button.on { color: var(--accent); background: var(--accent-soft); }
+  nav button:hover { color: var(--ink); background: var(--accent-soft); }
+  nav .free { background: #dcf5ea; color: #0b6b49;
        border-radius: 10px; font-size: 10px; padding: 2px 6px; margin-left: 4px;
        font-weight: 800; letter-spacing: 0.05em; }
   nav .lock { font-size: 9.5px; margin-left: 5px; padding: 2px 6px; border-radius: 9px;
-       background: rgba(255,255,255,.08); color: var(--muted); font-weight: 700;
+       background: #e8eef6; color: var(--muted); font-weight: 700;
        letter-spacing: .04em; text-transform: uppercase; }
   .fuelgrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr));
        gap: var(--s2); }
-  .fuelgrid label { font-size: 11.5px; color: var(--muted); display: block;
+  .fuelgrid label { font-size: 12px; color: var(--muted); display: block;
        margin-bottom: 3px; }
-  .traj { display: flex; gap: 3px; margin: var(--s3) 0 var(--s2); }
-  .traj div { flex: 1; text-align: center; padding: 7px 2px; border-radius: 6px;
-       font-size: 11.5px; font-weight: 700; }
-  .traj .yr { display: block; font-size: 10px; font-weight: 400; opacity: 0.8; }
+  .traj { display: flex; gap: 4px; margin: var(--s3) 0 var(--s2); }
+  .traj div { flex: 1; text-align: center; padding: 8px 2px; border-radius: 8px;
+       font-size: 12.5px; font-weight: 800; }
+  .traj .yr { display: block; font-size: 10.5px; font-weight: 600; opacity: 0.8; }
   /* nav is allowed to wrap and shrink; the search takes the leftover room and
-     drops to its own line when there is not enough. Without this the nav ran
-     underneath the search box and hid the last tab. */
+     drops to its own line when there is not enough. */
   nav { flex: 1 1 auto; min-width: 0; }
   .topsearch { position: relative; margin-left: auto; flex: 0 1 260px;
        min-width: 180px; }
-  .topsearch input { width: 100%; padding: 9px 12px; font-size: 13.5px; }
+  .topsearch input { width: 100%; padding: 9px 12px; font-size: 14px; }
 
-  h1 { font-size: 20px; margin: var(--s1) 0 var(--s2); font-weight: 650; }
-  .sub { color: var(--muted); font-size: 13.5px; margin-bottom: var(--s4); }
-  .card { background: rgba(255,255,255,0.045); border: 1px solid rgba(255,255,255,0.09);
-          border-radius: 14px; padding: var(--s5); margin-bottom: var(--s4); }
+  h1 { font-size: 24px; margin: var(--s1) 0 var(--s2); font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+  .sub { color: var(--muted); font-size: 14.5px; margin-bottom: var(--s4); max-width: 46em; }
+  .card { background: var(--card); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(11,37,69,0.06);
+          border-radius: 16px; padding: var(--s5); margin-bottom: var(--s4); }
   .searchbox { position: relative; }
-  input, textarea, select { width: 100%; padding: 12px 14px; border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.25);
-          color: var(--ink); font-size: 15px; }
-  input:focus, textarea:focus { outline: 2px solid var(--teal-dim); }
+  input, textarea, select { width: 100%; padding: 12px 14px; border-radius: 11px;
+          border: 1.5px solid rgba(11,37,69,0.2); background: #fff;
+          color: var(--ink); font-family:inherit;font-weight:500;font-size:15px;line-height:1.3; }
+  input::placeholder, textarea::placeholder { color: #667c97; }
+  input:focus, textarea:focus, select:focus { outline: 3px solid rgba(124,58,237,0.45); outline-offset: 1px; border-color: transparent; }
   .sugg { position: absolute; top: 100%; left: 0; right: 0; z-index: 30;
-          background: #0d2338; border: 1px solid rgba(255,255,255,0.15);
-          border-radius: 10px; margin-top: 6px; max-height: 300px; overflow-y: auto;
-          box-shadow: 0 12px 30px rgba(0,0,0,0.5); }
+          background: #fff; border: 1px solid var(--line);
+          border-radius: 12px; margin-top: 6px; max-height: 300px; overflow-y: auto;
+          box-shadow: 0 16px 36px rgba(11,37,69,0.16); }
   .sugg div { padding: 10px 14px; cursor: pointer; font-size: 14px;
-              border-bottom: 1px solid rgba(255,255,255,0.06); }
-  .sugg div:hover, .sugg div.kb { background: rgba(20,184,166,0.14); }
+              border-bottom: 1px solid var(--line2); }
+  .sugg div:hover, .sugg div.kb { background: var(--accent-soft); }
   .dim { color: var(--muted); }
-  .spin { color: var(--teal); font-size: 13.5px; padding: var(--s2) 2px; display: none; }
-  .estimate-band { display: inline-block; background: rgba(245,158,11,0.15);
-       color: var(--amber); border: 1px solid rgba(245,158,11,0.4);
-       padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700;
+  .spin { color: var(--accent); font-size: 14px; padding: var(--s2) 2px; display: none; }
+  .estimate-band { display: inline-block; background: #fff1cc;
+       color: #7a4a00; border: 1px solid #f1c76a;
+       padding: 3px 11px; border-radius: 20px; font-size: 11.5px; font-weight: 800;
        letter-spacing: 0.06em; margin-bottom: var(--s3); cursor: pointer; }
+  .estimate-band.own { background: #dcf5ea; color: #0b6b49; border-color: #8fd9b6; }
   .rating-A,.rating-B,.pos { color: var(--green); } .rating-C { color: var(--amber); }
   .rating-D,.rating-E,.neg { color: var(--red); }
   .row { display: flex; gap: var(--s3); flex-wrap: wrap; }
   .row > * { flex: 1; min-width: 140px; }
-  button.cta { padding: 12px 20px; border-radius: 9px; border: none; cursor: pointer;
-       background: var(--teal); color: #04211c; font-weight: 700; font-size: 14.5px; }
-  button.cta:hover { background: #2dd4bf; }
-  button.cta:disabled { opacity: 0.45; cursor: not-allowed; }
-  .ghost { padding: 9px 14px; border-radius: 8px; border: 1px solid
-       rgba(20,184,166,0.5); background: transparent; color: var(--teal);
-       font-weight: 700; font-size: 13px; cursor: pointer; }
-  .ghost:hover { background: rgba(20,184,166,0.12); }
+  button.cta { padding: 12px 22px; border-radius: 11px; border: none; cursor: pointer;
+       background: linear-gradient(180deg, #0a6fb7, #0a5aa0); color: #fff; font-family:inherit;font-weight:700;font-size:15px;line-height:1.2;
+       box-shadow: 0 6px 16px rgba(10,90,160,0.25); transition: transform .15s, box-shadow .15s; }
+  button.cta:hover { transform: translateY(-1px); box-shadow: 0 10px 22px rgba(10,90,160,0.3); }
+  button.cta:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+  .ghost { padding: 9px 15px; border-radius: 10px; border: 1.5px solid var(--accent2);
+       background: #fff; color: var(--accent);
+       font-family:inherit;font-weight:700;font-size:13.5px;line-height:1.2; cursor: pointer; }
+  .ghost:hover { background: var(--accent-soft); }
   .err { color: var(--red); font-size: 14px; margin-top: var(--s3); }
-  .banner { margin: var(--s3) 0; padding: 10px 14px; border-radius: 9px; font-size: 14px; }
-  .banner.good { background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.4); }
-  .banner.bad { background: rgba(239,68,68,0.12); border: 1px solid rgba(239,68,68,0.4); }
-  .banner.warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.35); font-size: 13.5px; }
+  .banner { margin: var(--s3) 0; padding: 11px 15px; border-radius: 11px; font-size: 14px; }
+  .banner.good { background: #e6f7ef; border: 1px solid #8fd9b6; }
+  .banner.bad { background: #fdecea; border: 1px solid #f0a8a2; }
+  .banner.warn { background: #fff6e0; border: 1px solid #f1d38a; font-size: 13.5px; }
 
-  /* ---- the bill (U2): hierarchy winner + bullet graphs ---- */
-  .idstrip { font-size: 13px; color: var(--muted); margin-bottom: var(--s3); }
-  .idstrip b { color: var(--ink); font-size: 15px; }
+  /* ---- the bill: one big number, then bullet graphs ---- */
+  .idstrip { font-size: 13.5px; color: var(--muted); margin-bottom: var(--s3); }
+  .idstrip b { color: var(--ink); font-size: 16px; }
   .bill { margin: var(--s3) 0 var(--s4); }
-  .bill .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase;
-       letter-spacing: 0.1em; }
-  .bill .v { font-size: 40px; font-weight: 800; line-height: 1.15; }
-  .bill .d { font-size: 12.5px; color: var(--muted); }
-  .bullets { display: flex; flex-direction: column; gap: 10px; margin: var(--s4) 0; }
+  .bill .k { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 700;
+       letter-spacing: 0.09em; }
+  .bill .v { font-size: 44px; font-weight: 900; line-height: 1.12; letter-spacing: -0.03em; }
+  .bill .d { font-size: 13px; color: var(--muted); }
+  .bullets { display: flex; flex-direction: column; gap: 12px; margin: var(--s4) 0; }
   .bullet { display: grid; grid-template-columns: 110px 1fr 110px; gap: var(--s3);
-       align-items: center; font-size: 13px; }
-  .bullet .lbl { color: var(--muted); }
-  .bullet .track { height: 14px; background: rgba(0,0,0,0.3); border-radius: 4px;
+       align-items: center; font-size: 13.5px; }
+  .bullet .lbl { color: var(--muted); font-weight: 600; }
+  .bullet .track { height: 14px; background: #e4ecf5; border-radius: 7px;
        position: relative; overflow: hidden; }
-  .bullet .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
-  .bullet .val { text-align: right; font-weight: 700; }
-  .bullet .due { grid-column: 2 / 4; font-size: 11.5px; color: var(--muted);
+  .bullet .fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; }
+  .bullet .val { text-align: right; font-weight: 800; }
+  .bullet .due { grid-column: 2 / 4; font-size: 12px; color: var(--muted);
        margin-top: -6px; }
-  .statline { display: flex; gap: var(--s5); flex-wrap: wrap; font-size: 13px;
+  .statline { display: flex; gap: var(--s5); flex-wrap: wrap; font-size: 13.5px;
        color: var(--muted); margin: var(--s3) 0; }
-  .statline b { font-size: 16px; }
+  .statline b { font-size: 16px; color: var(--ink); }
+  .statline b.pos { color: var(--green); }
 
   ol.actions { padding-left: 20px; margin-top: var(--s2); }
-  ol.actions li { margin: var(--s2) 0; font-size: 13.5px; line-height: 1.5; }
-  details.whatif { margin-top: var(--s4); border-top: 1px solid rgba(255,255,255,0.09);
+  ol.actions li { margin: var(--s2) 0; font-size: 14px; line-height: 1.55; }
+  details.whatif { margin-top: var(--s4); border-top: 1px solid var(--line);
        padding-top: var(--s3); }
-  details.whatif summary { cursor: pointer; font-size: 13.5px; font-weight: 700;
-       color: var(--teal); list-style: none; }
-  details.whatif summary::before { content: "▸ "; }
-  details.whatif[open] summary::before { content: "▾ "; }
+  details.whatif summary { cursor: pointer; font-size: 14px; font-weight: 700;
+       color: var(--accent); list-style: none; }
+  details.whatif summary::before { content: "\25B8  "; }
+  details.whatif[open] summary::before { content: "\25BE  "; }
   .dwt-up { display: flex; gap: var(--s2); margin-top: var(--s2); flex-wrap: wrap;
        align-items: center; }
-  .dwt-up input { padding: 8px 10px; font-size: 13px; width: auto; flex: 1; min-width: 110px; }
+  .dwt-up input { padding: 8px 10px; font-size: 14px; width: auto; flex: 1; min-width: 110px; }
 
-  .ciibar { display: flex; height: 26px; border-radius: 7px; overflow: hidden;
-       margin: var(--s3) 0 var(--s1); font-size: 11px; font-weight: 700; color: #04211c; }
+  .ciibar { display: flex; height: 28px; border-radius: 8px; overflow: hidden;
+       margin: var(--s3) 0 var(--s1); font-size: 12px; font-weight: 800; color: #06251c; }
   .ciibar div { display: flex; align-items: center; justify-content: center; }
-  .ciilabels { display: flex; justify-content: space-between; font-size: 11px;
-       color: var(--muted); margin-bottom: var(--s2); }
+  .ciilabels { display: flex; justify-content: space-between; font-size: 12px;
+       color: var(--muted); margin-bottom: var(--s2); gap: 12px; flex-wrap: wrap; }
 
-  table.data { width: 100%; border-collapse: collapse; font-size: 13px; }
-  table.data th { cursor: pointer; text-align: right; padding: 7px 8px;
-       color: var(--muted); border-bottom: 2px solid rgba(255,255,255,0.15); }
-  table.data td { text-align: right; padding: 6px 8px;
-       border-top: 1px solid rgba(255,255,255,0.07); }
+  table.data { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.data th { cursor: pointer; text-align: right; padding: 8px 8px;
+       color: var(--muted); font-weight: 700; border-bottom: 2px solid var(--line); }
+  table.data td { text-align: right; padding: 7px 8px;
+       border-top: 1px solid var(--line2); }
   table.data th:first-child, table.data td:first-child { text-align: left; }
   table.data tr.rowlink { cursor: pointer; }
-  table.data tr.rowlink:hover td { background: rgba(20,184,166,0.07); }
+  table.data tr.rowlink:hover td { background: var(--accent-soft); }
 
   .cal-item { display: flex; gap: var(--s4); padding: 11px 4px; border-bottom:
-       1px solid rgba(255,255,255,0.07); font-size: 13.5px; align-items: baseline; }
-  .cal-date { color: var(--teal); font-weight: 700; min-width: 105px; }
+       1px solid var(--line2); font-size: 14px; align-items: baseline; }
+  .cal-date { color: var(--accent); font-weight: 800; min-width: 105px; }
   .cal-date.soon { color: var(--amber); }
-  .cal-regime { color: var(--muted); font-size: 11.5px; text-transform: uppercase;
+  .cal-regime { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase;
        letter-spacing: 0.06em; min-width: 95px; }
 
-  .chips { display: flex; flex-wrap: wrap; gap: 7px; }
-  .chips button { padding: 8px 13px; border-radius: 18px; font-size: 13px;
-       border: 1px solid rgba(255,255,255,0.18); background: rgba(0,0,0,0.22);
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chips button { padding: 8px 14px; border-radius: 20px; font-family:inherit;font-weight:600;font-size:13.5px;line-height:1.2;
+       border: 1.5px solid var(--line); background: #fff;
        color: var(--ink); cursor: pointer; }
-  .chips button:hover { border-color: var(--teal-dim); }
-  .chips button.on { background: rgba(20,184,166,0.2); border-color: var(--teal);
-       color: var(--teal); font-weight: 700; }
-  .step { font-size: 13px; font-weight: 700; margin: var(--s4) 0 var(--s2); }
+  .chips button:hover { border-color: var(--accent2); }
+  .chips button.on { background: var(--accent-soft); border-color: var(--accent2);
+       color: var(--accent); font-weight: 800; }
+  .step { font-size: 14px; font-weight: 700; margin: var(--s4) 0 var(--s2); }
   .stepn { display: inline-flex; align-items: center; justify-content: center;
-       width: 20px; height: 20px; border-radius: 50%; background: var(--teal);
-       color: #04211c; font-size: 12px; margin-right: 7px; }
+       width: 22px; height: 22px; border-radius: 50%; background: var(--accent2);
+       color: #fff; font-size: 12px; margin-right: 7px; }
   .modecards { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
        gap: 10px; margin-bottom: var(--s3); }
-  .modecard { border: 1.5px solid rgba(255,255,255,0.14); border-radius: 11px;
+  .modecard { border: 1.5px solid var(--line); border-radius: 12px;
        padding: 13px 15px; cursor: pointer; display: flex; flex-direction: column;
-       gap: 3px; font-size: 13.5px; background: rgba(0,0,0,0.18); }
-  .modecard:hover { border-color: var(--teal-dim); }
-  .modecard.on { border-color: var(--teal); background: rgba(20,184,166,0.10); }
+       gap: 3px; font-size: 14px; background: #fff; }
+  .modecard:hover { border-color: var(--accent2); }
+  .modecard.on { border-color: var(--accent2); background: var(--accent-soft); }
 
   .scores { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px,1fr));
        gap: var(--s3); margin: var(--s4) 0; }
-  .score { background: rgba(0,0,0,0.22); border-radius: 11px; padding: 15px; }
-  .score .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase;
-       letter-spacing: 0.08em; }
-  .score .v { font-size: 24px; font-weight: 800; margin-top: 6px; }
-  .score .d { font-size: 12px; color: var(--muted); margin-top: var(--s1); }
+  .score { background: #f1f6fb; border-radius: 12px; padding: 15px; }
+  .score .k { font-size: 12px; color: var(--muted); text-transform: uppercase; font-weight: 700;
+       letter-spacing: 0.07em; }
+  .score .v { font-size: 26px; font-weight: 900; margin-top: 6px; letter-spacing: -0.02em; }
+  .score .d { font-size: 12.5px; color: var(--muted); margin-top: var(--s1); }
 
-  .method { font-size: 14px; line-height: 1.65; }
-  .method h2 { font-size: 17px; margin: var(--s5) 0 var(--s2); }
-  .method h3 { font-size: 14.5px; margin: var(--s4) 0 var(--s2); }
-  .method pre, .method code { background: rgba(0,0,0,0.35); border-radius: 6px;
-       font-size: 12.5px; }
+  .method { font-size: 14.5px; line-height: 1.65; }
+  .method h2 { font-size: 18px; margin: var(--s5) 0 var(--s2); letter-spacing: -0.01em; }
+  .method h3 { font-size: 15px; margin: var(--s4) 0 var(--s2); }
+  .method pre, .method code { background: #eef3f9; border-radius: 6px;
+       font-size: 13px; }
   .method pre { padding: var(--s3); overflow-x: auto; margin: var(--s2) 0; }
+  .method pre sup { font-size: 0.75em; line-height: 0; }
   .method code { padding: 1px 5px; }
-  .method table { border-collapse: collapse; margin: var(--s2) 0; font-size: 13px; }
-  .method td, .method th { border: 1px solid rgba(255,255,255,0.15); padding: 5px 9px;
+  .method table { border-collapse: collapse; margin: var(--s2) 0; font-size: 13.5px; }
+  .method td, .method th { border: 1px solid var(--line); padding: 5px 9px;
        text-align: left; }
   .method li { margin: 4px 0 4px 18px; }
 
-  footer { color: var(--muted); font-size: 12px; margin-top: var(--s6); line-height: 1.6; }
+  /* the same drawn maths as the opening page */
+  .eq { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap;
+       background: #f1f6fb; border-radius: 12px; padding: 20px 14px; margin: var(--s3) 0 var(--s2);
+       font-size: 17px; }
+  .frac { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle;
+       text-align: center; line-height: 1.25; }
+  .frac .n { padding: 0 8px 4px; }
+  .frac .d { padding: 4px 8px 0; border-top: 2px solid var(--ink); }
+  .eq .op { color: var(--muted); }
+  .eq var { font-style: italic; color: var(--violet); font-weight: 700; }
+  .eq sup { font-size: .72em; vertical-align: super; line-height: 0; }
+  .eqnote { font-size: 13.5px; color: var(--muted); text-align: center; margin-bottom: var(--s3); }
+
+  footer { color: var(--muted); font-size: 12.5px; margin-top: var(--s6); line-height: 1.65;
+       border-top: 1px solid var(--line); padding-top: var(--s4); }
+  footer a { color: var(--accent); }
   .tab { display: none; } .tab.on { display: block; }
   @media (max-width: 1080px) {
     .topsearch { flex-basis: 100%; margin-left: 0; order: 3; }
   }
   @media (max-width: 720px) {
     .topsearch { flex-basis: 100%; margin-left: 0; }
-    .bill .v { font-size: 32px; }
-    /* stack the bullet graph so the bar keeps meaningful width (Few:
-       the bar IS the information; a 40px track conveys nothing) */
+    .bill .v { font-size: 34px; }
+    /* stack the bullet graph so the bar keeps meaningful width */
     .bullet { grid-template-columns: 1fr auto; row-gap: 4px; }
     .bullet .lbl { grid-column: 1; font-weight: 600; }
     .bullet .val { grid-column: 2; }
@@ -207,7 +237,7 @@
     .statline { gap: var(--s3); }
   }
 
-  /* ---- touch + small-screen hardening (UAT 4 Oct 2026) ----
+  /* ---- touch + small-screen hardening ----
      Every interactive control is at least 40px tall, and calendar rows wrap
      instead of forcing a sideways scroll on a phone. */
   nav button, .chips button, button.ghost, button.cta, .dwt-up button { min-height: 40px; }
@@ -216,6 +246,7 @@
   details.whatif summary { display: block; padding: 11px 0; min-height: 44px; }
   .sugg div { min-height: 40px; display: flex; align-items: center; flex-wrap: wrap; }
   .cal-item span { overflow-wrap: anywhere; }
+  footer a, a.inl { display: inline-block; padding: 11px 3px; margin: -11px 0; }
   @media (max-width: 720px) {
     .cal-item { flex-wrap: wrap; gap: 4px 12px; }
     .cal-item > span:last-child { flex-basis: 100%; }
@@ -227,9 +258,9 @@
 <div class="wrap">
   <div class="topbar">
     <div class="logo" onclick="goHome()" title="Back to the start"
-         role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()">Carbon<span>Keel</span></div>
+         role="link" tabindex="0" onkeydown="if(event.key==='Enter')goHome()"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#0b2545"/><path d="M7 21h20l-3.5 5.5h-13z" fill="#2dd4bf"/><path d="M12 21v-6h10v6" fill="#fff"/><path d="M17 7.5v7.5" stroke="#ffb703" stroke-width="2.2" stroke-linecap="round"/></svg><span style="color:inherit">Carbon<span>Keel</span></span></div>
     <nav>
-      <button id="nav-vessel" class="on" onclick="showTab('vessel')">Check a vessel</button>
+      <button id="nav-vessel" class="on" onclick="showTab('vessel')">Check a ship</button>
       <button id="nav-eexi" onclick="showTab('eexi')">EEXI<span class="free">FREE</span></button>
       <button id="nav-cii" onclick="showTab('cii')">CII calculator<span class="lock">operators</span></button>
       <button id="nav-fleet" onclick="showTab('fleet')">My fleet</button>
@@ -238,16 +269,16 @@
       <button id="nav-privacy" onclick="showTab('privacy')">Your data</button>
     </nav>
     <div class="topsearch" id="topsearch" style="display:none">
-      <input id="tq" placeholder="Find a vessel…" autocomplete="off">
+      <input id="tq" placeholder="Find a ship…" autocomplete="off">
       <div id="tsugg" class="sugg" style="display:none"></div>
     </div>
   </div>
 
   <!-- ============ VESSEL ============ -->
   <div id="tab-vessel" class="tab on">
-    <h1>What is this vessel's compliance bill?</h1>
-    <p class="sub">EU ETS · FuelEU · UK ETS · IMO Net-Zero — in euros, free, from public
-       verified data. Add capacity to unlock the CII rating.</p>
+    <h1>What is this ship&rsquo;s carbon bill?</h1>
+    <p class="sub">EU ETS, FuelEU, UK ETS and the IMO Net-Zero Framework, in euros. Free,
+       from verified public data. Add the ship&rsquo;s capacity to see its CII rating.</p>
     <div class="card">
       <div class="searchbox">
         <input id="q" placeholder="Ship name or IMO number" autocomplete="off">
@@ -270,8 +301,9 @@
   <!-- ============ EEXI ============ -->
   <div id="tab-eexi" class="tab">
     <h1>Free EEXI check</h1>
-    <p class="sub">Required EEXI (MARPOL Reg. 25) vs the technical-efficiency value the ship
-       already reported to EU-MRV — or your own vessel's particulars.</p>
+    <p class="sub">Compare the required EEXI (MARPOL Annex VI, Regulation 25) with the
+       technical-efficiency value the ship has already reported under EU MRV, or check your
+       own ship from its particulars.</p>
     <div class="card">
       <div class="searchbox">
         <input id="eq" placeholder="Ship name or IMO number" autocomplete="off">
@@ -288,7 +320,7 @@
 
     <div class="card">
       <div style="display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:8px">
-        <b style="font-size:14px">Custom vessel — not in the registry, or checking a design?</b>
+        <b style="font-size:14px">Custom ship: not in the public register, or checking a design?</b>
         <button class="ghost" style="font-size:12px" onclick="fillExample()">Try an example ▸</button>
       </div>
       <div class="step"><span class="stepn">1</span> Click your ship type</div>
@@ -299,7 +331,7 @@
         <button data-v="general_cargo">General cargo</button>
         <button data-v="gas_carrier">Gas carrier</button>
         <button data-v="lng_carrier">LNG carrier</button>
-        <button data-v="refrigerated_cargo">Reefer</button>
+        <button data-v="refrigerated_cargo">Refrigerated cargo</button>
         <button data-v="combination_carrier">Combination</button>
         <button data-v="ro_ro">Ro-ro</button>
         <button data-v="ro_pax">Ro-pax</button>
@@ -348,15 +380,15 @@
   <!-- ============ CII CALCULATOR (locked) ============ -->
   <div id="tab-cii" class="tab">
     <div id="ciiLocked">
-      <h1>CII calculator — for vessel operators</h1>
-      <p class="sub">The owner-data tool: compute a vessel's Carbon Intensity Indicator
-         from your own consumption and distance — the full IMO rule set (G1–G5), the
-         A–E rating, and where that rating goes as the targets tighten to 2030.
-         Not an estimate from public data: your numbers, audit-grade.</p>
+      <h1>CII calculator for ship operators</h1>
+      <p class="sub">Work out a ship&rsquo;s Carbon Intensity Indicator (CII) from your own fuel and
+         distance figures. It applies the full IMO rule set (G1&ndash;G5), gives the A&ndash;E rating
+         and shows where that rating goes as the targets tighten to 2030. These are your
+         numbers, not an estimate from public data.</p>
       <div class="card">
         <b style="font-size:14px">Enter your access key</b>
-        <p class="sub" style="margin:6px 0 12px">We issue a key to vessel operators
-           and design partners — just ask. It is remembered on this device.</p>
+        <p class="sub" style="margin:6px 0 12px">We give a key to ship operators and design
+           partners. Just ask. It is remembered on this device.</p>
         <div class="row">
           <input id="ciiKey" placeholder="ck-…" autocomplete="off">
           <button class="cta" onclick="unlockCii()">Unlock</button>
@@ -367,11 +399,11 @@
 
     <div id="ciiApp" style="display:none">
       <h1>CII calculator <span class="dim" id="ciiWho"></span></h1>
-      <p class="sub">G1 attained · G2 reference line · G3 required · G4 rating ·
-         G5 corrections. Owner data — not a public-data estimate.</p>
+      <p class="sub">G1 attained value, G2 reference line, G3 required value, G4 rating and
+         G5 corrections. Based on your own data, not a public-data estimate.</p>
 
       <div class="card">
-        <div class="step"><span class="stepn">1</span> Vessel</div>
+        <div class="step"><span class="stepn">1</span> Ship</div>
         <div class="chips" id="ciiTypeChips">
           <button data-v="bulk_carrier" class="on">Bulk carrier</button>
           <button data-v="tanker">Tanker</button>
@@ -379,7 +411,7 @@
           <button data-v="general_cargo">General cargo</button>
           <button data-v="gas_carrier">Gas carrier</button>
           <button data-v="lng_carrier">LNG carrier</button>
-          <button data-v="refrigerated_cargo">Reefer</button>
+          <button data-v="refrigerated_cargo">Refrigerated cargo</button>
           <button data-v="combination_carrier">Combination</button>
           <button data-v="ro_ro">Ro-ro</button>
           <button data-v="ro_pax">Ro-pax</button>
@@ -387,10 +419,10 @@
           <button data-v="vehicle_carrier">Vehicle carrier</button>
         </div>
         <div class="row" style="margin-top:10px">
-          <input id="ciiName" placeholder="Vessel name (optional)">
+          <input id="ciiName" placeholder="Ship name (optional)">
           <input id="ciiImo" placeholder="IMO (optional)">
           <input id="ciiCap" type="number" placeholder="Deadweight (DWT)">
-          <input id="ciiGt" type="number" placeholder="GT (ro-ro/ro-pax/cruise/vehicle)">
+          <input id="ciiGt" type="number" placeholder="GT (ro-ro, ro-pax, cruise, vehicle carrier)">
           <select id="ciiYear">
             <option>2023</option><option>2024</option><option>2025</option>
             <option selected>2026</option><option>2027</option><option>2028</option>
@@ -398,15 +430,15 @@
           </select>
         </div>
 
-        <div class="step"><span class="stepn">2</span> How will you give the consumption?</div>
+        <div class="step"><span class="stepn">2</span> How do you want to give the fuel consumption?</div>
         <div class="modecards">
           <div id="ciiModeFuel" class="modecard on" onclick="setCiiMode('fuel')">
             <b>Actual fuel burned</b>
-            <span class="dim">from BDNs / noon reports — verifier-grade</span>
+            <span class="dim">from bunker delivery notes or noon reports; verifier-grade</span>
           </div>
           <div id="ciiModeSpeed" class="modecard" onclick="setCiiMode('speed')">
             <b>Estimate from speed</b>
-            <span class="dim">cube law off a known consumption point</span>
+            <span class="dim">from speed, using the cube law from a known consumption point</span>
           </div>
         </div>
 
@@ -434,22 +466,22 @@
             <input id="sp_sea_days" type="number" step="0.1" placeholder="Days at sea">
           </div>
           <div class="row" style="margin-top:8px">
-            <input id="sp_aux_sea" type="number" step="0.1" placeholder="Aux/boiler at sea (t/day)">
+            <input id="sp_aux_sea" type="number" step="0.1" placeholder="Auxiliary and boiler fuel at sea (t/day)">
             <input id="sp_port_days" type="number" step="0.1" placeholder="Days in port">
-            <input id="sp_aux_port" type="number" step="0.1" placeholder="Aux in port (t/day)">
+            <input id="sp_aux_port" type="number" step="0.1" placeholder="Auxiliary fuel in port (t/day)">
           </div>
-          <p class="dim" style="font-size:12px;margin-top:8px">Main-engine consumption
+          <p class="dim" style="font-size:12.5px;margin-top:8px">Main-engine consumption
              scales with the cube of the speed ratio against your reference point
-             (sea-trial curve or charter-party description). Distance is derived as
-             speed × 24 × sea days unless you enter a logged distance below.</p>
+             (a sea-trial curve or the charter-party description). Distance is worked out as
+             speed × 24 × days at sea, unless you enter a logged distance below.</p>
           <div class="row"><input id="ciiDist2" type="number" placeholder="Logged distance (nm) — optional"></div>
         </div>
 
         <details class="whatif" style="margin-top:16px">
-          <summary>G5 corrections & voyage adjustments (MEPC.355(78)) — optional</summary>
-          <p class="dim" style="font-size:12px;margin:8px 0">Only enter values your
-             verifier has accepted (ice transit, STS operations, shuttle-tanker or
-             ice-class capacity factors). We apply and record them — we never
+          <summary>G5 corrections and voyage adjustments (MEPC.355(78)), optional</summary>
+          <p class="dim" style="font-size:12.5px;margin:8px 0">Only enter values your
+             verifier has accepted (ice transit, ship-to-ship transfers, shuttle-tanker or
+             ice-class capacity factors). We apply and record them. We never
              invent a correction.</p>
           <div class="row">
             <input id="g5_co2" type="number" step="0.1" placeholder="Excluded CO₂ (t)">
@@ -472,15 +504,16 @@
 
   <!-- ============ FLEET ============ -->
   <div id="tab-fleet" class="tab">
-    <h1>My fleet — analysis &amp; FuelEU pooling</h1>
-    <p class="sub">Paste anything containing IMO numbers: fleet totals, per-vessel bills,
-       the pooling optimum, printable report and a draft pooling agreement.</p>
+    <h1>My fleet</h1>
+    <p class="sub">Paste anything that contains IMO numbers. You get fleet totals, a bill for
+       each ship, a printable report, and the FuelEU pooling position with a draft pooling
+       agreement.</p>
     <div class="card">
       <textarea id="fleetImos" style="height:90px;font-family:monospace"
         placeholder="9464663, 9463633, 9448047 …"></textarea>
       <div class="row" style="margin-top:10px">
         <button class="cta" onclick="fleetDash()">Analyse fleet</button>
-        <button class="ghost" onclick="fleetReport()">Printable report (→ PDF)</button>
+        <button class="ghost" onclick="fleetReport()">Printable report (save as PDF)</button>
         <button class="ghost" onclick="poolAgreement()">Draft pooling agreement</button>
       </div>
       <div id="fspin" class="spin">Analysing fleet…</div>
@@ -492,8 +525,8 @@
   <!-- ============ CALENDAR ============ -->
   <div id="tab-cal" class="tab">
     <h1>Compliance calendar</h1>
-    <p class="sub">Every dated obligation with its legal basis. Download .ics —
-       imports into Outlook/Google with 14-day reminders.</p>
+    <p class="sub">Every dated obligation, with its legal basis. Download an .ics file to add the
+       dates to Outlook or Google Calendar, with a reminder 14 days before each one.</p>
     <div class="card">
       <div class="row">
         <select id="calYear">
@@ -508,11 +541,10 @@
 
   <!-- ============ METHOD ============ -->
   <div id="tab-method" class="tab">
-    <h1>Method — audit us</h1>
-    <p class="sub">Every formula, every parameter, its regulatory source, and a worked
-       example you can recompute by hand. Deterministic engines; no AI touches a
-       number. Every vessel result can be opened as a full calculation worksheet
-       from the Verifier view.</p>
+    <h1>Method: check our working</h1>
+    <p class="sub">Every formula and parameter, its regulatory source, and a worked example you
+       can recompute by hand. The engines are deterministic and no AI touches a number. Any
+       ship result can be opened as a full calculation worksheet from the Verifier view.</p>
     <div class="card method" id="methodOut">
       <span class="spin" style="display:block">Loading method notes…</span>
     </div>
@@ -520,26 +552,26 @@
 
   <!-- ============ YOUR DATA ============ -->
   <div id="tab-privacy" class="tab">
-    <h1>Your data — where it comes from and how to control it</h1>
-    <p class="sub">Everything here is published by EMSA because Art. 21 of the EU MRV
-       Regulation requires it. Our <i>derived</i> figures are a different matter — and
-       those, you can switch off.</p>
+    <h1>Your data: where it comes from and how to control it</h1>
+    <p class="sub">The verified figures we show are published by EMSA because Article 21 of the
+       EU MRV Regulation requires it. Figures we <i>derive</i> from them are our own estimates,
+       and you can switch those off.</p>
     <div class="card">
       <b style="font-size:14px">Is this your ship? Take control</b>
       <p class="sub" style="margin:6px 0 12px">Claim it, correct our figures, or have our
          estimates hidden from third parties. Hiding takes effect straight away, and we
          confirm by email once it is permanent.</p>
       <div class="chips" id="claimKind">
-        <button data-v="claim" class="on">Claim my vessels</button>
+        <button data-v="claim" class="on">Claim my ships</button>
         <button data-v="correct">Correct a figure</button>
         <button data-v="suppress">Hide your estimates</button>
       </div>
       <div class="row" style="margin-top:12px">
         <input id="clImos" placeholder="IMO number(s) — e.g. 9464663, 9463633">
-        <input id="clCompany" placeholder="Company (DoC holder)">
+        <input id="clCompany" placeholder="Company (Document of Compliance holder)">
       </div>
       <div class="row" style="margin-top:8px">
-        <input id="clEmail" type="email" placeholder="Work email (used to verify)">
+        <input id="clEmail" type="email" placeholder="Work email (to verify your request)">
         <input id="clMsg" placeholder="Anything we should know (optional)">
       </div>
       <div class="row" style="margin-top:12px">
@@ -558,14 +590,13 @@
   </div>
 
   <footer>
-    All figures are <b>ESTIMATES</b> reconstructed from the public THETIS-MRV
-    verified-emissions export (EMSA) unless owner data is supplied.
-    Source data is public by law (Article 21, EU MRV Regulation 2015/757) —
-    <a style="color:var(--teal);cursor:pointer" onclick="showTab('privacy')">how we
-    handle it, and your controls</a> · <a class="ck-priv" href="privacy.html"
-    target="_blank" rel="noopener" style="color:var(--teal)">Privacy notice</a>.
-    Not search-indexed.
-    CarbonKeel · prototype v0.6
+    All figures are <b>ESTIMATES</b> rebuilt from the public EU MRV emissions data that EMSA
+    publishes in THETIS-MRV, unless you supply your own data. Source: EMSA THETIS-MRV public
+    report, published under Article 21 of Regulation (EU) 2015/757. Contains data from EMSA.
+    CarbonKeel&rsquo;s calculations are our own and are not endorsed by EMSA or the European
+    Commission. <a style="cursor:pointer" onclick="showTab('privacy')">How we handle the data,
+    and your controls</a> · <a class="ck-priv" href="privacy.html"
+    target="_blank" rel="noopener">Privacy notice</a>. Not search-indexed. CarbonKeel preview v0.6.
   </footer>
 </div>
 
@@ -665,7 +696,7 @@ async function pick(imo) {
     const r = await fetch(`${API}/api/lookup/${imo}`);
     if (!r.ok) { const t = (await r.json()).detail;
       E('err').innerHTML = t + (t.includes('not yet supported')
-        ? ' — <a style="color:var(--teal);cursor:pointer" onclick="showTab(\'eexi\')">try the custom EEXI check</a>' : '');
+        ? ' <a style="cursor:pointer" onclick="showTab(\'eexi\')">Try the custom EEXI check &rarr;</a>' : '');
       E('out').innerHTML = ''; return; }
     const d = await r.json();
     lastData = d; lastMode = 'partial';
@@ -673,7 +704,7 @@ async function pick(imo) {
     baseCost = d.ets.cost_eur + d.fueleu.penalty_eur;
     renderVessel();
     probeValue();
-  } catch (e) { E('err').textContent = 'Request failed: ' + e; }
+  } catch (e) { E('err').textContent = 'Something went wrong. Please try again.'; }
   finally { E('spin').style.display = 'none'; }
 }
 
@@ -701,8 +732,8 @@ async function whatIf() {
                           : d.ets.cost_eur + d.fueleu.penalty_eur;
   const delta = baseCost - cost;
   const banner = `<div class="banner ${delta >= 0 ? 'good' : 'bad'}">
-      <b>${delta >= 0 ? 'Saves' : 'Adds'} ${eur(Math.abs(delta))}/yr</b>
-      vs current operation (${bio}% B100, ${spd}% speed change)</div>`;
+      <b>${delta >= 0 ? 'Saves' : 'Adds'} ${eur(Math.abs(delta))} a year</b>
+      against current operation (${bio}% B100, ${spd}% speed change)</div>`;
   renderVessel(banner, true, d);   // scenario rendered; baseline kept in lastData
 }
 
@@ -726,9 +757,10 @@ async function probeValue() {
   } catch (e) { /* teaser is optional */ }
 }
 function teaserHtml() {
-  return valueTeaser ? `<div class="banner good" style="cursor:pointer;font-size:13.5px"
-    onclick="applyTeaser()">💡 <b>Value identified: up to ${eur(valueTeaser)}/yr</b>
-    recoverable with standard levers (20% B100 on EU legs, −10% speed) — show me ▸</div>` : '';
+  return valueTeaser ? `<div class="banner good" style="cursor:pointer;font-size:14px"
+    onclick="applyTeaser()"><b>Value identified: up to ${eur(valueTeaser)} a year</b>
+    could be saved with standard levers (20% B100 biofuel on EU voyages and a 10% lower speed).
+    Show me &#9656;</div>` : '';
 }
 function applyTeaser() {
   currentView = 'owner';
@@ -749,10 +781,10 @@ function viewBar() {
 /* ---- operator control: "Is this your ship?" ---- */
 function claimLink(imo) {
   return `<div class="dim" style="font-size:12px;margin-top:14px;
-    padding-top:10px;border-top:1px solid rgba(255,255,255,0.07)">
-    Figures for this vessel are our estimates from EMSA's public Art. 21 data.
-    <a style="color:var(--teal);cursor:pointer" onclick="openClaim('${imo}')">Is this
-    your ship? Claim it, correct a figure, or hide our estimates ▸</a></div>`;
+    padding-top:10px;border-top:1px solid var(--line)">
+    Figures for this ship are our estimates, built from the public data EMSA publishes under
+    Article 21. <a class="inl" style="cursor:pointer" onclick="openClaim('${imo}')">Is this
+    your ship? Claim it, correct a figure, or hide our estimates &#9656;</a></div>`;
 }
 function openClaim(imo) {
   showTab('privacy');
@@ -774,7 +806,7 @@ async function submitClaim() {
       body: JSON.stringify({kind, imos, company: E('clCompany').value.trim(),
                             contact_email: email, message: E('clMsg').value.trim()})});
     const d = await r.json();
-    if (!r.ok) { E('clErr').textContent = d.detail || 'Request failed.'; return; }
+    if (!r.ok) { E('clErr').textContent = d.detail || 'The request failed. Please try again.'; return; }
     const mailBody = 'Request: ' + kind + '\nIMO: ' + imos.join(', ') +
       '\nCompany: ' + E('clCompany').value.trim() + '\nReply to: ' + email +
       '\n\n' + E('clMsg').value.trim();
@@ -783,7 +815,7 @@ async function submitClaim() {
       <div style="margin-top:8px;font-size:13px">To be certain it reaches us,
         <a style="color:var(--teal)" href="mailto:hello@carbonkeel.com?subject=${encodeURIComponent('CarbonKeel data request — ' + kind)}&body=${encodeURIComponent(mailBody)}">email us a copy</a>.</div></div>`;
     E('clMsg').value = '';
-  } catch (e) { E('clErr').textContent = 'Request failed: ' + e; }
+  } catch (e) { E('clErr').textContent = 'Something went wrong. Please try again.'; }
   finally { E('clGo').disabled = false; E('clGo').textContent = 'Send request'; }
 }
 
@@ -797,11 +829,11 @@ function renderSuppressed(d) {
       <span>Verified fuel <b class="num">${Math.round(d.verified.fuel_tonnes || 0).toLocaleString()} t</b></span>
       ${d.verified.tech_efficiency ? `<span>Design <b>${d.verified.tech_efficiency}</b></span>` : ''}
     </div>
-    <p class="dim" style="font-size:12.5px;margin-top:10px">These verified figures are
-      published by EMSA under Art. 21 of the EU MRV Regulation and are available from
-      the source regardless of this site.
-      <a style="color:var(--teal);cursor:pointer" onclick="openClaim('${d.imo}')">If you
-      operate this vessel, claim it to see the full analysis ▸</a></p>`, d.source);
+    <p class="dim" style="font-size:12.5px;margin-top:10px">EMSA publishes these verified
+      figures under Article 21 of the EU MRV Regulation, and they stay available at the source
+      whatever this site shows.
+      <a class="inl" style="cursor:pointer" onclick="openClaim('${d.imo}')">If you
+      operate this ship, claim it to see the full analysis &#9656;</a></p>`, d.source);
 }
 
 function renderVessel(banner, keepOpen, override) {
@@ -829,9 +861,9 @@ function renderTech(d, banner, keepOpen) {
       <span class="dim num">CO₂ ${Math.round(sc.cii.co2_tonnes).toLocaleString()} t this period</span>
     </div>
     ${ciiDetail(sc.cii)}`
-    : `<div class="banner warn">CII rating needs the vessel's capacity —
+    : `<div class="banner warn">The CII rating needs the ship&rsquo;s capacity:
        <span class="dwt-up" style="display:inline-flex">
-       <input id="dwtIn" type="number" placeholder="DWT (GT for ro-ro/cruise)" style="max-width:190px">
+       <input id="dwtIn" type="number" placeholder="DWT (GT for ro-ro and cruise)" style="max-width:250px">
        <button class="ghost" onclick="addDwt()">Rate it</button></span></div>`;
   const actions = full ? sc.actions : [];
   E('out').innerHTML = shell(`
@@ -860,12 +892,12 @@ function renderVerifier(d) {
   const rows = [
     ['Verified total CO₂ (EMSA filing)', `${Math.round(v.co2_tonnes || 0).toLocaleString()} t`],
     ['Verified total fuel', `${Math.round(v.fuel_tonnes || 0).toLocaleString()} t`],
-    ['Distance (derived from filed CO₂/nm)', v.est_distance_nm ?
+    ['Distance (worked out from the filed CO₂ per nm)', v.est_distance_nm ?
         `${Math.round(v.est_distance_nm).toLocaleString()} nm — ESTIMATE` : '—'],
     ['ETS-scope CO₂, verifier-reported', v.ets_scope_co2_reported ?
         `${Math.round(v.ets_scope_co2_reported).toLocaleString()} t` : '—'],
-    ['ETS-scope CO₂e, our reconstruction', `${Math.round(etsOurs).toLocaleString()} t`],
-    ['FuelEU intensity (Annex II defaults)', `${feu.ghg_intensity} vs target ${feu.target} gCO₂e/MJ`],
+    ['ETS-scope CO₂e, our rebuild', `${Math.round(etsOurs).toLocaleString()} t`],
+    ['FuelEU intensity (Annex II defaults)', `${feu.ghg_intensity} against a target of ${feu.target} gCO₂e/MJ`],
     ['Technical efficiency as filed', v.tech_efficiency || '—'],
   ].map(([k, val]) => `<tr><td style="text-align:left;color:var(--muted)">${k}</td>
       <td class="num">${val}</td></tr>`).join('');
@@ -874,17 +906,17 @@ function renderVerifier(d) {
   E('out').innerHTML = shell(`
     ${viewBar()}
     <div class="idstrip"><b>${name}</b> · IMO ${imo} · reproducibility record</div>
-    ${match ? '<div class="banner good"><b>Reconstruction check ✓</b> — our ETS-scope figure agrees with the verifier-reported value within 2%. (Across a 400-ship sample we match exactly on about two thirds.)</div>'
-            : '<div class="banner warn"><b>Reconstruction differs from the verifier-reported figure.</b> Most often the filed figure covers only part of the year or part of the operator&rsquo;s obligation — which the public record does not break out. Owner data resolves it.</div>'}
+    ${match ? '<div class="banner good"><b>Reconstruction check passed.</b> Our ETS-scope figure is within 2% of the verifier-reported value. Across a 400-ship sample we match the exact figure for about two ships in three.</div>'
+            : '<div class="banner warn"><b>Reconstruction differs from the verifier-reported figure.</b> Most often the filed figure covers only part of the year or part of the operator&rsquo;s obligation, which the public record does not break out. Owner data resolves it.</div>'}
     <div style="overflow-x:auto"><table class="data">${rows}</table></div>
     <p class="dim" style="font-size:12.5px;margin-top:12px">
-      Every parameter (CF factors, reference lines, Z factors, dd vectors,
-      Annex II fuel properties, GWPs) is table-driven and cited —
-      <a style="color:var(--teal);cursor:pointer" onclick="showTab('method')">full method</a>.
-      ${currentDwt ? `Machine-readable worksheet:
-        <a style="color:var(--teal)" href="${API}/api/audit/${imo}?dwt=${currentDwt}"
-        target="_blank">open audit worksheet for this vessel ▸</a>`
-        : 'Add the vessel\'s DWT on the Owner view to unlock the audit worksheet.'}
+      Every parameter (carbon factors, reference lines, Z factors, dd vectors,
+      Annex II fuel properties, GWPs) comes from a cited table. See the
+      <a class="inl" style="cursor:pointer" onclick="showTab('method')">full method</a>.
+      ${currentDwt ? `Calculation worksheet:
+        <a class="inl" href="${API}/api/audit/${imo}?dwt=${currentDwt}"
+        target="_blank">open the audit worksheet for this ship &#9656;</a>`
+        : 'Add the ship\u2019s DWT on the Owner view to open the audit worksheet.'}
     </p>`, d.source || lastData.source);
 }
 
@@ -901,10 +933,16 @@ function whatIfBox(open) {
     </div></details>`;
 }
 
+/* "thetis_mrv_2025_v6.xlsx" -> "EMSA THETIS-MRV, 2025 report, version 6" */
+function srcLabel(src) {
+  const m = /(\d{4})_v(\d+)/.exec(src || '');
+  return m ? `EMSA THETIS-MRV, ${m[1]} report, version ${m[2]}` : 'EMSA THETIS-MRV';
+}
+
 function shell(inner, src) {
   return `<div class="card">
     <span class="estimate-band" onclick="showTab('method')"
-      title="Click for the method">ESTIMATE — public THETIS-MRV data (${src})</span>
+      title="Click for the method">ESTIMATE: public EU MRV data (${srcLabel(src)})</span>
     ${inner}</div>`;
 }
 
@@ -917,20 +955,21 @@ function billBlock(items, nzfUsd) {
     <div class="bullet">
       <span class="lbl">${i.label}</span>
       <span class="track">${i.eur > 0 ? `<span class="fill num"
-        style="width:${Math.max(2, i.eur / max * 100)}%;background:var(--red);opacity:0.75"></span>`
+        style="width:${Math.max(2, i.eur / max * 100)}%;background:linear-gradient(90deg,#ff8a5c,#ff6b57)"></span>`
         : ''}</span>
       <span class="val num ${i.eur > 0 ? '' : 'pos'}">${i.eur > 0 ? eur(i.eur) : '€0 ✓'}</span>
       <span class="due">${i.due}</span>
     </div>`).join('');
   return `<div class="bill">
-    <div class="k">This year's compliance bill (est.)</div>
+    <div class="k">This year&rsquo;s carbon bill</div>
     <div class="v num">${eur(total)}</div>
-    <div class="d">${euros.length ? '' : 'no payable exposure at current data'} </div>
+    <div class="d">${euros.length ? '' : 'No payable exposure on the current data.'}</div>
   </div>
   <div class="bullets">${bars}
-    <div class="bullet"><span class="lbl">IMO NZF 2028</span>
-      <span class="dim" style="font-size:12.5px">scenario — adoption vote ~Oct 2026</span>
-      <span class="val num">$${Math.round(nzfUsd).toLocaleString()}</span></div>
+    <div class="bullet"><span class="lbl">IMO NZF, 2028</span>
+      <span class="track" style="background:none"></span>
+      <span class="val num">$${Math.round(nzfUsd).toLocaleString()}</span>
+      <span class="due">Scenario only. Adoption vote expected October 2026.</span></div>
   </div>`;
 }
 
@@ -943,15 +982,15 @@ function renderPartial(d, banner, keepOpen) {
       ${d.verified.tech_efficiency ? ' · ' + d.verified.tech_efficiency : ''}</div>
     ${billBlock([
       {label: 'EU ETS', eur: d.ets.cost_eur,
-       due: `${Math.round(d.ets.allowances_due).toLocaleString()} EUAs @ €${d.ets.eua_price_used} — surrender by 30 Sep · ${eur(d.ets.allowances_due*60)}@€60 / ${eur(d.ets.allowances_due*100)}@€100`},
+       due: `${Math.round(d.ets.allowances_due).toLocaleString()} EU allowances at €${d.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(d.ets.allowances_due*60)} · at €100: ${eur(d.ets.allowances_due*100)}`},
       {label: 'FuelEU', eur: d.fueleu.penalty_eur,
-       due: cb < 0 ? `balance ${Math.round(cb).toLocaleString()} t — pool it or pay by 30 Jun`
-                   : `balance +${Math.round(cb).toLocaleString()} t — surplus, sellable via pooling`}
+       due: cb < 0 ? `Balance ${Math.round(cb).toLocaleString()} t. Pool it or pay by 30 June.`
+                   : `Balance +${Math.round(cb).toLocaleString()} t. A surplus can be pooled.`}
     ], d.nzf.remedial_cost_usd)}
     <div class="statline">
       <span>CII rating <b class="dim">needs capacity</b>
         <span class="dwt-up" style="display:inline-flex;margin-left:6px">
-          <input id="dwtIn" type="number" placeholder="DWT (GT for ro-ro/cruise)" style="max-width:200px">
+          <input id="dwtIn" type="number" placeholder="DWT (GT for ro-ro and cruise)" style="max-width:250px">
           <button class="ghost" onclick="addDwt()">Add</button></span></span>
       <span>ETS-scope check <b class="pos num">${d.verified.ets_scope_co2_reported ?
         Math.round(d.verified.ets_scope_co2_reported).toLocaleString() + ' t ✓ matches verifier' : '—'}</b></span>
@@ -967,9 +1006,9 @@ function renderPartial(d, banner, keepOpen) {
 function ciiDetail(cii) {
   const b = cii.boundaries;
   if (!b) return '';
-  const segs = [['A', 0, b.A, 'var(--green)'], ['B', b.A, b.B, '#86efac'],
-                ['C', b.B, b.C, 'var(--amber)'], ['D', b.C, b.D, '#fca5a5'],
-                ['E', b.D, b.D * 1.25, 'var(--red)']];
+  const segs = [['A', 0, b.A, '#34d399'], ['B', b.A, b.B, '#86efac'],
+                ['C', b.B, b.C, '#fbbf24'], ['D', b.C, b.D, '#fb923c'],
+                ['E', b.D, b.D * 1.25, '#f87171']];
   const max = b.D * 1.25;
   const pos = Math.min(99, cii.attained / max * 100);
   return `
@@ -979,11 +1018,11 @@ function ciiDetail(cii) {
         `<div style="flex:${(hi - lo) / max};background:${col}">${l}</div>`).join('')}
     </div>
     <div style="position:relative;height:16px;margin-top:-6px">
-      <div class="num" style="position:absolute;left:${pos}%;transform:translateX(-50%);font-size:11px">
+      <div class="num" style="position:absolute;left:${pos}%;transform:translateX(${pos > 88 ? '-100%' : '-50%'});white-space:nowrap;font-size:12px">
         ▲ ${cii.attained}</div>
     </div>
-    <div class="ciilabels"><span class="num">attained ${cii.attained} vs required ${cii.required}
-      gCO₂/cap·nm (Z=${cii.z_factor_pct}%)</span>
+    <div class="ciilabels"><span class="num">attained ${cii.attained}, required ${cii.required}
+      (gCO₂/cap·nm, Z = ${cii.z_factor_pct}%)</span>
       <span class="num">A≤${b.A} · B≤${b.B} · C≤${b.C} · D≤${b.D}</span></div></div>`;
 }
 
@@ -994,14 +1033,14 @@ function renderFull(d, banner, keepOpen) {
     <div class="idstrip"><b>${sc.vessel_name}</b> · IMO ${sc.imo_number} · ${sc.year}</div>
     ${billBlock([
       {label: 'EU ETS', eur: sc.ets.cost_eur,
-       due: `${Math.round(sc.ets.allowances_due).toLocaleString()} EUAs @ €${sc.ets.eua_price_used} — surrender by 30 Sep · ${eur(sc.ets.allowances_due*60)}@€60 / ${eur(sc.ets.allowances_due*100)}@€100`},
+       due: `${Math.round(sc.ets.allowances_due).toLocaleString()} EU allowances at €${sc.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(sc.ets.allowances_due*60)} · at €100: ${eur(sc.ets.allowances_due*100)}`},
       {label: 'FuelEU', eur: sc.fueleu.penalty_eur,
        due: sc.fueleu.compliance_balance_tco2e < 0
-        ? `balance ${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t — pool it or pay by 30 Jun`
-        : `balance +${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t — surplus, sellable`},
+        ? `Balance ${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t. Pool it or pay by 30 June.`
+        : `Balance +${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString()} t. A surplus can be pooled.`},
       {label: 'UK ETS', eur: sc.ukets.cost_gbp * 1.15,
-       due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString()} native — UK domestic legs`
-                                  : 'no UK domestic legs detected'}
+       due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString()} for UK domestic voyages`
+                                  : 'No UK domestic voyages found'}
     ], sc.nzf.remedial_cost_usd)}
     <div class="statline">
       <span>CII <b class="rating-${sc.cii.rating}">${sc.cii.rating}</b>
@@ -1049,35 +1088,35 @@ function fleetChart(d) {
     const cx = X(s.co2_per_nm_kg), cy = top + (i % rows) * rowH + 8;
     const t = `${s.name} · ${s.ship_type} · ${s.co2_per_nm_kg} kg CO₂/nm`;
     dots += s.same_type
-      ? `<circle cx="${cx}" cy="${cy}" r="5" fill="#14b8a6" fill-opacity="0.85"><title>${t}</title></circle>`
-      : `<circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="#93a7bd" stroke-width="1.5"><title>${t}</title></circle>`;
+      ? `<circle cx="${cx}" cy="${cy}" r="5" fill="#0a6fb7" fill-opacity="0.85"><title>${t}</title></circle>`
+      : `<circle cx="${cx}" cy="${cy}" r="4.5" fill="none" stroke="#586f8c" stroke-width="1.5"><title>${t}</title></circle>`;
   });
   let selSvg = '';
   if (sel) {
     const cx = X(sel.co2_per_nm_kg);
-    selSvg = `<line x1="${cx}" y1="30" x2="${cx}" y2="${H - 28}" stroke="#f59e0b" stroke-width="1.5" stroke-dasharray="4 3"/>
-      <circle cx="${cx}" cy="${top + 8}" r="7.5" fill="#f59e0b" stroke="#fff" stroke-width="1.5">
+    selSvg = `<line x1="${cx}" y1="30" x2="${cx}" y2="${H - 28}" stroke="#e8590c" stroke-width="1.5" stroke-dasharray="4 3"/>
+      <circle cx="${cx}" cy="${top + 8}" r="7.5" fill="#e8590c" stroke="#fff" stroke-width="1.5">
         <title>${sel.name} (this ship) · ${sel.co2_per_nm_kg} kg CO₂/nm</title></circle>
-      <text x="${Math.min(cx, R - 130)}" y="24" fill="#f59e0b" font-size="12.5" font-weight="700">▼ ${sel.name}</text>`;
+      <text x="${Math.min(cx, R - 130)}" y="24" fill="#b34700" font-size="12.5" font-weight="700">▼ ${sel.name}</text>`;
   }
   const medSvg = med !== null ?
-    `<line x1="${X(med)}" y1="34" x2="${X(med)}" y2="${H - 28}" stroke="#93a7bd" stroke-width="1" stroke-dasharray="2 4"/>
-     <text x="${X(med) + 4}" y="${H - 32}" fill="#93a7bd" font-size="10.5">type median ${med}</text>` : '';
+    `<line x1="${X(med)}" y1="34" x2="${X(med)}" y2="${H - 28}" stroke="#586f8c" stroke-width="1" stroke-dasharray="2 4"/>
+     <text x="${X(med) + 4}" y="${H - 32}" fill="#46607e" font-size="11">type median ${med}</text>` : '';
   return `
-  <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.09)">
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
     <b style="font-size:13.5px">Fleet context — ${d.company}</b>
-    <span class="dim" style="font-size:12px"> · ${d.fleet_size} related ships (same DoC holder)</span>
+    <span class="dim" style="font-size:12.5px"> · ${d.fleet_size} ships with the same Document of Compliance holder</span>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin-top:6px">
-      <line x1="${L}" y1="${H - 26}" x2="${R}" y2="${H - 26}" stroke="rgba(255,255,255,0.25)"/>
+      <line x1="${L}" y1="${H - 26}" x2="${R}" y2="${H - 26}" stroke="rgba(11,37,69,0.3)"/>
       ${medSvg}${dots}${selSvg}
-      <text x="${L}" y="${H - 10}" fill="#93a7bd" font-size="11">${Math.round(x0)} kg CO₂/nm</text>
-      <text x="${R}" y="${H - 10}" fill="#93a7bd" font-size="11" text-anchor="end">${Math.round(x1)} kg CO₂/nm — higher = dirtier per mile</text>
-      <circle cx="${L + 8}" cy="12" r="5" fill="#14b8a6"/><text x="${L + 18}" y="16" fill="#93a7bd" font-size="11">same type</text>
-      <circle cx="${L + 98}" cy="12" r="4.5" fill="none" stroke="#93a7bd" stroke-width="1.5"/><text x="${L + 108}" y="16" fill="#93a7bd" font-size="11">other types</text>
+      <text x="${L}" y="${H - 10}" fill="#46607e" font-size="11.5">${Math.round(x0)} kg CO₂/nm</text>
+      <text x="${R}" y="${H - 10}" fill="#46607e" font-size="11.5" text-anchor="end">${Math.round(x1)} kg CO₂/nm (higher means more CO₂ per mile)</text>
+      <circle cx="${L + 8}" cy="12" r="5" fill="#0a6fb7"/><text x="${L + 18}" y="16" fill="#46607e" font-size="11.5">same type</text>
+      <circle cx="${L + 98}" cy="12" r="4.5" fill="none" stroke="#586f8c" stroke-width="1.5"/><text x="${L + 108}" y="16" fill="#46607e" font-size="11.5">other types</text>
     </svg>
-    <div class="dim" style="font-size:11.5px;line-height:1.5">Axis = verified CO₂ per nautical
-      mile from each ship's EU-MRV filing. A true CII per sibling needs each ship's DWT
-      (not published); this ship's own A–E position is the band chart above.</div>
+    <div class="dim" style="font-size:12px;line-height:1.5">The axis shows verified CO₂ per nautical
+      mile from each ship&rsquo;s EU MRV filing. A true CII for each ship needs its DWT, which is
+      not published; this ship&rsquo;s own A&ndash;E position is in the band chart above.</div>
   </div>`;
 }
 
@@ -1089,7 +1128,7 @@ async function runEexi() {
   if (/^\d{7}$/.test(q)) eexiImo = q;
   if (!eexiImo) { E('eerr').textContent = 'Pick a ship first.'; return; }
   const dwt = E('edwt').value.trim();
-  if (!dwt) { E('eerr').textContent = 'DWT is needed to compute the required EEXI.'; return; }
+  if (!dwt) { E('eerr').textContent = 'Enter the ship\u2019s DWT to work out the required EEXI.'; return; }
   const gt = E('egt').value.trim();
   E('espin').style.display = 'block';
   try {
@@ -1107,18 +1146,18 @@ function renderEexi(d) {
   const cls = x.verdict.startsWith('N/A') || x.attained === null ? 'warn' : (good ? 'good' : 'bad');
   const custom = !d.imo;
   const head = custom
-    ? `<div class="idstrip"><b>Custom vessel</b> · ${d.ship_type} · ${Number(d.dwt).toLocaleString()} DWT</div>`
+    ? `<div class="idstrip"><b>Custom ship</b> · ${d.ship_type} · ${Number(d.dwt).toLocaleString()} DWT</div>`
     : `<div class="idstrip"><b>${d.name}</b> · IMO ${d.imo} · ${d.ship_type}</div>`;
-  const band = custom ? 'FREE CHECK — your inputs, our verified reference tables'
-                      : `FREE CHECK — from the ship's own EU-MRV filing (${d.source})`;
+  const band = custom ? 'FREE CHECK: your inputs, our verified reference tables'
+                      : `FREE CHECK: from the ship&rsquo;s own EU MRV filing (${srcLabel(d.source)})`;
   const srcLine = custom
-    ? `${x.attained_basis === 'ESTIMATED' ? 'estimated from MCR/speed' : 'your supplied value'}`
+    ? `${x.attained_basis === 'ESTIMATED' ? 'estimated from MCR and speed' : 'your supplied value'}`
     : `as filed: "${d.reported_raw ?? 'none'}"`;
   E('eout').innerHTML = `<div class="card">
     <span class="estimate-band" onclick="showTab('method')">${band}</span>
     ${head}
     <div class="banner ${cls}"><b>${x.verdict}</b>
-      ${x.margin_pct !== null ? ` — margin ${x.margin_pct > 0 ? '+' : ''}${x.margin_pct}% vs required` : ''}</div>
+      ${x.margin_pct !== null ? ` · margin ${x.margin_pct > 0 ? '+' : ''}${x.margin_pct}% against the required value` : ''}</div>
     <div class="scores">
       <div class="score"><div class="k">Attained (${x.attained_basis})</div>
         <div class="v num">${x.attained ?? '—'}</div><div class="d">gCO₂/t·nm — ${srcLine}</div></div>
@@ -1127,9 +1166,9 @@ function renderEexi(d) {
         <div class="d num">= reference ${x.reference ?? '—'} × (1 − ${x.reduction_factor_pct ?? '—'}%)</div></div>
       <div class="score"><div class="k">${good ? 'Next: the operating bill' : 'If non-compliant'}</div>
         <div class="v" style="font-size:13.5px;line-height:1.5">${good
-          ? 'Design is fine — CII and the € bill are operational. '
-          : 'EPL / ShaPoLi first, then ESDs. '}
-        <a style="color:var(--teal);cursor:pointer" onclick="showTab('vessel')">Run the vessel check →</a></div></div>
+          ? 'The design passes. The CII and the euro bill depend on how the ship is operated. '
+          : 'Fit an engine or shaft power limitation (EPL or ShaPoLi) first, then energy-saving devices. '}
+        <a class="inl" style="cursor:pointer" onclick="showTab('vessel')">Run the ship check &rarr;</a></div></div>
     </div>
     <div class="dim" style="font-size:12.5px">${x.notes.join(' ')}</div>
   </div>`;
@@ -1170,9 +1209,9 @@ function refreshCta() {
     (GT_TYPES.has(chipValue('cTypeChips')) ? 'GT' : 'DWT') + ' to check';
   if (cap) {
     if (cMode === 'att') { ready = !!E('cAttained').value.trim();
-      label = ready ? 'Check custom vessel' : 'Enter attained EEXI'; }
+      label = ready ? 'Check this ship' : 'Enter attained EEXI'; }
     else { ready = !!E('cMcr').value.trim() && !!E('cVref').value.trim();
-      label = ready ? 'Estimate & check' : 'Enter MCR + speed'; }
+      label = ready ? 'Estimate and check' : 'Enter MCR and speed'; }
   }
   E('cGo').disabled = !ready;
   E('cGo').textContent = label;
@@ -1268,17 +1307,17 @@ function renderFleet() {
   const p = fleetData.pooling;
   const pool = p && p.avoided_penalty_eur > 0 ?
     `<div class="banner good"><b>Pooling opportunity: ${eur(p.avoided_penalty_eur)}</b>
-     avoidable by pooling ${p.member_imos.length} ships internally (Art. 21).
-     ${p.uncovered_imos.length ? 'Remaining ' + eur(p.uncovered_penalty_eur) +
-       ' needs an external surplus partner — the matchmaking service.' : ''}</div>` :
-    (p && tot.cb < 0 ? `<div class="banner warn">No internal pooling capacity — the fleet
+     avoidable by pooling ${p.member_imos.length} ships inside the fleet (FuelEU Article 21).
+     ${p.uncovered_imos.length ? 'The remaining ' + eur(p.uncovered_penalty_eur) +
+       ' needs a surplus partner outside the fleet.' : ''}</div>` :
+    (p && tot.cb < 0 ? `<div class="banner warn">There is no spare pooling capacity inside the fleet. The fleet&rsquo;s
      FuelEU deficit of ${Math.round(Math.abs(tot.cb)).toLocaleString()} t (${eur(tot.pen)})
-     needs an external surplus partner or biofuel. That match is the service.</div>` : '');
+     needs a surplus partner outside the fleet, or biofuel.</div>` : '');
   const th = (label, k) => `<th onclick="sortFleet('${k}')">${label}
       ${sortKey === k ? (sortDir < 0 ? '▼' : '▲') : ''}</th>`;
   E('fout').innerHTML = `<div class="card">
-    <span class="estimate-band" onclick="showTab('method')">ESTIMATE — ${fleetData.source}</span>
-    <h1>Fleet analysis <span class="dim">${vs.length} vessels</span></h1>
+    <span class="estimate-band" onclick="showTab('method')">ESTIMATE: public EU MRV data (${srcLabel(fleetData.source)})</span>
+    <h1>Fleet analysis <span class="dim">${vs.length} ships</span></h1>
     <div class="scores">
       <div class="score"><div class="k">EU ETS bill (fleet)</div><div class="v num">${eur(tot.ets)}</div></div>
       <div class="score"><div class="k">FuelEU penalty risk</div><div class="v num">${eur(tot.pen)}</div></div>
@@ -1287,10 +1326,10 @@ function renderFleet() {
     </div>
     ${pool}
     <div style="overflow-x:auto"><table class="data num">
-      <tr>${th('Vessel', 'name')}${th('CO₂/nm', 'co2_per_nm_kg')}${th('CO₂ t', 'co2_tonnes')}
-        ${th('EUAs', 'euas')}${th('ETS €', 'ets_cost_eur')}${th('FuelEU t', 'fueleu_cb_t')}${th('Penalty €', 'fueleu_penalty_eur')}</tr>
+      <tr>${th('Ship', 'name')}${th('CO₂ per nm', 'co2_per_nm_kg')}${th('CO₂ (t)', 'co2_tonnes')}
+        ${th('EUAs', 'euas')}${th('ETS (€)', 'ets_cost_eur')}${th('FuelEU (t)', 'fueleu_cb_t')}${th('Penalty (€)', 'fueleu_penalty_eur')}</tr>
       ${vs.map(v => `<tr class="rowlink" onclick="showTab('vessel');E('q').value='${v.name.replace(/'/g, "\\'")}';pick('${v.imo}')">
-        <td style="color:var(--teal)">${v.name}</td>
+        <td style="color:var(--accent);font-weight:700">${v.name}</td>
         <td>${v.co2_per_nm_kg ?? '—'}</td>
         <td>${Math.round(v.co2_tonnes).toLocaleString()}</td>
         <td>${Math.round(v.euas).toLocaleString()}</td>
@@ -1299,7 +1338,7 @@ function renderFleet() {
         <td>${Math.round(v.fueleu_penalty_eur).toLocaleString()}</td></tr>`).join('')}
     </table></div>
     ${bad.length ? `<div class="dim" style="font-size:12.5px;margin-top:8px">
-      Not scored: ${bad.map(v => v.imo).join(', ')}</div>` : ''}
+      Not scored (type not yet supported): ${bad.map(v => v.imo).join(', ')}</div>` : ''}
   </div>`;
 }
 
@@ -1317,19 +1356,22 @@ async function loadCal() {
   E('calout').innerHTML = `<h1>Obligations from compliance year ${y}</h1>
     ${calTimeline(d.deadlines)}` +
     d.deadlines.map(x => `<div class="cal-item">
-      <span class="cal-date num ${soon(x.due) ? 'soon' : ''}">${x.due}${soon(x.due) ? ' ⚠' : ''}</span>
+      <span class="cal-date num ${soon(x.due) ? 'soon' : ''}">${fmtD(x.due, true)}${soon(x.due) ? ' (soon)' : ''}</span>
       <span class="cal-regime">${x.regime}</span>
       <span>${x.what} <span class="dim">— ${x.basis}</span></span></div>`).join('');
 }
-const REGIME_COLOR = {'EU ETS': '#ef4444', 'FuelEU': '#14b8a6', 'UK ETS': '#a78bfa',
-                      'IMO CII': '#f59e0b', 'EU MRV / DCS': '#60a5fa',
-                      'FuelEU / EU MRV': '#14b8a6'};
+/* 2027-01-31 -> 31 Jan 2027 (or 31 Jan for the timeline labels) */
+const fmtD = (iso, long) => new Date(iso + 'T00:00:00Z').toLocaleDateString('en-GB',
+  {day: 'numeric', month: 'short', year: long ? 'numeric' : undefined, timeZone: 'UTC'});
+const REGIME_COLOR = {'EU ETS': '#c62828', 'FuelEU': '#0f766e', 'UK ETS': '#6d28d9',
+                      'IMO CII': '#b45309', 'EU MRV / DCS': '#1d4ed8',
+                      'FuelEU / EU MRV': '#0f766e'};
 function calTimeline(ds) {
   if (!ds.length) return '';
   const dates = ds.map(x => new Date(x.due));
   const t0 = Math.min(...dates), t1 = Math.max(...dates);
   const pad = (t1 - t0) * 0.06 || 86400000 * 30;
-  const W = 800, L = 14, R = 786, LBL_W = 46, ROW_H = 13;
+  const W = 800, L = 14, R = 786, LBL_W = 52, ROW_H = 14;
   const X = t => L + (t - (t0 - pad)) / ((t1 + pad) - (t0 - pad)) * (R - L);
 
   /* Lay the date labels out so they never collide: walk left to right and
@@ -1337,7 +1379,7 @@ function calTimeline(ds) {
      on that row. Dates clustered a few weeks apart used to print on top of
      each other. */
   const marks = ds.map(x => ({ x: X(new Date(x.due)), d: x,
-                               col: REGIME_COLOR[x.regime] || '#93a7bd' }))
+                               col: REGIME_COLOR[x.regime] || '#586f8c' }))
                   .sort((a, b) => a.x - b.x);
   const rowEnds = [];
   marks.forEach(m => {
@@ -1359,9 +1401,9 @@ function calTimeline(ds) {
       ? `<line x1="${m.x}" y1="40" x2="${m.cx}" y2="${ly - 8}" stroke="${m.col}"
            stroke-width="1" opacity=".5"/>` : '';
     return `<line x1="${m.x}" y1="20" x2="${m.x}" y2="40" stroke="${m.col}" stroke-width="3">
-      <title>${m.d.due} · ${m.d.regime}: ${m.d.what}</title></line>${leader}
-      <text x="${m.cx}" y="${ly}" fill="${m.col}" font-size="9.5"
-        text-anchor="middle">${m.d.due.slice(5)}</text>`;
+      <title>${fmtD(m.d.due, true)} · ${m.d.regime}: ${m.d.what}</title></line>${leader}
+      <text x="${m.cx}" y="${ly}" fill="${m.col}" font-size="10.5" font-weight="600"
+        text-anchor="middle">${fmtD(m.d.due)}</text>`;
   }).join('');
 
   /* Today's position. When every deadline is still ahead (or already behind)
@@ -1372,19 +1414,19 @@ function calTimeline(ds) {
   const label = new Date(now).toLocaleDateString('en-GB', {day: 'numeric', month: 'short'});
   let nowSvg;
   if (now < lo) {
-    nowSvg = `<line x1="${L}" y1="12" x2="${L}" y2="44" stroke="#e7eef6" stroke-width="1" stroke-dasharray="2 3"/>
-      <text x="${L + 4}" y="10" fill="#93a7bd" font-size="10">◀ today (${label}) — all deadlines ahead</text>`;
+    nowSvg = `<line x1="${L}" y1="12" x2="${L}" y2="44" stroke="#0b2545" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="${L + 4}" y="10" fill="#46607e" font-size="11">◀ today (${label}): all deadlines are ahead</text>`;
   } else if (now > hi) {
-    nowSvg = `<line x1="${R}" y1="12" x2="${R}" y2="44" stroke="#e7eef6" stroke-width="1" stroke-dasharray="2 3"/>
-      <text x="${R - 4}" y="10" fill="#93a7bd" font-size="10" text-anchor="end">today (${label}) — all deadlines passed ▶</text>`;
+    nowSvg = `<line x1="${R}" y1="12" x2="${R}" y2="44" stroke="#0b2545" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="${R - 4}" y="10" fill="#46607e" font-size="11" text-anchor="end">today (${label}): all deadlines have passed ▶</text>`;
   } else {
-    nowSvg = `<line x1="${X(now)}" y1="12" x2="${X(now)}" y2="44" stroke="#e7eef6" stroke-width="1" stroke-dasharray="2 3"/>
-      <text x="${Math.min(X(now) + 3, R - 26)}" y="10" fill="#93a7bd" font-size="10">today</text>`;
+    nowSvg = `<line x1="${X(now)}" y1="12" x2="${X(now)}" y2="44" stroke="#0b2545" stroke-width="1" stroke-dasharray="2 3"/>
+      <text x="${Math.min(X(now) + 3, R - 26)}" y="10" fill="#46607e" font-size="11">today</text>`;
   }
 
   return `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin:8px 0 14px"
       role="img" aria-label="Timeline of compliance deadlines">
-    <line x1="${L}" y1="31" x2="${R}" y2="31" stroke="rgba(255,255,255,0.25)"/>
+    <line x1="${L}" y1="31" x2="${R}" y2="31" stroke="rgba(11,37,69,0.3)"/>
     ${ticks}${nowSvg}</svg>`;
 }
 function dlIcs() {
@@ -1392,11 +1434,24 @@ function dlIcs() {
 }
 
 /* ---------- method (U6): tiny markdown renderer ---------- */
+/* the two CII equations, drawn as maths (same as the opening page) */
+const METHOD_EQS = `
+  <div class="eq" role="img" aria-label="Attained CII equals carbon dioxide emitted divided by capacity times distance sailed">
+    <span>attained CII</span><span class="op">=</span>
+    <span class="frac"><span class="n">CO<sub>2</sub> emitted</span><span class="d">capacity &times; distance sailed</span></span>
+  </div>
+  <p class="eqnote">How much carbon the ship emits to move one tonne of capacity one mile.</p>
+  <div class="eq" role="img" aria-label="Required CII equals one minus Z over one hundred, times a times capacity to the power of minus c">
+    <span>required CII</span><span class="op">=</span>
+    <span>(1 &minus; <span class="frac"><span class="n"><var>Z</var></span><span class="d">100</span></span>)</span><span class="op">&times;</span>
+    <span><var>a</var> &times; capacity<sup>&minus;<var>c</var></sup></span>
+  </div>
+  <p class="eqnote"><var style="font-style:italic;color:var(--violet)">a</var> and <var style="font-style:italic;color:var(--violet)">c</var> set the 2019 fleet average for the ship type; <var style="font-style:italic;color:var(--violet)">Z</var> is how much tighter the year is. The worked formulas below use the same symbols.</p>`;
 async function loadMethod() {
   methodLoaded = true;
   const r = await fetch(API + '/api/method');
   const md = await r.text();
-  E('methodOut').innerHTML = mdToHtml(md);
+  E('methodOut').innerHTML = METHOD_EQS + mdToHtml(md);
 }
 /* ================= CII calculator (locked) ================= */
 let ciiKey = localStorage.getItem('ck_key') || '', ciiMode = 'fuel';
@@ -1415,7 +1470,7 @@ async function unlockCii(silent) {
     E('ciiWho').textContent = d.issued_to ? '· ' + d.issued_to : '';
     E('ciiKeyErr').textContent = '';
     return true;
-  } catch (e) { if (!silent) E('ciiKeyErr').textContent = 'Could not reach the server.';
+  } catch (e) { if (!silent) E('ciiKeyErr').textContent = 'We could not reach the server. Please try again.';
                 return false; }
 }
 function lockCii() {
@@ -1456,7 +1511,7 @@ async function runCii() {
     corrections_basis: E('g5_basis').value.trim(),
     fuel_tonnes: {}, distance_nm: 0,
   };
-  if (!body.dwt && !body.gt) { E('ciiErr').textContent = 'Enter the vessel capacity (DWT, or GT for ro-ro/ro-pax/cruise/vehicle carriers).'; return; }
+  if (!body.dwt && !body.gt) { E('ciiErr').textContent = 'Enter the ship\u2019s capacity: DWT, or GT for ro-ro, ro-pax, cruise and vehicle carriers.'; return; }
   if (ciiMode === 'fuel') {
     for (const f of ['hfo','lfo','mdo_mgo','lng','methanol','biofuel_b100']) {
       const v = parseFloat(E('f_' + f).value);
@@ -1486,14 +1541,15 @@ async function runCii() {
       method: 'POST', headers: {'Content-Type': 'application/json'},
       body: JSON.stringify(body)});
     const d = await r.json();
-    if (!r.ok) { E('ciiErr').textContent = d.detail || 'Computation failed.'; return; }
+    if (!r.ok) { E('ciiErr').textContent = d.detail || 'The calculation failed. Please check your figures and try again.'; return; }
     renderCii(d);
-  } catch (e) { E('ciiErr').textContent = 'Request failed: ' + e; }
+  } catch (e) { E('ciiErr').textContent = 'Something went wrong. Please try again.'; }
   finally { E('ciiGo').disabled = false; E('ciiGo').textContent = 'Compute CII'; }
 }
 
-const BAND_COLOR = {A: 'var(--green)', B: '#86efac', C: 'var(--amber)',
-                    D: '#fca5a5', E: 'var(--red)'};
+const BAND_COLOR = {A: '#34d399', B: '#86efac', C: '#fbbf24', D: '#fb923c', E: '#f87171'};
+/* the same bands as text on white: darker, so they stay readable */
+const BAND_TEXT = {A: '#0f7a52', B: '#3a7d0a', C: '#9a5b00', D: '#b34700', E: '#b42318'};
 
 function renderCii(d) {
   const b = d.boundaries;
@@ -1507,41 +1563,38 @@ function renderCii(d) {
     .map(([f, t]) => `${f.toUpperCase().replace('_','/')} ${t.toLocaleString()} t`).join(' · ');
   const nextBand = d.gap_to_next_band_pct !== null
     ? `<div class="banner ${d.rating === 'E' || d.rating === 'D' ? 'bad' : 'warn'}">
-        Cut CO₂ by <b>${d.gap_to_next_band_pct}%</b> to move up one band
+        Cutting CO₂ by <b>${d.gap_to_next_band_pct}%</b> moves the ship up one band
         (${d.rating} → ${'ABCDE'['ABCDE'.indexOf(d.rating) - 1]}).
-        To hold <b>C</b> you need ${d.reduction_to_reach.C}%.</div>`
-    : `<div class="banner good">Top band — no reduction required at this year's
-        target. Watch the trajectory below: the target tightens every year.</div>`;
+        ${d.rating === 'E' && d.reduction_to_reach.C > 0 ? 'Reaching C needs a cut of ' + d.reduction_to_reach.C + '%.' : ''}</div>`
+    : `<div class="banner good">Top band: no reduction is needed to meet this year&rsquo;s
+        target. Watch the trajectory below, because the target tightens every year.</div>`;
   E('ciiOut').innerHTML = `<div class="card">
-    <span class="estimate-band" style="background:${d.estimated_inputs
-      ? 'rgba(245,158,11,0.15)' : 'rgba(34,197,94,0.14)'};
-      color:${d.estimated_inputs ? 'var(--amber)' : 'var(--green)'};
-      border-color:${d.estimated_inputs ? 'rgba(245,158,11,0.4)' : 'rgba(34,197,94,0.4)'}">
-      ${d.estimated_inputs ? 'ESTIMATE — fuel derived from speed' : 'OWNER DATA — computed from your figures'}</span>
-    <div class="idstrip"><b>${d.vessel_name || 'Vessel'}</b>
+    <span class="estimate-band${d.estimated_inputs ? '' : ' own'}">
+      ${d.estimated_inputs ? 'ESTIMATE: fuel worked out from speed' : 'OWNER DATA: calculated from your figures'}</span>
+    <div class="idstrip"><b>${d.vessel_name || 'Ship'}</b>
       ${d.imo_number ? '· IMO ' + d.imo_number : ''} · ${d.ship_type.replace(/_/g,' ')}
       · ${Math.round(d.capacity).toLocaleString()} ${d.capacity_basis} · ${d.year}</div>
 
     <div class="bill">
       <div class="k">Attained CII rating (${d.year})</div>
-      <div class="v" style="color:${BAND_COLOR[d.rating]}">${d.rating}</div>
-      <div class="d num">attained ${d.attained} vs required ${d.required} gCO₂/${d.capacity_basis.toLowerCase()}·nm
+      <div class="v" style="color:${BAND_TEXT[d.rating]}">${d.rating}</div>
+      <div class="d num">attained ${d.attained}, required ${d.required} (gCO₂/${d.capacity_basis.toLowerCase()}·nm)
         · ratio ${d.ratio} · Z = ${d.z_factor_pct}%</div>
     </div>
 
     <div class="ciibar">${segs.map(([l, lo, hi]) =>
       `<div style="flex:${(hi - lo) / max};background:${BAND_COLOR[l]}">${l}</div>`).join('')}</div>
     <div style="position:relative;height:18px;margin-top:-6px">
-      <div class="num" style="position:absolute;left:${pos}%;transform:translateX(-50%);font-size:11px">
+      <div class="num" style="position:absolute;left:${pos}%;transform:translateX(${pos > 88 ? '-100%' : '-50%'});white-space:nowrap;font-size:12px">
         ▲ ${d.attained}</div></div>
     <div class="ciilabels"><span class="num">boundaries A≤${b.A} · B≤${b.B} · C≤${b.C} · D≤${b.D}</span>
       <span class="num">reference line ${d.reference}</span></div>
 
     ${nextBand}
 
-    <b style="font-size:13.5px">Rating trajectory at today's performance</b>
-    <div class="dim" style="font-size:12px">Same ship, same operation — only the IMO
-      target moves (Z factor rises to 21.5% by 2030).</div>
+    <b style="font-size:14px">Rating trajectory at today&rsquo;s performance</b>
+    <div class="dim" style="font-size:12.5px">Same ship, same operation. Only the IMO
+      target moves (the reduction factor Z rises to 21.5% by 2030).</div>
     <div class="traj">${traj}</div>
 
     <div class="statline">
@@ -1583,7 +1636,8 @@ function mdToHtml(md) {
   for (const raw of lines) {
     if (raw.startsWith('```')) { closeAll();
       out += inCode ? '</pre>' : '<pre>'; inCode = !inCode; continue; }
-    if (inCode) { out += esc(raw) + '\n'; continue; }
+    if (inCode) { out += esc(raw).replace(/\^\(([^)]*)\)/g, (m, e) => '<sup>' + e.replace('-', '\u2212') + '</sup>')
+                                   .replace(/\^(-?[0-9.]+)/g, (m, e) => '<sup>' + e.replace('-', '\u2212') + '</sup>') + '\n'; continue; }
     if (/^\s*\|/.test(raw)) {
       if (/^\s*\|[\s\-|]+\|\s*$/.test(raw)) continue;   // separator row
       if (!inTable) { closeAll(); out += '<table>'; inTable = true; }
@@ -1612,18 +1666,18 @@ function mdToHtml(md) {
      and it never asks about budget or price. -->
 <style>
   .ck-fab{position:fixed;right:20px;bottom:20px;z-index:9998;display:flex;align-items:center;
-    gap:9px;min-height:52px;padding:0 20px 0 17px;border:0;border-radius:26px;cursor:pointer;
-    background:#2dd4bf;color:#042f2a;font:700 15px/1 "Segoe UI",system-ui,sans-serif;
-    box-shadow:0 10px 30px rgba(0,0,0,.45)}
-  .ck-fab:hover{background:#5eead4}
+    gap:9px;min-height:54px;padding:0 22px 0 18px;border:0;border-radius:28px;cursor:pointer;
+    background:linear-gradient(135deg,#ffc933,#ff8a5c);color:#2b1b00;font:800 15px/1 "Segoe UI",system-ui,sans-serif;
+    box-shadow:0 12px 30px rgba(11,37,69,.35);transition:transform .15s}
+  .ck-fab:hover{transform:translateY(-2px)}
   .ck-fab svg{flex:none}
   .ck-fab .ck-close-ico{display:none}
   .ck-fab[aria-expanded="true"] .ck-open-ico{display:none}
   .ck-fab[aria-expanded="true"] .ck-close-ico{display:block}
   .ck-fab[aria-expanded="true"] .ck-fab-txt{display:none}
-  .ck-fab[aria-expanded="true"]{padding:0;width:52px;justify-content:center}
+  .ck-fab[aria-expanded="true"]{padding:0;width:54px;justify-content:center}
 
-  .ck-chat{position:fixed;right:20px;bottom:84px;z-index:9999;width:360px;max-width:calc(100vw - 40px);
+  .ck-chat{position:fixed;right:20px;bottom:86px;z-index:9999;width:360px;max-width:calc(100vw - 40px);
     max-height:min(620px,calc(100vh - 120px));display:flex;flex-direction:column;overflow:hidden;
     background:#15314f;border:1px solid rgba(255,255,255,.14);border-radius:16px;
     box-shadow:0 24px 60px rgba(0,0,0,.5);
@@ -1631,29 +1685,29 @@ function mdToHtml(md) {
   .ck-chat[hidden]{display:none}
   .ck-head{padding:16px 18px;border-bottom:1px solid rgba(255,255,255,.12);flex:none}
   .ck-head b{display:block;font-size:16px}
-  .ck-head span{display:block;font-size:12.5px;color:#8aa2bb;margin-top:2px}
+  .ck-head span{display:block;font-size:12.5px;color:#9db6d1;margin-top:2px}
   .ck-body{padding:16px 18px;overflow-y:auto;flex:1}
   .ck-msg{background:rgba(0,0,0,.26);border-radius:12px;border-top-left-radius:4px;
-    padding:12px 14px;font-size:14px;line-height:1.5;color:#b3c6da}
+    padding:12px 14px;font-size:14px;line-height:1.5;color:#c3d4e6}
   .ck-msg b{color:#f0f6fc}
-  .ck-lbl{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:#8aa2bb;
+  .ck-lbl{font-size:11.5px;letter-spacing:.07em;text-transform:uppercase;color:#9db6d1;
     font-weight:700;margin:18px 0 8px}
   .ck-cats{display:flex;flex-wrap:wrap;gap:7px}
   .ck-cats button{min-height:40px;padding:0 13px;border-radius:20px;cursor:pointer;
     background:rgba(0,0,0,.24);border:1px solid rgba(255,255,255,.14);color:#f0f6fc;
-    font:600 13.5px/1 inherit}
+    font-family:inherit;font-weight:600;font-size:13.5px;line-height:1}
   .ck-cats button:hover{border-color:#14b8a6}
   .ck-cats button[aria-pressed="true"]{background:rgba(45,212,191,.16);border-color:#2dd4bf;color:#2dd4bf}
   .ck-chat textarea,.ck-chat input{width:100%;min-height:44px;background:rgba(0,0,0,.28);color:#f0f6fc;
     border:1px solid rgba(255,255,255,.14);border-radius:10px;padding:11px 13px;
-    font:14px/1.5 inherit;margin-top:8px}
+    font-family:inherit;font-size:14px;line-height:1.5;margin-top:8px}
   .ck-chat textarea{min-height:92px;resize:vertical}
   .ck-chat textarea:focus,.ck-chat input:focus{outline:2px solid #14b8a6;border-color:transparent}
   .ck-foot{padding:14px 18px;border-top:1px solid rgba(255,255,255,.12);flex:none}
   .ck-send{width:100%;min-height:46px;border:0;border-radius:10px;cursor:pointer;
-    background:#2dd4bf;color:#042f2a;font:700 15px/1 inherit}
+    background:#2dd4bf;color:#042f2a;font-family:inherit;font-weight:700;font-size:15px;line-height:1}
   .ck-send:hover{background:#5eead4}
-  .ck-note{font-size:11.5px;color:#8aa2bb;margin-top:9px;text-align:center;line-height:1.45}
+  .ck-note{font-size:11.5px;color:#9db6d1;margin-top:9px;text-align:center;line-height:1.45}
   .ck-chat :focus-visible{outline:2px solid #2dd4bf;outline-offset:2px}
   @media(max-width:480px){
     .ck-chat{right:12px;left:12px;width:auto;bottom:80px}
@@ -1677,7 +1731,7 @@ function mdToHtml(md) {
 <div class="ck-chat" id="ckChat" role="dialog" aria-label="Talk to CarbonKeel" hidden>
   <div class="ck-head">
     <b>Talk to us</b>
-    <span>One person, not a bot. Usually replies same day.</span>
+    <span>One person, not a bot. Usually replies the same day.</span>
   </div>
   <div class="ck-body">
     <div class="ck-msg">

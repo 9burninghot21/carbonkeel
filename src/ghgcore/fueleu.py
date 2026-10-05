@@ -93,8 +93,9 @@ def compute_fueleu(activity: AnnualActivity,
     """certified_props: {FuelType: (lcv_mj_per_t, wtw_gco2e_per_mj)} — actual
     certified values per Art. 10(4)/(5) (e.g. from the biofuel's BDN/PoS);
     they override the Annex II defaults for this computation."""
-    notes = ["Fuel LCV/WtW: Reg. 2023/1805 Annex II defaults (verified); "
-             "biofuel pathway values should come from certificates (Art. 10)."]
+    notes = ["Fuel energy content (lower calorific value, LCV) and well-to-wake (WtW) values are the "
+             "defaults in Regulation (EU) 2023/1805, Annex II (verified). For biofuel, use the "
+             "certified pathway values (Article 10)."]
     if certified_props:
         notes.append(f"Certified values supplied for: "
                      f"{', '.join(f.value for f in certified_props)} (Art. 10).")
@@ -125,11 +126,11 @@ def compute_fueleu(activity: AnnualActivity,
         penalty = abs(cb_g) / (intensity * VLSFO_ENERGY_MJ_PER_T) * PENALTY_EUR_PER_T_VLSFO_EQ
 
     if cb_t > 0:
-        val = ("Surplus is bankable (Art. 20) or poolable (Art. 21). Market value is "
-               "negotiated, bounded above by counterparties' avoided penalty "
+        val = ("A surplus can be banked (Article 20) or pooled (Article 21). Its market value is "
+               "negotiated and cannot exceed the penalty the other party avoids "
                f"(≈€{penalty_equiv(cb_g, intensity):,.0f} if they paid instead).")
     else:
-        val = "Deficit: options = pool with a surplus ship, borrow from next year (+10%), or pay penalty."
+        val = "A deficit can be pooled with a surplus ship, borrowed from next year (with 10% added), or paid as a penalty."
 
     return FuelEUResult(round(intensity, 2), round(tgt, 2), round(energy, 0),
                         round(cb_g, 0), round(cb_t, 1), round(penalty, 0), val, notes)
