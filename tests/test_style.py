@@ -114,6 +114,9 @@ def check_pages():
           "app: the bill names the year of the emissions it covers")
     check("before the cost of the biofuel itself" in app and "before fuel costs" in app,
           "app: lever savings say they exclude the cost of the biofuel")
+    for needle, why in [("From problem to action", "insight chain"), ("Observation", "observation step"), ("Expected value", "expected-value step"),
+                        ("modelled, not measured", "before/after says it is modelled"), ("Top opportunities", "fleet opportunities")]:
+        check(needle in app, f"app shows the {why}")
     check("could be saved with standard levers" not in app, "app: lever value is not presented as a net saving")
 
     # attribution that EMSA's copyright notice and CC BY-style reuse call for
@@ -178,6 +181,23 @@ def check_server_text():
         check(not m, f"engine text: no {why}", m.group(0) if m else "")
     check(any("Three years in a row at D" in a or "A rating of E requires" in a for a in sc["actions"]),
           "CII action states the rule once, without contradicting itself")
+
+    # the landing page's worked example must be the engines' own numbers for IMO 9464663.
+    # After a data refresh these change: this test then says which figures to update.
+    code, base = http("/api/lookup/9464663")
+    code, lev = http("/api/lookup/9464663?biofuel_pct=20&speed_pct=-10")
+    ets0, feu0, ets1, feu1 = base["ets"], base["fueleu"], lev["ets"], lev["fueleu"]
+    total0, total1 = ets0["cost_eur"] + feu0["penalty_eur"], ets1["cost_eur"] + feu1["penalty_eur"]
+    fwd = total0 - ets0["cost_eur"] + ets0["cost_eur"] / ets0["surrender_share"]
+    k = lambda v: f"€{round(v / 1000):,}k"
+    land = re.sub(r"\s+", " ", visible_markup_text(read("site/index.html")))
+    want = {"bill": k(total0), "ETS part": k(ets0["cost_eur"]), "FuelEU part": k(feu0["penalty_eur"]),
+            "2026-rules bill": k(fwd), "after levers": k(total1), "value of levers": k(total0 - total1),
+            "ETS share": f"{round(ets0['cost_eur'] / total0 * 100)}%", "reduction": f"−{round((total0 - total1) / total0 * 100)}%",
+            "CO2e cut": f"{round((1 - ets1['co2e_in_scope_t'] / ets0['co2e_in_scope_t']) * 100)}%",
+            "intensity": str(feu0["ghg_intensity"]), "target": str(feu0["target"])}
+    for label, text in want.items():
+        check(text in land, f"landing worked example matches the engines: {label} ({text})", "update site/index.html")
 
     code, m = http("/api/method", want_json=False)
     check("(144 checks)" in m and "96 checks" not in m, "method page quotes the real test count")

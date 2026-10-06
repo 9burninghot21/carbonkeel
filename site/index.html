@@ -297,7 +297,7 @@
   .convoy{position:absolute;left:0;right:0;bottom:0;height:70px;pointer-events:none;overflow:hidden}
   .convoy .ship{--w:clamp(60px,8vw,110px)}
   .convoy .wvx{position:absolute;left:0;bottom:0;width:200%;height:26px;animation:slide 14s linear infinite}
-  .convoy .wvx path{fill:#fff0e2}
+  .convoy .wvx path{fill:#fff}
 
   /* ================= sample result + cost ================= */
   .result{background:linear-gradient(180deg,#fff0e2,#fff);padding:84px 0 96px}
@@ -343,6 +343,34 @@
   .avg b{font-size:30px;font-weight:900;color:var(--sun2);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
   .avg span{display:block;font-size:13.5px;color:#cfe3f7;margin-top:2px}
   .ways{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+
+
+  /* ================= problem -> action chain ================= */
+  .chain{margin-top:56px;background:#fff;border-radius:22px;padding:28px 28px 26px;
+    box-shadow:0 26px 60px rgba(11,37,69,.12);border:1px solid var(--line)}
+  .chain-h{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px}
+  .chain-h h3{font-size:clamp(22px,3vw,28px);font-weight:800}
+  .chain-h .ex{font-size:11px;font-weight:800;letter-spacing:.07em;color:#7a4a00;background:#ffe7ad;padding:4px 10px;border-radius:12px}
+  .steps{list-style:none;padding:0;margin:12px 0 0}
+  .steps li{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:12px 0 12px 18px;margin:10px 0;
+    border-left:5px solid var(--c)}
+  .steps li>b{font-size:12.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--c);padding-top:3px}
+  .steps li>p{margin:0;font-size:16.5px;color:var(--ink2)}
+  .steps li>p b{color:var(--ink)}
+  .steps li.o{--c:#0a5aa0}.steps li.w{--c:#b45309}.steps li.i{--c:#b42318}.steps li.a{--c:#6d28d9}.steps li.v{--c:#0f7a52}
+  .steps li.v>p{color:var(--ink);font-weight:600}
+  .chain .ba{display:grid;grid-template-columns:1fr auto 1fr auto;gap:16px;align-items:center;margin-top:18px;
+    padding:18px 20px;border-radius:16px;background:#e6f7ef;border:1px solid #8fd9b6}
+  .chain .ba small{display:block;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);font-weight:800}
+  .chain .ba .c b{font-size:clamp(26px,4vw,38px);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .chain .ba .ar{color:var(--ink2);font-size:13.5px;text-align:center;max-width:170px;font-weight:600}
+  .chain .ba .chg{font-size:clamp(26px,4vw,38px);font-weight:900;color:#0f7a52}
+  .chain .ba .fine{grid-column:1/-1;font-size:13.5px;color:var(--ink2)}
+  @media(max-width:700px){
+    .chain{padding:20px 16px}
+    .steps li{grid-template-columns:1fr;gap:3px}
+    .chain .ba{grid-template-columns:1fr 1fr}.chain .ba .ar{grid-column:1/-1;max-width:none;order:3}
+  }
 
   /* ================= maths + disclosures ================= */
   .trust{background:#fff;padding:84px 0 90px;border-top:1px solid var(--line)}
@@ -532,8 +560,8 @@
 
   <div class="wrap in">
     <h1>What is carbon costing <em>your ships?</em></h1>
-    <p class="sub">EU ETS, FuelEU and your CII rating, in euros, for any ship trading into Europe.
-       Free, from emissions already on the public record.</p>
+    <p class="sub">Find what carbon costs each ship, see why, and see what would cut it. EU ETS, FuelEU and your
+       CII rating, in euros, from emissions already on the public record. Free.</p>
 
     <form class="seek" action="https://app.carbonkeel.com" method="get">
       <input id="q" name="q" type="search" autocomplete="off" placeholder="Ship name or IMO number"
@@ -546,6 +574,7 @@
       <button type="button" onclick="demo('AIDADIVA')">a cruise ship</button>
       <button type="button" onclick="demo('9464663')">an IMO number</button>
     </p>
+    <p class="trylist" style="margin-top:2px"><a class="go quiet sm" href="#cost">See how it works</a></p>
     <p class="assure"><span>16,673 ships already loaded</span><span>No account</span><span>Nothing to upload</span></p>
   </div>
 
@@ -619,6 +648,89 @@
   </div>
 </section>
 <svg class="div" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" style="background:#f2fbff">
+  <path d="M0 30Q180 -6 360 30T720 30T1080 30T1440 30V60H0Z" fill="#fff0e2"/></svg>
+
+<!-- ============================ WHAT COMES BACK + COST ============================ -->
+<section class="result" id="cost">
+  <div class="wrap">
+    <span class="kicker" data-reveal>What comes back</span>
+    <h2 data-reveal style="--d:80">Know what each ship costs, why, and what would cut it.</h2>
+    <p class="lede" data-reveal style="--d:160">A mid-size ship can carry a six-figure carbon bill a year. Across a fleet, it
+       is the number a board asks about. Here is one answer, followed from problem to action.</p>
+
+    <div class="cols">
+      <div class="sample" data-reveal id="sample">
+        <div class="ship2"><b>MV Example</b><span class="meta">Bulk carrier · 50,000 DWT · 2026</span>
+          <span class="ex">ILLUSTRATION</span></div>
+        <div class="mets">
+          <div class="met"><div class="lbl">Carbon cost, one year</div>
+            <div class="val"><span class="count" data-count="511" data-pre="€" data-suf="k">€511k</span></div>
+            <div class="fine">EU ETS €363k + FuelEU €148k</div></div>
+          <div class="met"><div class="lbl">CII rating</div><div class="val" style="color:#c2410c">D</div>
+            <div class="fine">5.36 against a 5.05 limit</div></div>
+          <div class="met"><div class="lbl">EEXI</div><div class="val" style="color:#0f8f63">Pass</div>
+            <div class="fine">9.5% under the required value</div></div>
+        </div>
+        <div class="bandlbl"><span>Where this ship sits today</span><span>A is best</span></div>
+        <div class="band"><div style="background:var(--A)">A</div><div style="background:var(--B)">B</div>
+          <div style="background:var(--C)">C</div><div style="background:var(--D)">D</div><div style="background:var(--E)">E</div></div>
+        <div class="pin2"><b>▲ this ship</b></div>
+        <div class="bandlbl" style="margin-top:6px"><span>Same ship, same operation. The limit tightens every year.</span></div>
+        <div class="trail">
+          <div style="--i:0;background:var(--C)"><span>2025</span>C</div><div style="--i:1;background:var(--D)"><span>2026</span>D</div>
+          <div style="--i:2;background:var(--D)"><span>2027</span>D</div><div style="--i:3;background:var(--D)"><span>2028</span>D</div>
+          <div style="--i:4;background:var(--D)"><span>2029</span>D</div><div style="--i:5;background:var(--E)"><span>2030</span>E</div>
+        </div>
+      </div>
+
+      <div class="drivers">
+        <div class="drv" data-reveal="r" style="--d:0"><i>€</i><div><h3>Allowances you buy anyway</h3>
+          <p>100% of EU-scope emissions from 2026, and methane and nitrous oxide now count too.</p></div></div>
+        <div class="drv" data-reveal="r" style="--d:120"><i>⛽</i><div><h3>A fuel shortfall you may not have counted</h3>
+          <p>Ordinary fuel oil sits above the FuelEU limit, so a charge builds quietly all year.</p></div></div>
+        <div class="drv" data-reveal="r" style="--d:240"><i>↘</i><div><h3>A rating that slips on its own</h3>
+          <p>The CII limit tightens every year. The ship on the left goes from C to E by 2030.</p></div></div>
+        <div class="avg" data-reveal style="--d:300">
+          <b class="count" data-count="367" data-pre="€" data-suf="k">€367k</b>
+          <span>average per ship across the register, a year, at €70 a tonne (ESTIMATE)</span>
+        </div>
+        <div class="ways">
+          <a class="go" href="#talk">Talk to us about your fleet</a>
+          <a class="go quiet" href="https://app.carbonkeel.com">Check a ship first</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="chain" id="chain">
+      <div class="chain-h" data-reveal><h3>From problem to action</h3>
+        <span class="ex">MODELLED EXAMPLE, NOT A MEASURED RESULT</span></div>
+      <ol class="steps">
+        <li class="o" data-reveal style="--d:0"><b>Observation</b>
+          <p>&euro;511k carbon bill for 2025 emissions. EU ETS is 71% of it, and FuelEU adds a &euro;148k penalty.</p></li>
+        <li class="w" data-reveal style="--d:140"><b>Why</b>
+          <p>Heavy fuel oil emits 91.74 gCO<sub>2</sub>e/MJ against a FuelEU limit of 89.34. The share of EU emissions
+             surrendered also rises from 70% to 100% in 2026.</p></li>
+        <li class="i" data-reveal style="--d:280"><b>Impact</b>
+          <p>&euro;511k now; about <b>&euro;666k a year</b> on the 2026 rules.</p></li>
+        <li class="a" data-reveal style="--d:420"><b>Action</b>
+          <p>Replace 20% of fuel energy with certified biofuel on EU voyages and sail 10% slower.</p></li>
+        <li class="v" data-reveal style="--d:560"><b>Expected value</b>
+          <p>Up to <b>&euro;276k a year</b> of carbon cost avoided, before the cost of the biofuel itself.</p></li>
+      </ol>
+      <div class="ba" data-reveal style="--d:700">
+        <div class="c"><small>Before</small><b>&euro;511k</b></div>
+        <div class="ar">20% biofuel, 10% slower &rarr;</div>
+        <div class="c"><small>After</small><b>&euro;235k</b></div>
+        <div class="chg">&minus;54%</div>
+        <div class="fine">Carbon cost falls by &euro;276k a year and EU-scope CO<sub>2</sub>e by 35%. The FuelEU deficit becomes a
+          surplus. Modelled from the ship&rsquo;s public figures, not measured; it excludes the cost of the biofuel and any
+          effect on voyage time.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<svg class="div" viewBox="0 0 1440 60" preserveAspectRatio="none" aria-hidden="true" style="background:#fff">
   <path d="M0 30Q180 -6 360 30T720 30T1080 30T1440 30V60H0Z" fill="#e6f6ff"/></svg>
 
 <!-- ============================ THE VOYAGE ============================ -->
@@ -846,59 +958,6 @@
   </div>
 </section>
 
-<!-- ============================ WHAT COMES BACK + COST ============================ -->
-<section class="result" id="cost">
-  <div class="wrap">
-    <span class="kicker" data-reveal>What comes back</span>
-    <h2 data-reveal style="--d:80">Is that a lot? Usually, yes.</h2>
-    <p class="lede" data-reveal style="--d:160">A mid-size ship can carry a six-figure carbon bill a year. Across a fleet, it
-       is the number a board asks about.</p>
-
-    <div class="cols">
-      <div class="sample" data-reveal id="sample">
-        <div class="ship2"><b>MV Example</b><span class="meta">Bulk carrier · 50,000 DWT · 2026</span>
-          <span class="ex">ILLUSTRATION</span></div>
-        <div class="mets">
-          <div class="met"><div class="lbl">Carbon cost, one year</div>
-            <div class="val"><span class="count" data-count="511" data-pre="€" data-suf="k">€511k</span></div>
-            <div class="fine">EU ETS €363k + FuelEU €148k</div></div>
-          <div class="met"><div class="lbl">CII rating</div><div class="val" style="color:#c2410c">D</div>
-            <div class="fine">5.36 against a 5.05 limit</div></div>
-          <div class="met"><div class="lbl">EEXI</div><div class="val" style="color:#0f8f63">Pass</div>
-            <div class="fine">9.5% under the required value</div></div>
-        </div>
-        <div class="bandlbl"><span>Where this ship sits today</span><span>A is best</span></div>
-        <div class="band"><div style="background:var(--A)">A</div><div style="background:var(--B)">B</div>
-          <div style="background:var(--C)">C</div><div style="background:var(--D)">D</div><div style="background:var(--E)">E</div></div>
-        <div class="pin2"><b>▲ this ship</b></div>
-        <div class="bandlbl" style="margin-top:6px"><span>Same ship, same operation. The limit tightens every year.</span></div>
-        <div class="trail">
-          <div style="--i:0;background:var(--C)"><span>2025</span>C</div><div style="--i:1;background:var(--D)"><span>2026</span>D</div>
-          <div style="--i:2;background:var(--D)"><span>2027</span>D</div><div style="--i:3;background:var(--D)"><span>2028</span>D</div>
-          <div style="--i:4;background:var(--D)"><span>2029</span>D</div><div style="--i:5;background:var(--E)"><span>2030</span>E</div>
-        </div>
-      </div>
-
-      <div class="drivers">
-        <div class="drv" data-reveal="r" style="--d:0"><i>€</i><div><h3>Allowances you buy anyway</h3>
-          <p>100% of EU-scope emissions from 2026, and methane and nitrous oxide now count too.</p></div></div>
-        <div class="drv" data-reveal="r" style="--d:120"><i>⛽</i><div><h3>A fuel shortfall you may not have counted</h3>
-          <p>Ordinary fuel oil sits above the FuelEU limit, so a charge builds quietly all year.</p></div></div>
-        <div class="drv" data-reveal="r" style="--d:240"><i>↘</i><div><h3>A rating that slips on its own</h3>
-          <p>The CII limit tightens every year. The ship on the left goes from C to E by 2030.</p></div></div>
-        <div class="avg" data-reveal style="--d:300">
-          <b class="count" data-count="367" data-pre="€" data-suf="k">€367k</b>
-          <span>average per ship across the register, a year, at €70 a tonne (ESTIMATE)</span>
-        </div>
-        <div class="ways">
-          <a class="go" href="#talk">Talk to us about your fleet</a>
-          <a class="go quiet" href="https://app.carbonkeel.com">Check a ship first</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
 <!-- ============================ THE MATHS ============================ -->
 <section class="trust" id="trust">
   <div class="wrap">
@@ -994,8 +1053,8 @@
   <div class="stars" id="stars" aria-hidden="true"></div>
   <div class="moon" aria-hidden="true"></div>
   <div class="wrap">
-    <h2 data-reveal>Start with one ship.</h2>
-    <p class="lede" data-reveal style="--d:100">Ten seconds, and you will know whether there is anything here worth your time.</p>
+    <h2 data-reveal>Stop guessing what carbon costs your ships.</h2>
+    <p class="lede" data-reveal style="--d:100">Start with one ship. Ten seconds, and you will know whether there is anything here worth your time.</p>
     <form class="seek" action="https://app.carbonkeel.com" method="get" style="justify-content:center">
       <input name="q" type="search" placeholder="Ship name or IMO number" aria-label="Ship name or IMO number">
       <button class="go warm" type="submit">Check a ship</button>

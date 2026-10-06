@@ -265,6 +265,10 @@ def fleet(imos: str = Query(min_length=7), request: Request = None):
             continue
         act = record_to_activity(rec, year=rec.reporting_period or 2025, dwt=1.0)
         feu, ets = compute_fueleu(act), compute_ets(act)
+        # carbon cost the standard lever package would remove (modelled)
+        lev = _whatif(act, 20.0, -10.0)
+        lever_saving = max(0.0, (ets.cost_eur + feu.penalty_eur)
+                           - (compute_ets(lev).cost_eur + compute_fueleu(lev).penalty_eur))
         cpd = (rec.co2_tonnes * 1000.0 / rec.est_distance_nm
                if rec.est_distance_nm else None)
         out.append({"imo": imo, "name": rec.name, "ship_type": rec.ship_type_raw,
@@ -272,6 +276,7 @@ def fleet(imos: str = Query(min_length=7), request: Request = None):
                     "ets_cost_eur": ets.cost_eur, "fueleu_cb_t":
                     feu.compliance_balance_tco2e, "fueleu_penalty_eur":
                     feu.penalty_eur,
+                    "lever_saving_eur": round(lever_saving),
                     "co2_per_nm_kg": round(cpd, 1) if cpd else None,
                     "supported": True})
         cands.append(PoolCandidate(imo, rec.name, feu.compliance_balance_tco2e,

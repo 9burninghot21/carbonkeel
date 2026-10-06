@@ -237,6 +237,60 @@
     .statline { gap: var(--s3); }
   }
 
+
+  /* ---- insight -> action chain: observation, why, impact, action, expected value ---- */
+  .insight { margin: var(--s4) 0; border: 1px solid var(--line); border-radius: 14px; background: #fff;
+       box-shadow: 0 8px 22px rgba(11,37,69,0.06); overflow: hidden; }
+  .insight .ih { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap;
+       padding: 11px 16px; background: #f1f6fb; border-bottom: 1px solid var(--line); }
+  .insight .ih b { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--accent); }
+  .insight .ih span { font-size: 12px; color: var(--muted); }
+  .insight ol { list-style: none; margin: 0; padding: 4px 16px 6px; }
+  .insight li { display: grid; grid-template-columns: 108px 1fr; gap: 12px; padding: 10px 0 10px 14px;
+       border-left: 4px solid var(--c, var(--accent)); margin: 8px 0; }
+  .insight li > b { font-size: 11.5px; letter-spacing: .09em; text-transform: uppercase; color: var(--c, var(--accent)); padding-top: 2px; }
+  .insight li > p { margin: 0; font-size: 14px; line-height: 1.5; }
+  .insight li.o { --c: #0a5aa0; } .insight li.w { --c: #9a5b00; } .insight li.i { --c: #b42318; }
+  .insight li.a { --c: #6d28d9; } .insight li.v { --c: #0f7a52; }
+  .insight li.v > p { font-weight: 700; }
+  .insight .ifoot { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; align-items: center;
+       padding: 10px 16px 13px; border-top: 1px solid var(--line2); font-size: 12.5px; color: var(--muted); }
+  .insight button { cursor: pointer; }
+  /* before / after, shown when a lever is applied */
+  .ba { display: grid; grid-template-columns: 1fr auto 1fr auto; gap: 12px; align-items: center;
+       margin: var(--s3) 0; padding: 14px 16px; border-radius: 12px; background: #e6f7ef; border: 1px solid #8fd9b6; }
+  .ba .c small { display: block; font-size: 11px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 700; }
+  .ba .c b { font-size: 24px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .ba .ar { color: var(--muted); font-size: 12px; text-align: center; max-width: 150px; }
+  .ba .chg { font-size: 22px; font-weight: 900; color: var(--green); }
+  .ba.worse { background: #fdecea; border-color: #f0a8a2; } .ba.worse .chg { color: var(--red); }
+  .ba .fine { grid-column: 1 / -1; font-size: 12.5px; color: var(--muted); }
+  .opps { margin: var(--s4) 0; }
+  .opps h3 { font-size: 15px; margin: 0 0 4px; }
+  .opp { display: grid; grid-template-columns: 24px minmax(120px, 190px) 1fr 120px; gap: 10px; align-items: center;
+       padding: 8px 4px; border-top: 1px solid var(--line2); font-size: 14px; cursor: pointer; }
+  .opp { min-height: 44px; }
+  .opp:hover { background: var(--accent-soft); }
+  .opp .rk { font-weight: 800; color: var(--accent); }
+  .opp .tr { height: 10px; background: #e4ecf5; border-radius: 6px; overflow: hidden; }
+  .opp .tr i { display: block; height: 100%; background: linear-gradient(90deg, #34d399, #0f7a52); border-radius: 6px; }
+  .opp .v { text-align: right; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .headline { font-size: 17px; font-weight: 700; line-height: 1.35; margin: var(--s2) 0 var(--s3); }
+  .headline small { display: block; font-weight: 500; font-size: 13px; color: var(--muted); margin-top: 2px; }
+  @media (max-width: 720px) {
+    .insight li { grid-template-columns: 1fr; gap: 2px; }
+    .ba { grid-template-columns: 1fr 1fr; } .ba .ar { grid-column: 1 / -1; max-width: none; order: 3; }
+    .opp { grid-template-columns: 22px 1fr 96px; } .opp .tr { display: none; }
+  }
+  /* staged reveal: the bill first, then what makes it up, then the insight */
+  @media (prefers-reduced-motion: no-preference) {
+    @keyframes stg { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+    .card.stage .bill { animation: stg .5s ease both; }
+    .card.stage .bullets { animation: stg .5s .35s ease both; }
+    .card.stage .statline { animation: stg .5s .6s ease both; }
+    .insight { animation: stg .55s ease both; }
+  }
+
   /* ---- touch + small-screen hardening ----
      Every interactive control is at least 40px tall, and calendar rows wrap
      instead of forcing a sideways scroll on a phone. */
@@ -684,13 +738,13 @@ function trySearch(term) {
 }
 
 /* ---------- vessel: persona views ---------- */
-let lastData = null, lastMode = null, currentView = 'owner', valueTeaser = null;
+let lastData = null, lastMode = null, currentView = 'owner', valueTeaser = null, valueCo2 = null, revealNext = false;
 const VIEWS = [['owner', 'Owner / CFO'], ['tech', 'Technical / Ops'],
                ['verifier', 'Verifier']];
 
 async function pick(imo) {
   E('err').textContent = ''; currentImo = imo; currentDwt = null;
-  baseCost = null; valueTeaser = null;
+  baseCost = null; valueTeaser = null; valueCo2 = null; revealNext = true;
   E('spin').style.display = 'block';
   try {
     const r = await fetch(`${API}/api/lookup/${imo}`);
@@ -715,7 +769,7 @@ async function addDwt() {
   if (!r.ok) { E('err').textContent = (await r.json()).detail; return; }
   currentDwt = dwt;
   const d = await r.json();
-  lastData = d; lastMode = 'full'; valueTeaser = null;
+  lastData = d; lastMode = 'full'; valueTeaser = null; valueCo2 = null; revealNext = true;
   baseCost = d.scorecard.cost_exposure_eur;
   renderVessel();
   probeValue();
@@ -731,9 +785,14 @@ async function whatIf() {
   const cost = currentDwt ? d.scorecard.cost_exposure_eur
                           : d.ets.cost_eur + d.fueleu.penalty_eur;
   const delta = baseCost - cost;
-  const banner = `<div class="banner ${delta >= 0 ? 'good' : 'bad'}">
-      <b>Carbon cost ${delta >= 0 ? 'falls' : 'rises'} by ${eur(Math.abs(delta))} a year</b>
-      against current operation (${bio}% B100, ${spd}% speed change), before fuel costs</div>`;
+  const pct = baseCost ? Math.round(Math.abs(delta) / baseCost * 100) : 0;
+  const banner = `<div class="ba ${delta >= 0 ? '' : 'worse'}">
+      <div class="c"><small>Before</small><b>${eur(baseCost)}</b></div>
+      <div class="ar">${bio}% B100 biofuel, ${spd}% speed &rarr;</div>
+      <div class="c"><small>After</small><b>${eur(cost)}</b></div>
+      <div class="chg">${delta >= 0 ? '&minus;' : '+'}${pct}%</div>
+      <div class="fine">Carbon cost ${delta >= 0 ? 'falls' : 'rises'} by <b>${eur(Math.abs(delta))} a year</b>
+        (modelled, not measured), before fuel costs and any effect on voyage time.</div></div>`;
   renderVessel(banner, true, d);   // scenario rendered; baseline kept in lastData
 }
 
@@ -751,16 +810,46 @@ async function probeValue() {
     const delta = base - cost;
     if (imo === currentImo && mode === lastMode && delta > 1000) {
       valueTeaser = delta;
+      const e1 = currentDwt ? d.scorecard.ets : d.ets, e0 = billParts(lastData).ets;
+      valueCo2 = {before: e0.co2e_in_scope_t, after: e1.co2e_in_scope_t};
       const slot = E('teaserSlot');
       if (slot) slot.innerHTML = teaserHtml();
     }
   } catch (e) { /* teaser is optional */ }
 }
+/* the parts of the bill, whichever way the result was built */
+function billParts(d) {
+  const full = lastMode === 'full';
+  return {ets: full ? d.scorecard.ets : d.ets, feu: full ? d.scorecard.fueleu : d.fueleu,
+          uk: full ? d.scorecard.ukets.cost_gbp * 1.15 : 0, year: full ? d.scorecard.year : d.year};
+}
+/* Observation -> why -> impact -> action -> expected value, from this ship's own numbers.
+   The value is carbon cost avoided by a modelled lever package: it is not a measured result
+   and it leaves out the cost of the biofuel. */
 function teaserHtml() {
-  return valueTeaser ? `<div class="banner good" style="cursor:pointer;font-size:14px"
-    onclick="applyTeaser()"><b>Value identified: up to ${eur(valueTeaser)} a year in carbon costs</b>
-    could be avoided with standard levers (20% B100 biofuel on EU voyages and a 10% lower speed),
-    before the cost of the biofuel itself. Show me &#9656;</div>` : '';
+  if (!valueTeaser || !lastData || lastData.suppressed) return '';
+  const p = billParts(lastData), etsE = p.ets.cost_eur, feuE = p.feu.penalty_eur;
+  const total = etsE + feuE + p.uk, share = p.ets.surrender_share;
+  const fwd = share < 1 ? total - etsE + etsE / share : total;
+  const lines = [['EU ETS', etsE], ['FuelEU', feuE]].sort((a, b) => b[1] - a[1]);
+  const cb = p.feu.compliance_balance_tco2e;
+  const why = (cb < 0
+    ? `Fuel intensity is ${p.feu.ghg_intensity} gCO\u2082e/MJ against a FuelEU limit of ${p.feu.target}, a shortfall of ${Math.round(-cb).toLocaleString('en-GB')} t. `
+    : `FuelEU is in surplus, so the cost sits in emissions trading. `)
+    + `Each tonne of EU-scope CO\u2082 is charged at \u20ac${p.ets.eua_price_used}`
+    + (share < 1 ? `, and the share surrendered rises from ${Math.round(share * 100)}% to 100% in 2026.` : '.');
+  const co2 = valueCo2 ? ` ETS-scope CO\u2082e falls by ${Math.round(valueCo2.before - valueCo2.after).toLocaleString('en-GB')} t (${Math.round((1 - valueCo2.after / valueCo2.before) * 100)}%).` : '';
+  return `<div class="insight">
+    <div class="ih"><b>From problem to action</b><span>Modelled on this ship&rsquo;s own figures</span></div>
+    <ol>
+      <li class="o"><b>Observation</b><p>${eur(total)} carbon bill for ${p.year} emissions. ${lines[0][0]} is ${Math.round(lines[0][1] / total * 100)}% of it.</p></li>
+      <li class="w"><b>Why</b><p>${why}</p></li>
+      <li class="i"><b>Impact</b><p>${share < 1 ? `${eur(total)} now; about ${eur(fwd)} a year on the 2026 rules.` : `${eur(total)} a year.`}</p></li>
+      <li class="a"><b>Action</b><p>Replace 20% of fuel energy with certified biofuel (B100) on EU voyages and sail 10% slower.</p></li>
+      <li class="v"><b>Expected value</b><p>Up to ${eur(valueTeaser)} a year of carbon cost avoided, before the cost of the biofuel itself.${co2}</p></li>
+    </ol>
+    <div class="ifoot"><span>A scenario, not a measured result. It assumes the biofuel is certified.</span>
+      <button class="ghost" onclick="applyTeaser()">Show before and after &#9656;</button></div></div>`;
 }
 function applyTeaser() {
   currentView = 'owner';
@@ -775,7 +864,7 @@ function setView(v) { currentView = v; renderVessel(); }
 function viewBar() {
   return `<div class="chips" style="margin-bottom:12px">${VIEWS.map(([v, l]) =>
     `<button class="${v === currentView ? 'on' : ''}" onclick="setView('${v}')">${l}</button>`)
-    .join('')}</div><div id="teaserSlot">${teaserHtml()}</div>`;
+    .join('')}</div>`;
 }
 
 /* ---- operator control: "Is this your ship?" ---- */
@@ -844,6 +933,10 @@ function renderVessel(banner, keepOpen, override) {
   else if (currentView === 'verifier') renderVerifier(d);
   else if (lastMode === 'full') renderFull(d, banner, keepOpen);
   else renderPartial(d, banner, keepOpen);
+  if (revealNext) {                    // the staged reveal runs once per new ship, not on every view change
+    revealNext = false;
+    const c = E('out').querySelector('.card'); if (c) c.classList.add('stage');
+  }
 }
 
 /* ---- Technical / Ops view: rating, levers, fleet standing ---- */
@@ -993,6 +1086,7 @@ function renderPartial(d, banner, keepOpen) {
        due: cb < 0 ? `Balance ${Math.round(cb).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
                    : `Balance +${Math.round(cb).toLocaleString('en-GB')} t. A surplus can be pooled.`}
     ], d.nzf.remedial_cost_usd, d.year, d.ets.surrender_share)}
+    <div id="teaserSlot">${teaserHtml()}</div>
     <div class="statline">
       <span>CII rating <b class="dim">needs capacity</b>
         <span class="dwt-up" style="display:inline-flex;margin-left:6px">
@@ -1048,6 +1142,7 @@ function renderFull(d, banner, keepOpen) {
        due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString('en-GB')} for UK domestic voyages`
                                   : 'No UK domestic voyages found'}
     ], sc.nzf.remedial_cost_usd, sc.year, sc.ets.surrender_share)}
+    <div id="teaserSlot">${teaserHtml()}</div>
     <div class="statline">
       <span>CII <b class="rating-${sc.cii.rating}">${sc.cii.rating}</b>
         <span class="dim num">(ratio ${sc.cii.ratio})</span></span>
@@ -1074,6 +1169,13 @@ async function loadFleetCtx(imo) {
     if (!d.company || d.siblings.length < 2) return;
     box.innerHTML = fleetChart(d);
   } catch (e) { /* optional */ }
+}
+
+function fleetVerdict(sel, med) {
+  if (!sel || med === null || !med) return 'How this ship compares with the rest of its company&rsquo;s fleet';
+  const pct = Math.round((sel.co2_per_nm_kg / med - 1) * 100);
+  if (Math.abs(pct) < 2) return `${sel.name} emits about the same CO\u2082 per mile as the median ship of its type.`;
+  return `${sel.name} emits ${Math.abs(pct)}% ${pct > 0 ? 'more' : 'less'} CO\u2082 per mile than the median ship of its type.`;
 }
 
 function fleetChart(d) {
@@ -1110,8 +1212,8 @@ function fleetChart(d) {
      <text x="${X(med) + 4}" y="${H - 32}" fill="#46607e" font-size="11">type median ${med}</text>` : '';
   return `
   <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line)">
-    <b style="font-size:13.5px">Fleet context — ${d.company}</b>
-    <span class="dim" style="font-size:12.5px"> · ${d.fleet_size} ships with the same Document of Compliance holder</span>
+    <div class="headline">${fleetVerdict(sel, med)}
+      <small>${d.company} &middot; ${d.fleet_size} ships with the same Document of Compliance holder</small></div>
     <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;margin-top:6px">
       <line x1="${L}" y1="${H - 26}" x2="${R}" y2="${H - 26}" stroke="rgba(11,37,69,0.3)"/>
       ${medSvg}${dots}${selSvg}
@@ -1321,9 +1423,23 @@ function renderFleet() {
      needs a surplus partner outside the fleet, or biofuel.</div>` : '');
   const th = (label, k) => `<th onclick="sortFleet('${k}')">${label}
       ${sortKey === k ? (sortDir < 0 ? '▼' : '▲') : ''}</th>`;
+  const money = v => v.ets_cost_eur + v.fueleu_penalty_eur;
+  const totalMoney = vs.reduce((t, v) => t + money(v), 0) || 1;
+  const biggest = [...vs].sort((a, b) => money(b) - money(a))[0];
+  const opps = [...vs].filter(v => v.lever_saving_eur > 0).sort((a, b) => b.lever_saving_eur - a.lever_saving_eur).slice(0, 5);
+  const oppMax = opps.length ? opps[0].lever_saving_eur : 1, oppTotal = vs.reduce((t, v) => t + (v.lever_saving_eur || 0), 0);
+  const oppHtml = opps.length ? `<div class="opps"><h3>Top opportunities</h3>
+    <div class="dim" style="font-size:12.5px;margin-bottom:6px">Carbon cost a standard lever package would remove, per ship
+      (20% biofuel on EU voyages and a 10% lower speed). Modelled, before the cost of the biofuel. Fleet total: up to ${eur(oppTotal)} a year.</div>
+    ${opps.map((v, i) => `<div class="opp" onclick="showTab('vessel');E('q').value='${v.name.replace(/'/g, "\\'")}';pick('${v.imo}')">
+      <span class="rk">${i + 1}</span><span style="font-weight:700">${v.name}</span>
+      <span class="tr"><i style="width:${Math.max(3, v.lever_saving_eur / oppMax * 100)}%"></i></span>
+      <span class="v">${eur(v.lever_saving_eur)}</span></div>`).join('')}</div>` : '';
   E('fout').innerHTML = `<div class="card">
     <span class="estimate-band" onclick="showTab('method')">ESTIMATE: public EU MRV data (${srcLabel(fleetData.source)})</span>
     <h1>Fleet analysis <span class="dim">${vs.length} ships</span></h1>
+    <div class="headline">Your ${vs.length} ships carry about ${eur(totalMoney)} a year in carbon cost.
+      <small>${biggest ? biggest.name + ' is ' + Math.round(money(biggest) / totalMoney * 100) + '% of it.' : ''}</small></div>
     <div class="scores">
       <div class="score"><div class="k">EU ETS bill (fleet)</div><div class="v num">${eur(tot.ets)}</div></div>
       <div class="score"><div class="k">FuelEU penalty risk</div><div class="v num">${eur(tot.pen)}</div></div>
@@ -1331,6 +1447,7 @@ function renderFleet() {
         <div class="v num ${tot.cb < 0 ? 'neg' : 'pos'}">${Math.round(tot.cb).toLocaleString('en-GB')} t</div></div>
     </div>
     ${pool}
+    ${oppHtml}
     <div style="overflow-x:auto"><table class="data num">
       <tr>${th('Ship', 'name')}${th('CO₂ per nm', 'co2_per_nm_kg')}${th('CO₂ (t)', 'co2_tonnes')}
         ${th('EUAs', 'euas')}${th('ETS (€)', 'ets_cost_eur')}${th('FuelEU (t)', 'fueleu_cb_t')}${th('Penalty (€)', 'fueleu_penalty_eur')}</tr>
@@ -1359,7 +1476,13 @@ async function loadCal() {
     return dd >= 0 && dd <= 14;
   };
   E('calout').style.display = 'block';
+  const upcoming = d.deadlines.filter(x => new Date(x.due + 'T00:00:00Z') >= new Date(new Date().toDateString()))
+    .sort((a, b) => a.due < b.due ? -1 : 1)[0];
+  const nextLine = upcoming
+    ? `Next deadline: ${fmtD(upcoming.due, true)} (${upcoming.regime}), in ${Math.max(0, Math.round((new Date(upcoming.due + 'T00:00:00Z') - Date.now()) / 86400000)).toLocaleString('en-GB')} days.`
+    : `Every deadline for compliance year ${y} has passed.`;
   E('calout').innerHTML = `<h1>Obligations from compliance year ${y}</h1>
+    <div class="headline">${nextLine}</div>
     ${calTimeline(d.deadlines)}` +
     d.deadlines.map(x => `<div class="cal-item">
       <span class="cal-date num ${soon(x.due) ? 'soon' : ''}">${fmtD(x.due, true)}${soon(x.due) ? ' (soon)' : ''}</span>
