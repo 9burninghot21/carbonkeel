@@ -50,7 +50,8 @@ def annualise(activity: AnnualActivity, days_observed: float,
                   f"{leg.description} [annualised x{k:.2f}]")
         for leg in activity.legs
     ]
-    scaled = AnnualActivity(activity.vessel, activity.year, scaled_legs)
+    scaled = AnnualActivity(activity.vessel, activity.year, scaled_legs,
+                              activity.ets_calibration, activity.fuel_is_combusted)
     sc = build_scorecard(scaled, eua_price=eua_price, nzf_year=nzf_year)
 
     conf = confidence(days_observed)

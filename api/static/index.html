@@ -739,12 +739,15 @@ function trySearch(term) {
 
 /* ---------- vessel: persona views ---------- */
 let lastData = null, lastMode = null, currentView = 'owner', valueTeaser = null, valueCo2 = null, revealNext = false;
+/* EU ETS exceptions the user states (Directive Art. 12(3-b) to (3-e)); the public file cannot show them */
+let exState = {ice: false, der: 0};
+const exQs = () => (exState.ice ? '&ice_class=true' : '') + (exState.der > 0 ? '&derogation_pct=' + exState.der : '');
 const VIEWS = [['owner', 'Owner / CFO'], ['tech', 'Technical / Ops'],
                ['verifier', 'Verifier']];
 
 async function pick(imo) {
   E('err').textContent = ''; currentImo = imo; currentDwt = null;
-  baseCost = null; valueTeaser = null; valueCo2 = null; revealNext = true;
+  baseCost = null; valueTeaser = null; valueCo2 = null; revealNext = true; exState = {ice: false, der: 0};
   E('spin').style.display = 'block';
   try {
     const r = await fetch(`${API}/api/lookup/${imo}`);
@@ -765,7 +768,7 @@ async function pick(imo) {
 async function addDwt() {
   const dwt = E('dwtIn').value.trim();
   if (!dwt || !currentImo) return;
-  const r = await fetch(`${API}/api/lookup/${currentImo}?dwt=${dwt}`);
+  const r = await fetch(`${API}/api/lookup/${currentImo}?dwt=${dwt}${exQs()}`);
   if (!r.ok) { E('err').textContent = (await r.json()).detail; return; }
   currentDwt = dwt;
   const d = await r.json();
@@ -777,7 +780,7 @@ async function addDwt() {
 
 async function whatIf() {
   const bio = E('wiBio').value || 0, spd = E('wiSpd').value || 0;
-  let url = `${API}/api/lookup/${currentImo}?biofuel_pct=${bio}&speed_pct=${spd}`;
+  let url = `${API}/api/lookup/${currentImo}?biofuel_pct=${bio}&speed_pct=${spd}${exQs()}`;
   if (currentDwt) url += `&dwt=${currentDwt}`;
   const r = await fetch(url);
   if (!r.ok) { E('err').textContent = (await r.json()).detail; return; }
@@ -800,7 +803,7 @@ async function whatIf() {
 async function probeValue() {
   const imo = currentImo, mode = lastMode, base = baseCost;
   try {
-    let url = `${API}/api/lookup/${imo}?biofuel_pct=20&speed_pct=-10`;
+    let url = `${API}/api/lookup/${imo}?biofuel_pct=20&speed_pct=-10${exQs()}`;
     if (currentDwt) url += `&dwt=${currentDwt}`;
     const r = await fetch(url);
     if (!r.ok) return;
@@ -980,7 +983,7 @@ function renderVerifier(d) {
   const v = lastData.verified || {};
   const name = full ? d.scorecard.vessel_name : d.vessel_name;
   const imo = full ? d.scorecard.imo_number : d.imo;
-  const etsOurs = full ? d.scorecard.ets.co2e_in_scope_t : d.ets.co2e_in_scope_t;
+  const ets = full ? d.scorecard.ets : d.ets;
   const feu = full ? d.scorecard.fueleu : d.fueleu;
   const rows = [
     ['Verified total CO₂ (EMSA filing)', `${Math.round(v.co2_tonnes || 0).toLocaleString('en-GB')} t`],
@@ -989,18 +992,26 @@ function renderVerifier(d) {
         `${Math.round(v.est_distance_nm).toLocaleString('en-GB')} nm — ESTIMATE` : '—'],
     ['ETS-scope CO₂, verifier-reported', v.ets_scope_co2_reported ?
         `${Math.round(v.ets_scope_co2_reported).toLocaleString('en-GB')} t` : '—'],
-    ['ETS-scope CO₂e, our rebuild', `${Math.round(etsOurs).toLocaleString('en-GB')} t`],
+    ['ETS-scope CO₂, our own rebuild', v.ets_scope_co2_rebuilt != null ? `${Math.round(v.ets_scope_co2_rebuilt).toLocaleString('en-GB')} t` : '—'],
+    ['ETS-scope CO₂e the bill is based on', `${Math.round(ets.co2e_in_scope_t).toLocaleString('en-GB')} t (${ets.basis === 'verifier' ? 'the verifier’s figure' : 'our rebuild'})`],
     ['FuelEU intensity (Annex II defaults)', `${feu.ghg_intensity} against a target of ${feu.target} gCO₂e/MJ`],
     ['Technical efficiency as filed', v.tech_efficiency || '—'],
   ].map(([k, val]) => `<tr><td style="text-align:left;color:var(--muted)">${k}</td>
       <td class="num">${val}</td></tr>`).join('');
-  const match = v.ets_scope_co2_reported &&
-    Math.abs(v.ets_scope_co2_reported - etsOurs) / v.ets_scope_co2_reported < 0.02;
+  const rep_ = v.ets_scope_co2_reported, reb = v.ets_scope_co2_rebuilt;
+  const gap = (rep_ && reb != null) ? Math.abs(reb - rep_) / rep_ : null;
+  let verdict;
+  if (rep_ == null) verdict = '<div class="banner warn"><b>No verifier figure in the register.</b> The bill uses our own rebuild from the scope split.</div>';
+  else if (rep_ === 0) verdict = `<div class="banner warn"><b>The verifier reported no ETS-scope emissions for this ship.</b> No allowances are due.
+      Most often the ship is below 5,000 GT (smaller cargo ships report under EU MRV from 2025 but are outside the ETS), is an offshore ship (in the ETS from 2027), or is exempt.
+      Our own rebuild from the scope split would have been ${Math.round(reb || 0).toLocaleString('en-GB')} t, which is why the bill uses the verifier&rsquo;s figure.</div>`;
+  else if (gap < 0.02) verdict = '<div class="banner good"><b>Check passed.</b> Our own rebuild of the ETS-scope CO&#8322; is within 2% of the verifier&rsquo;s figure. Across the 2025 report we match exactly for about two ships in three, and within 2% for about three in four.</div>';
+  else verdict = `<div class="banner warn"><b>Our rebuild is ${Math.round(gap * 100)}% ${reb > rep_ ? 'above' : 'below'} the verifier&rsquo;s figure.</b>
+      The bill uses the verifier&rsquo;s figure. Differences come from rules the public record does not show: a container ship&rsquo;s stops at neighbouring transhipment ports, ports of call, derogations for islands and outermost regions, or part-year filings.</div>`;
   E('out').innerHTML = shell(`
     ${viewBar()}
     <div class="idstrip"><b>${name}</b> · IMO ${imo} · reproducibility record</div>
-    ${match ? '<div class="banner good"><b>Reconstruction check passed.</b> Our ETS-scope figure is within 2% of the verifier-reported value. Across a 400-ship sample we match the exact figure for about two ships in three.</div>'
-            : '<div class="banner warn"><b>Reconstruction differs from the verifier-reported figure.</b> Most often the filed figure covers only part of the year or part of the operator&rsquo;s obligation, which the public record does not break out. Owner data resolves it.</div>'}
+    ${verdict}
     <div style="overflow-x:auto"><table class="data">${rows}</table></div>
     <p class="dim" style="font-size:12.5px;margin-top:12px">
       Every parameter (carbon factors, reference lines, Z factors, dd vectors,
@@ -1011,6 +1022,38 @@ function renderVerifier(d) {
         target="_blank">open the audit worksheet for this ship &#9656;</a>`
         : 'Add the ship\u2019s DWT on the Owner view to open the audit worksheet.'}
     </p>`, d.source || lastData.source);
+}
+
+/* Exceptions that can lower the EU ETS bill but depend on facts the public file does not show */
+function exceptionsBox() {
+  const e = billParts(lastData).ets, on = exState.ice || exState.der > 0;
+  return `<details class="whatif"${on ? ' open' : ''}>
+    <summary>Rules that could lower the EU ETS bill</summary>
+    <p class="dim" style="font-size:12.5px;margin:8px 0">These depend on facts the public register does not show, so you tell us.
+      They apply to emissions up to 31 December 2030 (Directive 2003/87/EC, Article 12(3-b) to (3-e)).</p>
+    <label style="display:flex;gap:8px;align-items:center;font-size:14px;min-height:40px">
+      <input id="exIce" type="checkbox" style="width:auto;min-height:0" ${exState.ice ? 'checked' : ''}>
+      Ice class IA, IA Super or equivalent: 5% fewer allowances</label>
+    <div class="dwt-up">
+      <label class="dim" style="font-size:12.5px;flex-basis:100%">Share of this ship&rsquo;s EU emissions covered by a derogation, %
+        (island services, outermost-region voyages or a public-service route)</label>
+      <input id="exDer" type="number" min="0" max="100" value="${exState.der || ''}" placeholder="0">
+      <button class="ghost" onclick="applyEx()">Recompute</button>
+    </div>
+    ${(e.exceptions_applied || []).length ? `<div class="banner good" style="font-size:13.5px"><b>Applied:</b> ${e.exceptions_applied.join('; ')}.</div>` : ''}
+    <p class="dim" style="font-size:12px;margin-top:8px">Not needed for the other cases: the figure we use is the verifier&rsquo;s own,
+      which already reflects ship size, a container ship&rsquo;s stops at neighbouring transhipment ports, and ports of call.</p>
+  </details>`;
+}
+async function applyEx() {
+  exState = {ice: E('exIce').checked, der: Math.max(0, Math.min(100, parseFloat(E('exDer').value) || 0))};
+  let url = `${API}/api/lookup/${currentImo}?x=1${exQs()}`;
+  if (currentDwt) url += `&dwt=${currentDwt}`;
+  const r = await fetch(url);
+  if (!r.ok) { E('err').textContent = (await r.json()).detail; return; }
+  lastData = await r.json(); valueTeaser = null; valueCo2 = null;
+  baseCost = currentDwt ? lastData.scorecard.cost_exposure_eur : lastData.ets.cost_eur + lastData.fueleu.penalty_eur;
+  renderVessel(); probeValue();
 }
 
 function whatIfBox(open) {
@@ -1040,6 +1083,19 @@ function shell(inner, src) {
 }
 
 /* bill block: hierarchy winner + bullet graphs (U2, Few) */
+/* the EU ETS line under the bar: what is due, by when, and what the CO2 figure rests on */
+function etsDue(e) {
+  if (e.calibration === 0) return 'The verifier reported no ETS-scope emissions for this ship, so no allowances are due.';
+  if (!e.surrender_share) return 'The EU maritime scheme starts with 2024 emissions, so nothing is due for this year.';
+  const by = e.surrender_by || '30 September';
+  const basis = e.basis === 'verifier' ? ' Based on the verifier’s reported CO₂.' : '';
+  return `${Math.round(e.allowances_due).toLocaleString('en-GB')} EU allowances at €${e.eua_price_used}. Surrender by ${by}. At €60: ${eur(e.allowances_due * 60)} · at €100: ${eur(e.allowances_due * 100)}.${basis}`;
+}
+
+/* a ship with no ETS-scope emissions may be below the 5,000 GT FuelEU threshold: say so, do not guess */
+const feuCheck = e => (e && e.calibration === 0)
+  ? ' Check applicability: FuelEU covers ships above 5,000 GT, and this ship reported no ETS-scope emissions, so it may be smaller.' : '';
+
 function billBlock(items, nzfUsd, year, share) {
   const euros = items.filter(i => i.eur > 0);
   /* Only part of the earlier years' emissions is surrendered (40% for 2024, 70% for
@@ -1081,10 +1137,10 @@ function renderPartial(d, banner, keepOpen) {
       ${d.verified.tech_efficiency ? ' · ' + d.verified.tech_efficiency : ''}</div>
     ${billBlock([
       {label: 'EU ETS', eur: d.ets.cost_eur,
-       due: `${Math.round(d.ets.allowances_due).toLocaleString('en-GB')} EU allowances at €${d.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(d.ets.allowances_due*60)} · at €100: ${eur(d.ets.allowances_due*100)}`},
+       due: etsDue(d.ets)},
       {label: 'FuelEU', eur: d.fueleu.penalty_eur,
-       due: cb < 0 ? `Balance ${Math.round(cb).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
-                   : `Balance +${Math.round(cb).toLocaleString('en-GB')} t. A surplus can be pooled.`}
+       due: (cb < 0 ? `Balance ${Math.round(cb).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
+                   : `Balance +${Math.round(cb).toLocaleString('en-GB')} t. A surplus can be pooled.`) + feuCheck(d.ets)}
     ], d.nzf.remedial_cost_usd, d.year, d.ets.surrender_share)}
     <div id="teaserSlot">${teaserHtml()}</div>
     <div class="statline">
@@ -1097,6 +1153,7 @@ function renderPartial(d, banner, keepOpen) {
     </div>
     <div id="fleetCtx"></div>
     ${whatIfBox(keepOpen)}
+    ${exceptionsBox()}
     ${claimLink(d.imo)}`, d.source);
   const di = E('dwtIn');
   if (di) di.addEventListener('keydown', e => { if (e.key === 'Enter') addDwt(); });
@@ -1133,14 +1190,14 @@ function renderFull(d, banner, keepOpen) {
     <div class="idstrip"><b>${sc.vessel_name}</b> · IMO ${sc.imo_number} · ${sc.year}</div>
     ${billBlock([
       {label: 'EU ETS', eur: sc.ets.cost_eur,
-       due: `${Math.round(sc.ets.allowances_due).toLocaleString('en-GB')} EU allowances at €${sc.ets.eua_price_used}. Surrender by 30 September. At €60: ${eur(sc.ets.allowances_due*60)} · at €100: ${eur(sc.ets.allowances_due*100)}`},
+       due: etsDue(sc.ets)},
       {label: 'FuelEU', eur: sc.fueleu.penalty_eur,
        due: sc.fueleu.compliance_balance_tco2e < 0
-        ? `Balance ${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
-        : `Balance +${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString('en-GB')} t. A surplus can be pooled.`},
+        ? `Balance ${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString('en-GB')} t. Pool it or pay by 30 June.` + feuCheck(sc.ets)
+        : `Balance +${Math.round(sc.fueleu.compliance_balance_tco2e).toLocaleString('en-GB')} t. A surplus can be pooled.` + feuCheck(sc.ets)},
       {label: 'UK ETS', eur: sc.ukets.cost_gbp * 1.15,
-       due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString('en-GB')} for UK domestic voyages`
-                                  : 'No UK domestic voyages found'}
+       due: sc.ukets.cost_gbp > 0 ? `£${Math.round(sc.ukets.cost_gbp).toLocaleString('en-GB')} for UK domestic voyages. Surrender by ${sc.ukets.surrender_by}.`
+                                  : 'The UK scheme covers domestic UK voyages only. None appear in the EU register data.'}
     ], sc.nzf.remedial_cost_usd, sc.year, sc.ets.surrender_share)}
     <div id="teaserSlot">${teaserHtml()}</div>
     <div class="statline">
@@ -1154,6 +1211,7 @@ function renderFull(d, banner, keepOpen) {
     <b>Next actions</b>
     <ol class="actions">${sc.actions.map(a => `<li>${a}</li>`).join('')}</ol>
     ${whatIfBox(keepOpen)}
+    ${exceptionsBox()}
     ${claimLink(sc.imo_number)}`, d.source);
   loadFleetCtx(sc.imo_number);
 }

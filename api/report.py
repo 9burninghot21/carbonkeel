@@ -144,9 +144,9 @@ def fleet_report_html(records: dict, imos: list[str], year_hint: int = None,
 <td>{tot['euas']:,.0f}</td><td>{eur(tot['ets_eur'])}</td>
 <td>{tot['feu_cb']:+,.0f}</td><td>{eur(tot['feu_pen'])}</td></tr></table>
 {_pooling_section(cands)}
-<p class=note><b>How to read this.</b> ETS figures use the CO₂ split by scope that each ship’s
-verifier reported to EMSA. On a 400-ship sample our rebuild matches the verifier-reported
-ETS-scope figure exactly for about two ships in three, and to within 2% for about four in five.
+<p class=note><b>How to read this.</b> ETS figures start from the ETS-scope CO₂ that each ship’s
+verifier reported to EMSA. Our own rebuild from the scope split matches that figure exactly for
+about two ships in three across the 2025 report, and to within 2% for about three in four.
 The FuelEU balance assumes a heavy-fuel-oil mix (LNG for LNG carriers); your own fuel data will
 improve it. A negative FuelEU balance is a penalty to pay or a shortfall to pool; a positive
 balance can be pooled with another ship. CII ratings need each ship’s deadweight, which EMSA does

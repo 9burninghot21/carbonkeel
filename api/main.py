@@ -194,7 +194,7 @@ def _whatif(act: AnnualActivity, biofuel_pct: float, speed_pct: float) -> Annual
             fuels.append(FuelConsumption(FuelType.BIOFUEL_B100, bio))
         legs.append(VoyageLeg(leg.scope, leg.distance_nm, fuels,
                               leg.description + " [what-if]", uk_share=leg.uk_share))
-    return AnnualActivity(act.vessel, act.year, legs)
+    return AnnualActivity(act.vessel, act.year, legs, act.ets_calibration, act.fuel_is_combusted)
 
 
 @app.get("/api/lookup/{imo}")
@@ -202,7 +202,9 @@ def lookup(imo: str, request: Request = None,
            dwt: Optional[float] = Query(None, gt=0),
            year: Optional[int] = None,
            biofuel_pct: float = Query(0, ge=0, le=100),
-           speed_pct: float = Query(0, ge=-30, le=20)):
+           speed_pct: float = Query(0, ge=-30, le=20),
+           ice_class: bool = False,
+           derogation_pct: float = Query(0, ge=0, le=100)):
     """ESTIMATE scorecard. DWT is optional: without it the cost engines
     (ETS/UK ETS/FuelEU/NZF) still run — only CII needs capacity — so the
     first answer costs the visitor a single input. biofuel_pct/speed_pct
@@ -216,8 +218,12 @@ def lookup(imo: str, request: Request = None,
     if rec.ship_type is None:
         raise HTTPException(422, _unsupported(rec.ship_type_raw))
     y = year or rec.reporting_period or 2025
+    from ghgcore.ets_rules import ETSExceptions
+    from ghgcore.thetis import rebuilt_ets_co2
+    eu_exc = ETSExceptions(ice_class, derogation_pct / 100.0)
     verified = {"co2_tonnes": rec.co2_tonnes, "fuel_tonnes": rec.fuel_tonnes,
                 "ets_scope_co2_reported": rec.co2_ets_reported_t,
+                "ets_scope_co2_rebuilt": rebuilt_ets_co2(rec),
                 "est_distance_nm": rec.est_distance_nm,
                 "tech_efficiency": rec.tech_efficiency}
     scenario = bool(biofuel_pct or speed_pct)
@@ -226,11 +232,11 @@ def lookup(imo: str, request: Request = None,
         return _whatif(act, biofuel_pct, speed_pct) if scenario else act
 
     if dwt:
-        sc = build_scorecard(transform(record_to_activity(rec, year=y, dwt=dwt)))
+        sc = build_scorecard(transform(record_to_activity(rec, year=y, dwt=dwt)), eu_exceptions=eu_exc)
         return {"estimate": True, "scenario": scenario, "source": _EXPORT_NAME,
                 "verified": verified, "scorecard": asdict(sc)}
     act = transform(record_to_activity(rec, year=y, dwt=1.0))
-    feu, ets, nzf = compute_fueleu(act), compute_ets(act), compute_nzf(act)
+    feu, ets, nzf = compute_fueleu(act), compute_ets(act, exceptions=eu_exc), compute_nzf(act)
     return {"estimate": True, "scenario": scenario, "source": _EXPORT_NAME,
             "verified": verified,
             "partial": True, "vessel_name": rec.name, "imo": rec.imo, "year": y,

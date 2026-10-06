@@ -106,11 +106,11 @@ The live 2025 file is 11.85 MB; ours is 11.41 MB. The data has changed since 8 J
 - The listing endpoint answers without login, and the download endpoint answers a metadata request with the right type and size.
 - Our loader reproduced the verifier-reported ETS-scope CO₂ exactly on spot checks against the v6 file (8 July).
 - Article 21's wording and paragraph numbers were read from the primary text (above).
-- The 400-ship test measures our rebuild against the verifier figure: 67.5% exact, 78.2% within 2%.
+- `scripts/verifier_match.py` measures our rebuild against the verifier figure over every ship: 68.5% exact, 77.2% within 2% (14,734 ships with EU-scope activity).
 
 **Not done, because it needs a download you have not yet approved**
 - A like-for-like comparison of v60 against v6: how many ships changed, by how much, and whether the column layout is unchanged.
-- Whether the **Partial ERs** sheet (1,505 reports in the v6 file; we read only the first sheet) explains part of the 21.8% of ships where our rebuild and the verifier disagree. This is a hypothesis to test, not a finding.
+- Whether the **Partial ERs** sheet (1,505 reports in the v6 file; we read only the first sheet) explains part of the 17% of ships where our rebuild and the verifier disagree by more than 2%. This is a hypothesis to test, not a finding.
 
 ---
 

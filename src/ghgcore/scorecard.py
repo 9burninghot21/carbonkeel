@@ -9,6 +9,7 @@ from .fueleu import compute_fueleu, FuelEUResult
 from .euets import compute_ets, ETSResult
 from .nzf import compute_nzf, NZFResult
 from .ukets import compute_ukets, UKETSResult
+from .ets_combined import compute_ets_combined
 
 RATING_POINTS = {"A": 100, "B": 85, "C": 65, "D": 35, "E": 10}
 
@@ -32,12 +33,13 @@ class Scorecard:
 
 def build_scorecard(activity: AnnualActivity, eua_price: float = 70.0,
                     nzf_year: int = 2028, uka_price_gbp: float = 40.0,
-                    eur_per_gbp: float = 1.15) -> Scorecard:
+                    eur_per_gbp: float = 1.15, eu_exceptions=None, uk_exceptions=None) -> Scorecard:
     cii = compute_cii(activity)
     feu = compute_fueleu(activity)
-    ets = compute_ets(activity, eua_price)
+    both = compute_ets_combined(activity, eua_price, uka_price_gbp, eur_per_gbp,
+                                eu_exceptions, uk_exceptions)
+    ets, ukets = both.eu, both.uk
     nzf = compute_nzf(activity, nzf_year)
-    ukets = compute_ukets(activity, uka_price_gbp)
 
     health = RATING_POINTS[cii.rating]
     if feu.compliance_balance_tco2e < 0:

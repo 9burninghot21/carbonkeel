@@ -98,8 +98,8 @@ openings. Send from `hello@carbonkeel.com`, sign with your own name.
 > A one-page breakdown of every ship is attached. It is built entirely from the
 > figures your own verifier filed with EMSA, so please treat it as an estimate —
 > we label it as one. We check ourselves against your verifier’s own ETS-scope
-> number: on a 400-ship sample we match it exactly for about two ships in three,
-> and to within 2% for about four in five.
+> number: across the whole 2025 report we match it exactly for about two ships in
+> three, and to within 2% for about three in four.
 >
 > What we do, briefly: EU ETS and UK ETS cost, FuelEU balance and penalty, CII
 > rating and its trajectory to 2030, EEXI, and IMO Net-Zero exposure — all in

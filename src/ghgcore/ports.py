@@ -135,3 +135,17 @@ def scope_for_leg(from_port: str, to_port: str) -> tuple[Optional[VoyageScope], 
     if f_eea or t_eea:
         return VoyageScope.EXTRA_EEA, flags
     return VoyageScope.OUT_OF_SCOPE, flags
+
+
+def scope_for_berth(port: str) -> Optional[VoyageScope]:
+    """Scope of time spent in a port: EU ETS counts 100% of emissions within an EU port
+    of call (Directive Art. 3ga(1)); a port elsewhere is out of scope."""
+    c = port_country(port)
+    if c is None:
+        return None
+    return VoyageScope.AT_BERTH_EEA if c in EEA_COUNTRIES else VoyageScope.OUT_OF_SCOPE
+
+
+def uk_share_for_berth(port: str) -> float:
+    """UK ETS share for time in port: 100% in a UK port (Order Sch. 2A para 7(3)), else 0."""
+    return 1.0 if port_country(port) == "GB" else 0.0

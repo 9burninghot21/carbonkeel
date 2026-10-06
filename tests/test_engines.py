@@ -8,6 +8,7 @@ engine output.
 
 Run: python3 tests/test_engines.py
 """
+import os
 import sys, os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
@@ -352,11 +353,23 @@ def test_engine_type_lng():
     r = compute_fueleu(AnnualActivity(v_df, 2026, [leg]))
     # Diesel DF 76.08 -> CB = 13.2568*98.2e6 = +1301.8 t
     check("Diesel-DF balance t", r.compliance_balance_tco2e, 1301.8, tol=0.01)
-    # ETS 2026: Otto MS co2e/t = 2.750+0.031*28+0.00011*265 = 3.64715
+    # ETS 2026 by the Reg. 2015/757 Annex I formula (as amended by Del. Reg. 2023/2776):
+    # CO2 = (M - M_NC) x 2.750; CH4 = slip M_NC; N2O = (M - M_NC) x 0.00011; GWP 28 and 265.
+    # Otto MS, M = 2,000 t, slip 3.1%: M_NC = 62, combusted = 1,938.
+    #   CO2 = 1938 x 2.750 = 5329.5; CH4 = 62 x 28 = 1736.0; N2O = 1938 x 0.00011 x 265 = 56.49
+    #   total 7121.99
     e = compute_ets(AnnualActivity(v_otto, 2026, [leg]))
-    check("Otto-MS ETS CO2e", e.co2e_in_scope_t, 2000 * 3.64715, tol=0.001)
+    check("Otto-MS ETS CO2e", e.co2e_in_scope_t, 7121.99, tol=0.001)
+    # Diesel DF, slip 0.2%: M_NC = 4, combusted = 1,996.
+    #   CO2 = 1996 x 2.750 = 5489.0; CH4 = 4 x 28 = 112.0; N2O = 1996 x 0.00011 x 265 = 58.18
+    #   total 5659.18
     e = compute_ets(AnnualActivity(v_df, 2026, [leg]))
-    check("Diesel-DF ETS CO2e", e.co2e_in_scope_t, 2000 * 2.83515, tol=0.001)
+    check("Diesel-DF ETS CO2e", e.co2e_in_scope_t, 5659.18, tol=0.001)
+    # Public-register path: tonnes were backed out of combusted CO2, so slip is added on top.
+    # 1,938 t combusted, slip 3.1% of the total => M = 1938 / 0.969 = 2,000 t: same 7121.99.
+    leg_c = VoyageLeg(VoyageScope.INTRA_EEA, 30_000, [FuelConsumption(FuelType.LNG, 1_938)])
+    e = compute_ets(AnnualActivity(v_otto, 2026, [leg_c], fuel_is_combusted=True))
+    check("register path adds slip back", e.co2e_in_scope_t, 7121.99, tol=0.001)
 
 
 def test_certified_override_and_g5():
@@ -395,6 +408,95 @@ def test_pooling():
              any("external" in n for n in s2.notes), True)
 
 
+def test_ets_rules_and_exceptions():
+    print("EU ETS: phase-in, exceptions, calibration to the verifier (Directive Art. 3gb, 12(3-b..e)):")
+    from ghgcore.ets_rules import ETSExceptions
+    # no surrender obligation before 2024 (the old code gave 100%)
+    r = compute_ets(base_activity(year=2023))
+    check("2023: no surrender share", r.surrender_share, 0.0, tol=0)
+    check("2023: no allowances", r.allowances_due, 0.0, tol=0)
+    r = compute_ets(base_activity(year=2024))
+    # 3000 t HFO x 3.114 = 9342 t CO2 (CO2 only before 2026); x 40%
+    check("2024: 40% of CO2 only", r.allowances_due, 9342 * 0.40, tol=0.001)
+    # exceptions on the 2026 base case: CO2e 9489.3
+    r = compute_ets(base_activity(), 70.0, ETSExceptions(ice_class_ia=True))
+    check("ice class IA: 5% fewer allowances", r.allowances_due, 9489.3 * 0.95, tol=0.001)
+    r = compute_ets(base_activity(), 70.0, ETSExceptions(derogation_share=0.30))
+    check("derogation on 30% of emissions", r.allowances_due, 9489.3 * 0.70, tol=0.001)
+    r = compute_ets(base_activity(), 70.0, ETSExceptions(True, 0.30))
+    check("both together: 0.70 x 0.95", r.allowances_due, 9489.3 * 0.70 * 0.95, tol=0.001)
+    r = compute_ets(base_activity(year=2031), 70.0, ETSExceptions(True, 0.30))
+    check("exceptions end 31 Dec 2030", r.allowances_due, 9489.3, tol=0.001)
+    # calibration: the verifier reported 90% of our rebuild => cost scales to it; 0 => nothing due
+    a = base_activity(year=2025)
+    a.ets_calibration = 0.90
+    r = compute_ets(a)
+    check("calibrated CO2 (2025: CO2 only)", r.co2e_in_scope_t, 9342 * 0.90, tol=0.001)
+    check_eq("basis says verifier", r.basis, "verifier")
+    check("rebuild kept as a cross-check", r.rebuilt_co2e_t, 9342.0, tol=0.001)
+    a.ets_calibration = 0.0
+    r = compute_ets(a)
+    check("reported zero: no allowances", r.allowances_due, 0.0, tol=0)
+    check_eq("reported zero is explained", any("below 5,000 GT" in n for n in r.notes), True)
+
+
+def test_ukets_rules():
+    print("UK ETS: scheme start, exclusions, surrender dates (SI 2026/392 Sch. 2A):")
+    from ghgcore.ukets import compute_ukets, surrender_date
+    from ghgcore.ets_rules import UKETSExceptions
+    v = Vessel("3", "UK COASTER", ShipType.GENERAL_CARGO, dwt=25_000, gt=18_000)
+    leg = VoyageLeg(VoyageScope.OUT_OF_SCOPE, 8_000, [FuelConsumption(FuelType.HFO, 1_000)], uk_share=1.0)
+    r = compute_ukets(AnnualActivity(v, 2025, [leg]))
+    check("2025: scheme not started", r.cost_gbp, 0.0, tol=0)
+    r = compute_ukets(AnnualActivity(v, 2027, [leg]), exceptions=UKETSExceptions(True, "Scottish ferry service"))
+    check("excluded ship pays nothing", r.cost_gbp, 0.0, tol=0)
+    check_eq("excluded flag", r.excluded, True)
+    check_eq("2026 surrender is 30 April 2028", surrender_date(2026), "30 April 2028")
+    check_eq("2027 surrender is 30 April 2028", surrender_date(2027), "30 April 2028")
+    check_eq("2028 surrender is 30 April 2029", surrender_date(2028), "30 April 2029")
+    # same gases and GWPs as the EU: 1000 t HFO -> 3163.1 t CO2e
+    check("UK CO2e matches EU basis", compute_ukets(AnnualActivity(v, 2027, [leg])).co2e_in_scope_t, 3163.1)
+
+
+def test_ets_combined():
+    print("EU ETS and UK ETS together: scopes must not overlap:")
+    from ghgcore.ets_combined import compute_ets_combined, check_disjoint
+    v = Vessel("8", "BOTH", ShipType.GENERAL_CARGO, dwt=25_000, gt=18_000)
+    eu_leg = VoyageLeg(VoyageScope.INTRA_EEA, 5_000, [FuelConsumption(FuelType.HFO, 1_000)], uk_share=0.0)
+    uk_leg = VoyageLeg(VoyageScope.OUT_OF_SCOPE, 3_000, [FuelConsumption(FuelType.HFO, 500)], uk_share=1.0)
+    ni_leg = VoyageLeg(VoyageScope.OUT_OF_SCOPE, 150, [FuelConsumption(FuelType.HFO, 10)], uk_share=0.5)
+    a = AnnualActivity(v, 2027, [eu_leg, uk_leg, ni_leg])
+    c = compute_ets_combined(a, 70.0, 40.0, 1.15)
+    check_eq("clean activity has no overlap", c.warnings, [])
+    # EU: 1000 t x 3.1631 = 3163.1 t x 100% x 70; UK: (500 + 10 x 0.5) x 3.1631 = 1597.4 t x 40 GBP x 1.15
+    check("EU cost", c.eu.cost_eur, 3163.1 * 70, tol=0.001)
+    check("UK cost GBP", c.uk.cost_gbp, 505 * 3.1631 * 40, tol=0.001)
+    check("total in EUR", c.total_eur, 3163.1 * 70 + 505 * 3.1631 * 40 * 1.15, tol=0.001)
+    both = VoyageLeg(VoyageScope.INTRA_EEA, 100, [FuelConsumption(FuelType.HFO, 5)], uk_share=1.0)
+    check_eq("a leg in both schemes is flagged", len(check_disjoint(AnnualActivity(v, 2027, [both]))), 1)
+    bad = VoyageLeg(VoyageScope.OUT_OF_SCOPE, 100, [FuelConsumption(FuelType.HFO, 5)], uk_share=0.7)
+    check_eq("an impossible UK share is flagged", len(check_disjoint(AnnualActivity(v, 2027, [bad]))), 1)
+
+
+def test_register_calibration():
+    print("Register path: the bill uses the verifier's own ETS-scope figure:")
+    import glob
+    from ghgcore.exports import latest
+    from ghgcore.thetis import load_thetis_cached, record_to_activity, ets_calibration
+    recs = load_thetis_cached(latest(os.path.join(os.path.dirname(__file__), "..", "fixtures")))
+    r = recs["9464663"]
+    act = record_to_activity(r, year=2025, dwt=1.0)
+    e = compute_ets(act)
+    check("equals the reported figure (7,408.97 t)", e.co2e_in_scope_t, r.co2_ets_reported_t, tol=0.0001)
+    check_eq("basis", e.basis, "verifier")
+    # ships that reported zero ETS-scope CO2 are not charged
+    zero = next(x for x in recs.values()
+                if x.co2_ets_reported_t == 0 and x.ship_type is not None and (x.co2_intra_t or 0) + (x.co2_departed_t or 0) > 0)
+    z = compute_ets(record_to_activity(zero, year=2025, dwt=1.0))
+    check("reported zero => no cost", z.cost_eur, 0.0, tol=0)
+    check_eq("calibration is zero", ets_calibration(zero), 0.0)
+
+
 def test_deadlines_and_agreement():
     print("Compliance calendar + pool agreement draft:")
     from ghgcore.deadlines import deadlines_for, to_ics
@@ -402,6 +504,10 @@ def test_deadlines_and_agreement():
     check("deadline count", len(ds), 8, tol=0)
     check_eq("sorted ascending", all(ds[i].due <= ds[i+1].due
                                      for i in range(len(ds)-1)), True)
+    check_eq("UK surrender for 2026 is 30 Apr 2028",
+             any(d.due.isoformat() == "2028-04-30" and d.regime == "UK ETS" and d.what.startswith("Surrender") for d in ds), True)
+    check("2025 has no UK ETS dates", sum(1 for d in deadlines_for(2025) if d.regime == "UK ETS"), 0, tol=0)
+    check("2023 has no ETS or FuelEU dates", sum(1 for d in deadlines_for(2023) if d.regime in ("EU ETS", "FuelEU", "UK ETS")), 0, tol=0)
     check_eq("ETS surrender 30 Sep 2027",
              any(d.due.isoformat() == "2027-09-30" and d.regime == "EU ETS"
                  for d in ds), True)
@@ -575,7 +681,8 @@ def test_scorecard():
 if __name__ == "__main__":
     for fn in (test_cii, test_cii_z_fallback, test_cii_gas_carrier_split,
                test_cii_gt_and_lng_types,
-               test_euets, test_euets_extra_eea_2025,
+               test_euets, test_euets_extra_eea_2025, test_ets_rules_and_exceptions,
+               test_ukets_rules, test_ets_combined, test_register_calibration,
                test_fueleu, test_fueleu_targets, test_nzf,
                test_ports_scoping, test_ukets, test_projection,
                test_engine_type_lng, test_certified_override_and_g5,

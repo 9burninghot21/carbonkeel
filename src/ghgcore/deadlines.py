@@ -33,20 +33,38 @@ _CALENDAR = [
      "kept on board, alongside the EU MRV Document of Compliance",
      "Regulation (EU) 2023/1805, Article 24"),
     (9, 30, 1, "EU ETS", "Surrender EU allowances for verified year Y "
-     "emissions (phase-in: 40% of 2024, 70% of 2025, 100% from 2026)", "Directive 2003/87/EC, Article 12"),
+     "emissions (phase-in: 40% of 2024, 70% of 2025, 100% from 2026)",
+     "Directive 2003/87/EC, Articles 3gb and 12(3)"),
     (3, 31, 1, "UK ETS", "UK ETS verified emissions report for year Y submitted",
-     "UK ETS (Maritime) Order 2026; first period is the second half of 2026"),
+     "UK ETS (Maritime) Order 2026, Schedule 2A, paragraph 14; first period is the second half of 2026"),
     (4, 30, 1, "UK ETS", "Surrender UK allowances (UKAs) for year Y domestic emissions",
-     "UK ETS Order 2026"),
+     "UK ETS (Maritime) Order 2026, Schedule 2A, paragraph 15"),
 ]
 
 
+# first emissions year each regime applies to (from the primary texts)
+_REGIME_FROM_YEAR = {"EU ETS": 2024,        # Directive Art. 3gb: 40% of 2024 emissions
+                     "UK ETS": 2026,        # SI 2026/392: scheme starts 1 July 2026
+                     "FuelEU": 2025,        # Regulation (EU) 2023/1805 applies from 1 Jan 2025
+                     "FuelEU / EU MRV": 2025}
+
+
 def deadlines_for(year: int) -> list[Deadline]:
-    """All dated obligations arising from compliance year `year`, sorted."""
-    out = [Deadline(date(year + off, m, d), regime,
-                    what.replace("year Y", str(year)),
-                    basis)
-           for m, d, off, regime, what, basis in _CALENDAR]
+    """All dated obligations arising from compliance year `year`, sorted.
+
+    Regimes that did not yet apply to `year` are left out. UK ETS surrender for 2026 is due
+    on 30 April 2028, not 30 April 2027 (SI 2026/392 Sch. 2A para 15(2)(a)); the same date
+    applies to 2027, so the first two scheme years fall due together."""
+    out = []
+    for m, d, off, regime, what, basis in _CALENDAR:
+        if year < _REGIME_FROM_YEAR.get(regime, 0):
+            continue
+        due = date(year + off, m, d)
+        text = what.replace("year Y", str(year))
+        if regime == "UK ETS" and what.startswith("Surrender") and year == 2026:
+            due = date(2028, 4, 30)
+            text += " (first scheme year, 1 July to 31 December; due in 2028)"
+        out.append(Deadline(due, regime, text, basis))
     return sorted(out, key=lambda x: x.due)
 
 

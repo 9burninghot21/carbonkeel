@@ -1,0 +1,23 @@
+{
+  "source": "thetis_mrv_2025_v6.xlsx",
+  "reporting_year": 2025,
+  "version": 6,
+  "ships_in_report": 16673,
+  "ships_with_eu_scope_activity": 14734,
+  "counts": {
+    "ships": 16673,
+    "exact": 10088,
+    "within_1pct": 907,
+    "both_zero": 1939,
+    "outside_2pct": 2524,
+    "within_2pct": 376,
+    "reported_zero_rebuilt_positive": 839
+  },
+  "share_exact": 0.6847,
+  "share_within_1pct": 0.7462,
+  "share_within_2pct": 0.7718,
+  "share_outside_2pct": 0.1713,
+  "share_reported_zero_rebuilt_positive": 0.0569,
+  "rebuilt_above_reported_share_of_outside": 0.903,
+  "median_ratio_when_outside": 1.108
+}

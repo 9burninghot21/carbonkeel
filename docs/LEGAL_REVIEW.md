@@ -59,14 +59,14 @@ Practices Directive and national equivalents, regardless of intent.
 **The claim we had:** *"We rebuild your verifier's own figure — and land on the
 same tonne."* Stated universally.
 
-**What testing showed** (400-ship random sample, seed fixed, reproducible):
+**What testing showed** (first on a 400-ship random sample; since re-measured on every ship with EU-scope activity, `scripts/verifier_match.py`):
 
 | Agreement with the verifier-reported ETS figure | Share |
 |---|---|
-| Same tonne (within 0.05%) | **67.5%** |
-| Within 1% | 76.0% |
-| Within 2% | 78.2% |
-| Outside 2% | **21.8%** |
+| Same tonne (within 0.05%) | **68.5%** (sample: 67.5%) |
+| Within 1% | 74.6% (sample: 76.0%) |
+| Within 2% | 77.2% (sample: 78.2%) |
+| Outside 2% | **17.1%** (sample: 21.8%; a further 5.7% report zero) |
 
 So the claim was **false for roughly one ship in five**. The outliers are not
 calculation errors: the filed figure is typically far smaller than the ship's
@@ -163,5 +163,5 @@ Cheap now, expensive after a rebrand.
 2. **Confirm `data/privacy/requests.jsonl` and `data/access_keys.txt` are
    gitignored** before the first push.
 3. **Trademark search** before incorporation (§7).
-4. **Re-run the 400-ship agreement test** after any engine change, and update
+4. **Re-run `scripts/verifier_match.py`** after any engine change or data refresh, and update
    the on-page figures if they move (§3).

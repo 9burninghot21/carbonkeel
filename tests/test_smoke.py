@@ -304,6 +304,10 @@ def check_landing_page():
     # structure the nav and motion depend on
     for sid in ["hero", "how", "services", "best", "cost", "talk", "finale"]:
         ok(f"landing section #{sid} exists") if f'id="{sid}"' in html else bad(f"landing section #{sid} exists")
+    for needle, why in [('id="seaHero"', "hero sea canvas"), ('id="seaNight"', "night sea canvas"),
+                        ("window.__ckSea", "sea engine test seam"), ("IntersectionObserver", "sea pauses when off screen"),
+                        ("document.hidden", "sea pauses in a hidden tab")]:
+        ok(f"landing has the {why}") if needle in html else bad(f"landing has the {why}")
     ok("landing respects reduced-motion") if "prefers-reduced-motion" in html         else bad("landing respects reduced-motion")
     ok("landing motion has a safe fallback") if "motion disabled" in html         else bad("landing motion has a safe fallback")
 

@@ -290,3 +290,25 @@ See `docs/DATA_SOURCES.md`. In short:
 | N6 | The 11 outreach reports already generated still contain the old accuracy claim and must be regenerated before any is sent | After N5 |
 | N7 | Send (or decline to send) the reuse-confirmation message to the THETIS helpdesk | You |
 | N8 | The cold-email draft in `docs/LAUNCH_KIT.md` still **leads with pooling and the 30 April deadline**, which you said you do not want to lead with on the front page. I fixed its accuracy claim and removed "the part that pays for us", but left the framing for you to decide | You |
+
+---
+
+# Addendum 3 — 6 October 2026: EU ETS and UK ETS audited against the primary texts; the sea rebuilt
+
+Sources read directly: Directive 2003/87/EC (consolidated 1 Mar 2024) Arts 3ga, 3gb, 3(z), 12(3), 12(3-b) to (3-e), 16(3), Annex I; Regulation (EU) 2015/757 Art 2, Annex I and Delegated Reg. 2023/2776 (the formulae, read from the published page); Delegated Reg. 2020/1044 (GWPs); SI 2026/392 Schedule 2A paras 5, 7, 8, 14, 15, 37 and Table C1. Full detail in `docs/CALCULATION_NOTES.md` sections 3, 5 and 5b.
+
+| # | Severity | Finding | Fix |
+|---|---|---|---|
+| D-37 | **High** | The EU ETS bill was rebuilt from a scope split and ignored the verifier's own ETS-scope figure. **839 ships (5.7%) reported zero ETS-scope CO₂ and were still charged** (mostly 400 to 5,000 GT cargo ships, which report to EU MRV from 2025 but are outside the ETS). EUR 152m of phantom cost on the 2025 rules | The bill now uses the verifier-reported figure; our rebuild is a cross-check. Register ETS bill on 2025 rules: EUR 4.57bn becomes EUR 4.09bn |
+| D-38 | **High** | UK ETS 2026 surrender was shown as 30 April 2027. The Order says **30 April 2028** (para 15(2)(a)); 2027 also falls due 30 April 2028 | Calendar corrected |
+| D-39 | Medium | Calendar listed UK ETS dates for years before the scheme (starts 1 July 2026), and EU ETS and FuelEU dates before they applied (2024 and 2025) | Regimes filtered by start year |
+| D-40 | Medium | 2023 emissions were given a 100% surrender share. There is **no obligation before 2024** | Share is 0 before 2024 |
+| D-41 | Medium | CO₂ was calculated on the full fuel mass. The MRV formula is CO₂ = (M - M_NC) x EF, with slip added to CH₄ (LNG overstated CO₂ by up to 3.1%) | Implemented; hand-computed LNG test redone |
+| D-42 | Medium | The exceptions in Directive Art. 12(3-b) to (3-e) (ice class -5%, island, outermost-region and public-service derogations, to 2030) were not modelled | Engine support and an app panel where the user states them |
+| D-43 | Medium | UK exclusions (e.g. Scottish ferry services) and the UK scheme start were not modelled; EU and UK scopes were never checked against each other | UK exceptions, and a combined engine that refuses to count a leg in both |
+| D-44 | Medium | The "400-ship sample" accuracy figures. Measured on every ship: **68.5% exact, 77.2% within 2%** of 14,734 ships with EU activity | Copy now says "about two in three" and "about three in four"; figures live in `data/verifier_match.json` and are test-guarded |
+| D-45 | Low | A ship with no ETS-scope emissions still showed a FuelEU penalty without comment | Flagged: FuelEU covers ships above 5,000 GT |
+
+Tests: engine suite 177 (was 144), style suite 103. Open for you: whether you want the 2,610 lines of verifier-versus-rebuild differences investigated further once the partial-reports sheet is read.
+
+**The sea.** The hero and the night harbour are now drawn on a canvas instead of looped CSS. Ships take their height and pitch from the water under their own hull; water is cut at the waterline; wakes stay where they were made; smoke is carried by the wind; glints gather under the sun or moon. Measured in Edge: 60 frames a second, about 5 ms of work per frame, no console errors, no sideways scroll on a phone, and a single still frame under reduced-motion. Not checked: frame rate on your own machine.

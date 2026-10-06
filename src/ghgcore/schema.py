@@ -89,6 +89,12 @@ class AnnualActivity:
     vessel: Vessel
     year: int
     legs: list[VoyageLeg] = field(default_factory=list)
+    # Public-register path only. verifier-reported ETS-scope CO2 divided by our rebuild of it
+    # (None when the register gives no figure); scales the EU ETS rebuild to the official number.
+    ets_calibration: Optional[float] = None
+    # True when leg fuel tonnes were backed out of reported (combusted-mass) CO2, so slipped
+    # fuel has to be added back rather than taken off (see ets_rules.gas_emissions).
+    fuel_is_combusted: bool = False
 
     @property
     def total_distance_nm(self) -> float:

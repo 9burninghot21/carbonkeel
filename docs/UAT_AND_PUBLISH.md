@@ -229,7 +229,7 @@ is permanent". This procedure is how that stays true.
    insurance you own.
 2. **Warm the free instance** before any scheduled call: open the app ten
    minutes early, or ping `/healthz` from a free cron.
-3. **Re-run the 400-ship agreement test** after any engine change and update
+3. **Re-run `python scripts/verifier_match.py`** after any engine change or data refresh and update
    the on-page figures if they move (`docs/LEGAL_REVIEW.md` §3).
 
 **Not worth doing yet**

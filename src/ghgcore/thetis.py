@@ -260,7 +260,7 @@ def record_to_activity(rec: ThetisRecord, year: int, dwt: float,
         leg = VoyageLeg(VoyageScope.INTRA_EEA, total_dist,
                         [FuelConsumption(fuel, fuel_t)],
                         f"THETIS-MRV verified EU scope (ESTIMATE, {tag})")
-        return AnnualActivity(vessel, year, [leg])
+        return AnnualActivity(vessel, year, [leg], fuel_is_combusted=True)
 
     intra = rec.co2_intra_t or 0.0
     extra = (rec.co2_departed_t or 0.0) + (rec.co2_arrived_t or 0.0)
@@ -281,7 +281,28 @@ def record_to_activity(rec: ThetisRecord, year: int, dwt: float,
         legs.append(VoyageLeg(scope, dist,
                               [FuelConsumption(fuel, co2_t / cf)],
                               f"THETIS-MRV {label} (ESTIMATE, {tag})"))
-    return AnnualActivity(vessel, year, legs)
+    return AnnualActivity(vessel, year, legs, ets_calibration=ets_calibration(rec),
+                          fuel_is_combusted=True)
+
+
+def rebuilt_ets_co2(rec: "ThetisRecord") -> Optional[float]:
+    """Our rebuild of the ETS-scope CO2 from the register's scope split: voyages inside the
+    EU 100%, to or from the EU 50%, at berth 100% (Directive Art. 3ga). None without a split."""
+    if rec.co2_intra_t is None:
+        return None
+    return ((rec.co2_intra_t or 0.0)
+            + 0.5 * ((rec.co2_departed_t or 0.0) + (rec.co2_arrived_t or 0.0))
+            + (rec.co2_berth_t or 0.0))
+
+
+def ets_calibration(rec: "ThetisRecord") -> Optional[float]:
+    """Verifier-reported ETS-scope CO2 divided by our rebuild of it, or None when the register
+    gives no reported figure or our rebuild is zero (so there is nothing to scale)."""
+    rebuilt = rebuilt_ets_co2(rec)
+    reported = rec.co2_ets_reported_t
+    if reported is None or not rebuilt:
+        return None
+    return reported / rebuilt
 
 
 def _f(x) -> Optional[float]:

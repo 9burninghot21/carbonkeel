@@ -74,12 +74,37 @@ EUAs = CO₂e × phase-in (2024: 40%, 2025: 70%, 2026+: 100%)
 - Liquid-fuel EFs 0.00005/0.00018 t/t (verified vs Annex II/Reg. 2015/757);
   LNG methane = engine-type slip: Otto-MS 3.1%, Otto-SS 1.7%, Diesel-DF
   0.2%, LBSI 2.6% of fuel mass.
-- Validation: we compare our scope reconstruction with the verifier-reported
-  "CO2 to be reported under Directive 2003/87/EC" figure. On a random sample of
-  400 ships it matches exactly for 67.5%, to within 1% for 76.0% and to within
-  2% for 78.2%; the other 21.8% differ by more, usually because the filed figure
-  covers only part of the year or part of the operator’s obligation. Example
-  of an exact match: IMO 9464663, 7,409.0 t both.
+- **The bill uses the verifier-reported figure.** The register publishes each ship's
+  "CO2 to be reported under Directive 2003/87/EC". It already reflects ship size,
+  a container ship's stops at neighbouring transhipment ports, ports of call and
+  derogations, none of which the public file exposes. The engine scales its
+  rebuild to it (`activity.ets_calibration`); the rebuild stays as a cross-check.
+- Cross-check, over every ship with EU-scope activity in the 2025 report v6
+  (14,734 ships; `scripts/verifier_match.py`): our rebuild matches exactly for
+  68.5%, within 1% for 74.6% and within 2% for 77.2%; 17.1% differ by more,
+  and in 90% of those our rebuild is the higher one (median +11%). A further 839
+  ships (5.7%) reported zero ETS-scope CO2 while our rebuild was positive: mostly
+  general cargo ships of 400 to 5,000 GT, which report under EU MRV from 2025 but
+  are outside the ETS. Charging them was an error of the old rebuild-only method.
+  Example of an exact match: IMO 9464663, 7,409.0 t both.
+- **CO2 is calculated on combusted fuel**, per Reg. 2015/757 Annex I Part A as
+  amended by Delegated Reg. 2023/2776: CO2 = sum (M - M_NC) x EF, and CH4 includes
+  the slipped fuel M_NC (a percentage of fuel mass: LNG Otto medium speed 3.1%,
+  Otto slow speed 1.7%, Diesel dual-fuel 0.2%, LBSI 2.6%).
+- **Exceptions** (Directive Art. 12(3-b) to (3-e), until 31 Dec 2030): ice class IA
+  or IA Super may surrender 5% fewer allowances; voyages between an outermost
+  region and a port of the same Member State carry no obligation; island services
+  by passenger (non-cruise) and ro-pax ships, and transnational public-service
+  routes, are exempt where the Commission has adopted an implementing act. The
+  user states these (ice class; share of emissions covered by a derogation).
+  Container-ship stops at listed neighbouring transhipment ports are not ports of
+  call (Art. 3(z)); this is in the verifier's figure.
+- **Scope in time**: no surrender obligation for emissions before 2024; CO2 only
+  until 2025; CH4 and N2O from 1 Jan 2026 (Directive Annex I). Offshore ships of
+  5,000 GT and above enter in 2027; cargo ships of 400 to 5,000 GT and offshore
+  ships below 5,000 GT report under EU MRV but are outside the ETS.
+- If allowances are not surrendered by 30 September: EUR 100 per tonne of CO2e
+  (indexed), and the allowances are still owed (Art. 16(3)).
 
 ## 4. FuelEU Maritime (Reg. (EU) 2023/1805 — `fueleu.py`)
 
@@ -99,10 +124,25 @@ penalty    = |CB| / (intensity × 41,000) × €2,400        [Art. 23]
 Energy = 121.5×10⁶ MJ; intensity 91.74 vs target 89.3368 → CB = **−292 t**;
 penalty = 292×10⁶/(91.74×41,000)×2,400 = **€186,310**.
 
-## 5. UK ETS (`ukets.py`)
-Same gas basis as EU ETS; scope = UK domestic voyages/berth at 100%,
-GB↔NI 50% (each leg’s UK share comes from its port pair); no phase-in; the first
-period is the second half of 2026. UKA price is an input (default £40, indicative).
+## 5. UK ETS (`ukets.py`) — SI 2026/392, Schedule 2A
+Same gases, factors, GWPs (28 and 265) and monitoring formula as the EU ETS
+(`ets_rules.py`). Scope, from the Order: ships of 5,000 GT and above, except armed
+services, law enforcement, fishing, research and rescue ships, wooden and
+non-mechanical ships, **ships operating a Scottish ferry service**, and offshore
+ships until 31 Dec 2026 (para 5). A voyage starts at the last berth in a UK port
+and ends at the first berth in a UK port without arriving at a port outside the UK
+(para 7), so **EU-UK voyages are EU ETS at 50% and not UK ETS**. In-port time,
+moored or anchored, is covered. Surrender (para 15): 50% of Great Britain to
+Northern Ireland voyages, 100% of everything else; no phase-in. Due 30 April of
+the following year, **except 2026 emissions, due 30 April 2028**. Verified report by
+31 March. The first scheme year is 1 July to 31 December 2026 and the engine does
+not pro-rate. UKA price is an input (default £40, indicative). Fuel emission
+reduction claims (para 37) are not applied: they need a ministerial direction and
+verification.
+
+## 5b. EU ETS and UK ETS together (`ets_combined.py`)
+Both are computed for the same ship-year, added in euros, and checked so that no
+leg is counted in both (a leg that touches an EU port cannot be a UK domestic leg).
 
 ## 6. IMO Net-Zero Framework (`nzf.py`) — SCENARIO until adopted
 ```

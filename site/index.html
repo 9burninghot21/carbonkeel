@@ -18,7 +18,7 @@
     --A:#34d399; --B:#86efac; --C:#fbbf24; --D:#fb923c; --E:#f87171;
     --line:rgba(11,37,69,.12);
     --r:18px; --hdr:64px;
-    --scene:clamp(230px,36vh,340px);
+    --scene:clamp(270px,42vh,420px);
   }
   *{box-sizing:border-box;margin:0}
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;overflow-x:hidden;scroll-padding-top:var(--hdr)}
@@ -103,7 +103,7 @@
   @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
 
   /* the scene: layers, back to front */
-  .sun{position:absolute;z-index:1;right:12%;bottom:calc(var(--scene)*.50);width:clamp(110px,15vw,190px);
+  .sun{position:absolute;z-index:1;right:12%;bottom:calc(var(--scene)*.70 - 34px);width:clamp(110px,15vw,190px);
     aspect-ratio:1;border-radius:50%;
     background:radial-gradient(circle at 50% 50%,#fffbe0 0 38%,var(--sun2) 60%,#ffb347 100%);
     box-shadow:0 0 70px 34px rgba(255,200,90,.55),0 0 180px 90px rgba(255,150,120,.28);
@@ -120,7 +120,8 @@
   .bird svg{width:100%;height:100%;animation:flap .5s ease-in-out infinite alternate;transform-origin:50% 100%}
   @keyframes flap{to{transform:scaleY(.35)}}
 
-  .scene{position:absolute;left:0;right:0;bottom:0;height:var(--scene);z-index:3;pointer-events:none}
+  .seaCanvas{position:absolute;left:0;right:0;bottom:0;width:100%;height:calc(var(--scene) + 190px);z-index:3;pointer-events:none;display:block}
+  .harbor .seaCanvas{height:100%}
   .seabase{position:absolute;left:0;right:0;bottom:0;height:64%;
     background:linear-gradient(180deg,var(--sea1),var(--sea2))}
   .lay{position:absolute;left:0;right:0;
@@ -412,6 +413,7 @@
   /* ================= night harbour finale ================= */
   .night{position:relative;overflow:hidden;color:#fff;text-align:center;
     background:linear-gradient(180deg,#0b1d3d 0%,#0e2a57 55%,#12386f 100%);padding:100px 0 0}
+  .night .wrap{position:relative;z-index:2}
   .night h2{font-size:clamp(32px,6vw,56px)}
   .night .lede{color:#c5d8ee;margin:14px auto 0;text-align:center}
   .night .seek input{box-shadow:0 10px 30px rgba(0,0,0,.3)}
@@ -421,14 +423,12 @@
   @keyframes twinkle{to{opacity:.95;transform:scale(1.5)}}
   .moon{position:absolute;right:11%;top:48px;width:70px;height:70px;border-radius:50%;
     background:radial-gradient(circle at 35% 35%,#fffdf0,#f5e9b8);box-shadow:0 0 60px 20px rgba(255,244,190,.28)}
-  .lighthouse{position:absolute;left:5%;bottom:56px;width:52px;height:130px;z-index:2}
-  .beam{position:absolute;left:5%;bottom:122px;width:60vw;height:56px;margin-left:26px;z-index:1;
+  .lighthouse{position:absolute;left:5%;bottom:34px;width:52px;height:130px;z-index:2}
+  .beam{position:absolute;left:5%;bottom:100px;width:60vw;height:56px;margin-left:26px;z-index:1;
     transform-origin:0 50%;background:linear-gradient(90deg,rgba(255,236,160,.55),transparent 80%);
     clip-path:polygon(0 38%,100% 0,100% 100%,0 62%);animation:sweep 9s ease-in-out infinite alternate}
   @keyframes sweep{from{transform:rotate(-8deg);opacity:.9}to{transform:rotate(7deg);opacity:.35}}
-  .harbor{position:relative;height:230px;margin-top:44px}
-  .harbor .ship{--w:clamp(180px,26vw,330px);bottom:46px;z-index:2}
-  .harbor .wv{height:96px;z-index:3}
+  .harbor{position:relative;height:250px;margin-top:44px}
   footer.f{position:relative;z-index:4;background:#071326;color:#9db6d1;font-size:13.5px;line-height:1.75;
     padding:34px 0 46px;text-align:left}
   footer.f .n{color:#fff;font-weight:800}
@@ -578,43 +578,7 @@
     <p class="assure"><span>16,673 ships already loaded</span><span>No account</span><span>Nothing to upload</span></p>
   </div>
 
-  <div class="scene" aria-hidden="true">
-    <div class="seabase"></div>
-
-    <!-- far: slow, small, on the horizon -->
-    <div class="lay" style="bottom:50%;--k:.22;--sx:.05">
-      <div class="ship" style="--w:clamp(70px,9vw,130px);--rest:70vw;--dur:140s;--delay:-92s;--bob:5.2s">
-        <div class="bob"><svg viewBox="0 0 300 120"><use href="#sh-cruise"/></svg></div></div>
-      <div class="ship" style="--w:clamp(66px,8.5vw,120px);--rest:18vw;--dur:150s;--delay:-40s;--bob:4.8s">
-        <div class="bob"><svg viewBox="0 0 300 120"><use href="#sh-cont"/></svg></div></div>
-    </div>
-    <div class="lay" style="bottom:36%;--k:.16;--sx:0">
-      <svg class="wv" style="--c:#7fd6f5;--dur:46s" viewBox="0 0 2880 120" preserveAspectRatio="none">
-        <path d="M0 60q90 -34 180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0t180 0V120H0Z"/></svg>
-    </div>
-
-    <!-- middle -->
-    <div class="lay" style="bottom:27%;--k:.10;--sx:.14">
-      <div class="ship" style="--w:clamp(130px,17vw,250px);--rest:48vw;--dur:78s;--delay:-64s;--bob:4.1s">
-        <i class="wake"></i><div class="bob"><svg viewBox="0 0 300 120"><use href="#sh-bulk"/></svg></div></div>
-    </div>
-    <div class="lay" style="bottom:12%;--k:.06;--sx:0">
-      <svg class="wv" style="--c:#2db4e6;--dur:30s" viewBox="0 0 2880 120" preserveAspectRatio="none">
-        <path d="M0 60q70 -42 140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0t140 0V120H0Z"/></svg>
-    </div>
-
-    <!-- near: big, fast, smoking -->
-    <div class="lay" style="bottom:9%;--k:.03;--sx:.30">
-      <div class="ship" style="--w:clamp(200px,29vw,430px);--rest:14vw;--dur:44s;--delay:-24s;--bob:3.6s">
-        <i class="wake"></i>
-        <div class="puffs"><b style="--i:0">CO₂</b><b style="--i:1">CO₂</b><b style="--i:2">CO₂</b></div>
-        <div class="bob"><svg viewBox="0 0 300 120"><use href="#sh-tank"/></svg></div></div>
-    </div>
-    <div class="lay" style="bottom:0;height:34%;--k:0;--sx:0">
-      <svg class="wv" style="--c:#0a6aa1;--dur:20s" viewBox="0 0 2880 120" preserveAspectRatio="none">
-        <path d="M0 50q60 -38 120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0t120 0V120H0Z"/></svg>
-    </div>
-  </div>
+  <canvas class="seaCanvas" id="seaHero" aria-hidden="true"></canvas>
 </section>
 
 <!-- ============================ NUMBERS ============================ -->
@@ -790,8 +754,9 @@
             <article class="vstep" data-pin="Verifier check">
               <span class="tag">Step 3 · How we keep ourselves honest</span>
               <h3>We check ourselves against your verifier.</h3>
-              <p>We rebuild each ship’s verified CO₂ and compare. On 400 ships: the <b>exact same tonne for about
-                 two in three</b>, within a couple of percent for about four in five. You see the comparison on every ship.</p>
+              <p>The bill uses your verifier’s own ETS figure. We rebuild it independently as a cross-check. Across the
+                 whole 2025 report we match the <b>exact same tonne for about two ships in three</b>, and within 2% for about
+                 three in four. You see the comparison on every ship.</p>
               <span class="chip">Measured, not promised</span>
             </article>
             <article class="vstep" data-pin="Your decision">
@@ -984,9 +949,10 @@
         <div class="body">
           <p>The public register carries each ship’s EU-scope CO<sub>2</sub> as its <b>accredited verifier</b> calculated it.
              We rebuild that number independently and compare the two.</p>
-          <p>On a 400-ship sample we land on the <b>exact same tonne for about two in three ships</b>, and within a couple of
-             percent for roughly four in five. Where it differs, the published figure usually covers only part of the year or
-             part of the operator’s obligation, which the public record does not expose.</p>
+          <p>Across every ship in the 2025 report we land on the <b>exact same tonne for about two in three ships</b>, and within
+             2% for about three in four. Where it differs, the cause is usually something the public record does not show: a
+             ship below the 5,000 GT threshold, a container ship’s stop at a neighbouring transhipment port, or a derogation.
+             The bill always uses your verifier’s figure.</p>
         </div>
       </details>
       <details>
@@ -1066,9 +1032,7 @@
       <path d="M19 96H33L34 108H18ZM21 62H31L32 74H20Z" fill="#ef4444"/><rect x="18" y="28" width="16" height="12" fill="#ffd166"/>
       <path d="M14 28L26 14L38 28Z" fill="#ef4444"/></svg>
     <div class="beam"></div>
-    <div class="ship" style="--rest:62vw;--dur:100s;--delay:-52s;--bob:5s"><div class="bob"><svg viewBox="0 0 300 120"><use href="#sh-cont"/></svg></div></div>
-    <svg class="wv" style="--c:#071a36;--dur:26s" viewBox="0 0 2880 120" preserveAspectRatio="none">
-      <path d="M0 60q80 -36 160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0t160 0V120H0Z"/></svg>
+    <canvas class="seaCanvas" id="seaNight" aria-hidden="true"></canvas>
   </div>
 
   <footer class="f">
@@ -1140,6 +1104,430 @@
     if (!window.__ckDry) window.location.href = url;
     return false;
   }
+</script>
+
+<script>
+/* ================= CarbonKeel sea =================
+   A small canvas scene: layered water, ships that ride it, wakes and smoke.
+
+   How it stays believable
+   - Water is a sum of travelling waves per layer (shorter and lower towards the horizon),
+     drawn with a slightly peaked crest, moving against the ships' heading.
+   - A ship does not bob on a timer. Its height and pitch are read from the water under its
+     own hull (averaged along the hull, so waves shorter than the ship barely move it, as in
+     life) and smoothed, so it has inertia.
+   - Each layer's water is drawn after its ships, so the hull is cut off at the waterline and
+     comes out of the trough when the surface drops beneath it.
+   - The wake is foam left on the surface behind the stern. It stays where it was made while
+     the ship moves on. Bow spray is thrown up and falls back. Funnel smoke is carried by the
+     wind: it starts with the ship's speed, loses it, and is left behind.
+   - Glints on the water gather in a column under the sun (or moon), as real specular light does.
+   Everything is deterministic from a seed; nothing is a looped video or a GIF.          */
+(function () {
+  var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var G = 9.8;
+
+  function rng(seed) {                         // mulberry32: same scene every load
+    return function () {
+      seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      var t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
+
+  /* ---------- ship artwork, drawn once per size on an offscreen canvas ----------
+     Design space is 300 x 120 with the waterline at y = 84 and the bow to the right. */
+  var WL = 84, DW = 300, DH = 120;
+  var BOX = ['#e4572e', '#f2a541', '#2a9d8f', '#3a6ea5', '#8e5ea2', '#d1495b', '#6c9a3a', '#e9c46a', '#1f7a8c', '#c8553d'];
+
+  function lin(ctx, x0, y0, x1, y1, stops) {
+    var g = ctx.createLinearGradient(x0, y0, x1, y1);
+    for (var i = 0; i < stops.length; i++) g.addColorStop(stops[i][0], stops[i][1]);
+    return g;
+  }
+  function windows(ctx, x, y, w, rows, night, gap) {
+    for (var r = 0; r < rows; r++) {
+      for (var i = 0; i < w; i += gap) {
+        ctx.fillStyle = night ? (((i / gap + r) % 3) ? '#ffd978' : '#caa24a') : '#2f5876';
+        ctx.fillRect(x + i, y + r * 6.2, 2.6, 2.2);
+      }
+    }
+  }
+  function funnel(ctx, x, y, color, band) {
+    ctx.fillStyle = lin(ctx, x, 0, x + 14, 0, [[0, shade(color, .9)], [.55, color], [1, shade(color, .7)]]);
+    ctx.beginPath(); ctx.moveTo(x, y + 18); ctx.lineTo(x + 1.5, y); ctx.lineTo(x + 12.5, y); ctx.lineTo(x + 14, y + 18); ctx.closePath(); ctx.fill();
+    if (band) { ctx.fillStyle = band; ctx.fillRect(x + .6, y + 6, 12.8, 4); }
+    ctx.fillStyle = '#1c1c1c'; ctx.fillRect(x + 1.2, y - 1.4, 11.6, 2.4);
+  }
+  function shade(hex, k) {                      // darken (k<1) or lighten (k>1) a #rrggbb colour
+    var n = parseInt(hex.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255;
+    function f(v) { return clamp(Math.round(v * k), 0, 255); }
+    return 'rgb(' + f(r) + ',' + f(g) + ',' + f(b) + ')';
+  }
+  function hull(ctx, top, stripe, bow) {
+    // below the waterline (antifouling), mostly hidden by the water in front of it
+    ctx.fillStyle = lin(ctx, 0, WL, 0, 104, [[0, '#7c1f19'], [1, '#3d0f0c']]);
+    ctx.beginPath(); ctx.moveTo(16, WL); ctx.lineTo(bow - 6, WL); ctx.lineTo(bow - 20, 100);
+    ctx.quadraticCurveTo(bow - 30, 104, bow - 50, 104); ctx.lineTo(44, 104); ctx.quadraticCurveTo(22, 102, 16, WL); ctx.closePath(); ctx.fill();
+    // topside, with the flare of the bow and a slight sheer
+    ctx.fillStyle = lin(ctx, 0, 62, 0, WL, [[0, shade(top, 1.22)], [.5, top], [1, shade(top, .72)]]);
+    ctx.beginPath(); ctx.moveTo(6, 70); ctx.lineTo(bow - 8, 64);
+    ctx.quadraticCurveTo(bow + 6, 63, bow + 1, 72); ctx.quadraticCurveTo(bow - 2, 79, bow - 8, WL);
+    ctx.lineTo(18, WL); ctx.quadraticCurveTo(7, 80, 6, 70); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.10)'; ctx.lineWidth = .5;
+    for (var x = 30; x < bow - 14; x += 22) { ctx.beginPath(); ctx.moveTo(x, 70); ctx.lineTo(x - 1, WL); ctx.stroke(); }
+    ctx.fillStyle = stripe; ctx.fillRect(14, WL - 3.2, bow - 24, 3.2);          // boot-top at the waterline
+    ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(8, 68, bow - 16, .9); // deck edge catches the light
+  }
+  function accommodation(ctx, x, decks, night, wcol) {
+    var h = decks * 6.4, top = 66 - h;
+    ctx.fillStyle = lin(ctx, x, 0, x + 38, 0, [[0, '#f4f6f8'], [1, '#c9d1d9']]);
+    ctx.fillRect(x, top, 38, h);
+    for (var d = 0; d < decks; d++) {
+      ctx.fillStyle = 'rgba(11,37,69,.10)'; ctx.fillRect(x, top + d * 6.4 + 5.6, 38, .8);
+      if (d >= 1) windows(ctx, x + 4, top + d * 6.4 + 1.6, 30, 1, night, 5);
+    }
+    ctx.fillStyle = lin(ctx, 0, top - 7, 0, top, [[0, '#dfe5ea'], [1, '#aeb8c2']]);
+    ctx.fillRect(x - 4, top - 6, 46, 6.4);                                      // bridge, wider than the deck house
+    ctx.fillStyle = night ? '#ffe9a6' : '#27475f'; ctx.fillRect(x - 2.5, top - 4.2, 43, 2.2);
+    ctx.strokeStyle = '#8a97a3'; ctx.lineWidth = .9;                             // mast and radar
+    ctx.beginPath(); ctx.moveTo(x + 19, top - 6); ctx.lineTo(x + 19, top - 15); ctx.stroke();
+    ctx.fillStyle = '#6f7b86'; ctx.fillRect(x + 14, top - 12, 10, 1.4);
+    return top;
+  }
+
+  function drawShip(ctx, kind, night, seed) {
+    var R = rng(seed), top;
+    if (kind === 'container') {
+      hull(ctx, night ? '#2d5f9a' : '#17385f', '#d64a3a', 296);
+      for (var i = 0; i < 10; i++) {
+        var x = 88 + i * 18.6, tiers = i > 8 ? 3 : (i > 6 ? 4 : 5);
+        for (var t = 0; t < tiers; t++) {
+          var c = BOX[Math.floor(R() * BOX.length)];
+          ctx.fillStyle = lin(ctx, 0, 62 - (t + 1) * 8.8, 0, 62 - t * 8.8, [[0, shade(c, 1.12)], [1, shade(c, .8)]]);
+          ctx.fillRect(x, 62 - (t + 1) * 8.8, 17.4, 8.4);
+          ctx.fillStyle = 'rgba(0,0,0,.18)'; ctx.fillRect(x + 8.4, 62 - (t + 1) * 8.8, .6, 8.4);
+        }
+      }
+      top = accommodation(ctx, 28, 5, night); funnel(ctx, 46, top - 26, '#d64a3a', '#ffffff');
+      return {fx: 53, fy: top - 27, len: 290};
+    }
+    if (kind === 'bulk') {
+      hull(ctx, '#17625e', '#e9b43a', 296);
+      for (var h = 0; h < 5; h++) {
+        var hx = 92 + h * 40;
+        ctx.fillStyle = lin(ctx, 0, 54, 0, 64, [[0, '#9aa8b4'], [1, '#6c7a86']]);
+        ctx.beginPath(); ctx.moveTo(hx, 64); ctx.lineTo(hx + 4, 55); ctx.lineTo(hx + 30, 55); ctx.lineTo(hx + 34, 64); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = .6; ctx.beginPath(); ctx.moveTo(hx + 17, 55); ctx.lineTo(hx + 17, 64); ctx.stroke();
+      }
+      ctx.strokeStyle = '#d6dde3'; ctx.lineWidth = 1.5;                          // deck cranes
+      for (var c2 = 0; c2 < 4; c2++) {
+        var cx = 116 + c2 * 40;
+        ctx.fillStyle = '#d6dde3'; ctx.fillRect(cx - 1.5, 38, 3, 17);
+        ctx.beginPath(); ctx.moveTo(cx, 40); ctx.lineTo(cx + 22, 52); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(cx, 40); ctx.lineTo(cx - 8, 46); ctx.lineWidth = .8; ctx.stroke(); ctx.lineWidth = 1.5;
+      }
+      top = accommodation(ctx, 28, 4, night); funnel(ctx, 46, top - 26, '#e9b43a', '#17625e');
+      return {fx: 53, fy: top - 27, len: 290};
+    }
+    if (kind === 'tanker') {
+      hull(ctx, '#a73a1f', '#14283f', 296);
+      ctx.fillStyle = '#14283f'; ctx.fillRect(80, 60, 196, 4);                    // black strip above the cargo deck
+      ctx.strokeStyle = '#4a5560'; ctx.lineWidth = 1.2;                            // catwalk and pipes
+      ctx.beginPath(); ctx.moveTo(84, 57); ctx.lineTo(276, 57); ctx.moveTo(84, 54); ctx.lineTo(276, 54); ctx.stroke();
+      for (var p = 0; p < 9; p++) { ctx.fillStyle = '#7a848e'; ctx.fillRect(92 + p * 21, 51, 2, 13); }
+      ctx.fillStyle = '#e8c547'; for (var m = 0; m < 3; m++) ctx.fillRect(130 + m * 52, 47, 7, 10);   // manifolds
+      ctx.fillStyle = '#c9d1d9'; ctx.fillRect(270, 44, 3, 20); ctx.fillRect(266, 44, 11, 2.4); // forward mast
+      top = accommodation(ctx, 28, 5, night); funnel(ctx, 46, top - 26, '#f1f1ef', '#14283f');
+      return {fx: 53, fy: top - 27, len: 290};
+    }
+    /* cruise ship */
+    ctx.fillStyle = lin(ctx, 0, WL, 0, 104, [[0, '#7c1f19'], [1, '#3d0f0c']]);
+    ctx.beginPath(); ctx.moveTo(22, WL); ctx.lineTo(286, WL); ctx.lineTo(270, 100); ctx.lineTo(48, 104); ctx.quadraticCurveTo(26, 100, 22, WL); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = lin(ctx, 0, 58, 0, WL, [[0, '#ffffff'], [1, '#c8d3dd']]);
+    ctx.beginPath(); ctx.moveTo(8, 70); ctx.lineTo(284, 60); ctx.quadraticCurveTo(300, 62, 292, 74); ctx.quadraticCurveTo(288, 80, 282, WL); ctx.lineTo(22, WL); ctx.quadraticCurveTo(8, 80, 8, 70); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#1d4f91'; ctx.fillRect(14, 76, 270, 3.2);
+    var decks = [[58, 258, 62], [44, 232, 52], [31, 196, 42], [20, 150, 34]];
+    for (var d2 = 0; d2 < decks.length; d2++) {
+      var dk = decks[d2], dy = 66 - (d2 + 1) * 11.4;
+      ctx.fillStyle = lin(ctx, 0, dy, 0, dy + 11, [[0, '#ffffff'], [1, '#d5dde5']]);
+      ctx.fillRect(dk[0] + 8 * d2, dy, dk[1] - dk[0] - 8 * d2 - (d2 === 3 ? 60 : 0), 11);
+      windows(ctx, dk[0] + 12 + 8 * d2, dy + 3.4, dk[1] - dk[0] - 28 - 8 * d2 - (d2 === 3 ? 60 : 0), 1, night, 4.6);
+      ctx.fillStyle = 'rgba(11,37,69,.10)'; ctx.fillRect(dk[0] + 8 * d2, dy + 10.2, dk[1] - dk[0] - 8 * d2, .8);
+    }
+    ctx.fillStyle = '#e8edf1'; ctx.fillRect(60, 15, 120, 4);
+    funnel(ctx, 168, 8, '#f6f6f4', '#1d4f91');
+    ctx.strokeStyle = '#8a97a3'; ctx.lineWidth = .9; ctx.beginPath(); ctx.moveTo(250, 56); ctx.lineTo(250, 40); ctx.stroke();
+    return {fx: 175, fy: 7, len: 284};
+  }
+
+  var spriteCache = {};
+  function ship(kind, wpx, dpr, night, seed) {
+    var key = [kind, Math.round(wpx), dpr, night, seed].join('|');
+    if (spriteCache[key]) return spriteCache[key];
+    var k = wpx / DW, cv = document.createElement('canvas');
+    cv.width = Math.ceil(wpx * dpr); cv.height = Math.ceil(DH * k * dpr);
+    var ctx = cv.getContext('2d'); ctx.scale(k * dpr, k * dpr);
+    var meta = drawShip(ctx, kind, night, seed);
+    return spriteCache[key] = {cv: cv, k: k, fx: meta.fx, fy: meta.fy, len: meta.len};
+  }
+
+  /* ---------- the scene ---------- */
+  function Sea(el, cfg) {
+    var S = this;
+    S.el = el; S.cfg = cfg; S.t = 0; S.ctx = el.getContext('2d');
+    S.layers = []; S.ships = []; S.foam = []; S.spray = []; S.smoke = []; S.glints = [];
+    S.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    S.R = rng(cfg.seed || 7);
+    S.visible = true;
+    S.build();
+  }
+  Sea.prototype.build = function () {
+    var S = this, cfg = S.cfg, R = S.R, el = S.el;
+    var cw = el.clientWidth || el.parentNode.clientWidth || 800, ch = el.clientHeight || 300;
+    S.W = cw; S.H = ch;
+    el.width = Math.round(cw * S.dpr); el.height = Math.round(ch * S.dpr);
+    var pad = Math.min(cfg.pad || 0, ch * .5), water = ch - pad;       // pad: clear air above the horizon, for smoke
+    S.layers = cfg.layers.map(function (L, i) {
+      var comps = [], base = [[520, 1], [260, .55], [130, .3]];
+      for (var c = 0; c < base.length; c++) {
+        var lam = base[c][0] * L.scale, k = 2 * Math.PI / lam;
+        comps.push({k: k, a: L.amp * base[c][1], w: Math.sqrt(G * k) * (cfg.swell || 1.15) * (0.55 + 0.25 * L.scale), ph: R() * 6.28});
+      }
+      return {y: pad + L.y * water, comps: comps, top: L.top, bot: L.bot, par: L.par || 0, scale: L.scale, amp: L.amp, front: !!L.front, idx: i};
+    });
+    // ships
+    S.ships = cfg.ships.map(function (sc, i) {
+      var wpx = clamp(cw * sc.wFrac, sc.min, sc.max);
+      var sp = ship(sc.kind, wpx, S.dpr, !!cfg.night, 11 + i * 5);
+      var layer = S.layers[sc.layer];
+      return {sc: sc, sp: sp, layer: layer, w: wpx, x: sc.pos * (cw + wpx * 2) - wpx, v: sc.speed * (0.7 + 0.3 * clamp(cw / 1360, .6, 1.3)),
+              heave: 0, pitch: 0, nextFoam: 0, nextSpray: 0, nextSmoke: 0, hasSmoke: sc.smoke !== false};
+    });
+    // glints in the column under the sun or moon
+    S.glints = [];
+    var gx = cfg.glintX * cw;
+    for (var l = 0; l < S.layers.length; l++) for (var g = 0; g < 46; g++) {
+      var sd = 26 + 14 * S.layers[l].scale * 10;
+      S.glints.push({layer: l, x: gx + (R() + R() + R() - 1.5) * sd, f: 0.6 + R() * 1.8, ph: R() * 9, w: 3 + R() * 9, dy: R() * 10});
+    }
+    S.gradients = S.layers.map(function (L) {
+      var g = S.ctx.createLinearGradient(0, L.y - L.amp * 3, 0, ch);
+      g.addColorStop(0, L.top); g.addColorStop(1, L.bot); return g;
+    });
+  };
+
+  Sea.prototype.surface = function (L, x) {                 // height of one layer's water at x (px, up is negative)
+    var y = L.y - (this.cfg.scrollY || 0) * L.par;
+    for (var i = 0; i < L.comps.length; i++) { var c = L.comps[i]; y -= c.a * Math.cos(c.k * x + c.w * this.t + c.ph); }
+    return y;
+  };
+  Sea.prototype.shiftX = function (L, x0) {                  // Gerstner-style crest sharpening: points lean towards the crest
+    var dx = 0;
+    for (var i = 0; i < L.comps.length; i++) { var c = L.comps[i]; dx += 0.42 * c.a * Math.sin(c.k * x0 + c.w * this.t + c.ph); }
+    return x0 + dx;
+  };
+
+  Sea.prototype.step = function (dt) {
+    var S = this, cfg = S.cfg, R = S.R;
+    S.t += dt;
+    for (var i = 0; i < S.ships.length; i++) {
+      var sh = S.ships[i], L = sh.layer, len = sh.w * sh.sp.len / DW;
+      sh.x += sh.v * dt;
+      if (sh.x - sh.w * .1 > S.W + 40) {                      // sailed off: come back in from the left with a clean wake
+        sh.x = -sh.w * 1.1; sh.foam = 0;
+      }
+      // read the water under the hull: seven samples from stern to bow, so short waves average out
+      var ys = [], n = 7, x0 = sh.x - len / 2;
+      for (var s = 0; s < n; s++) ys.push(S.surface(L, x0 + len * (s / (n - 1))));
+      var mean = ys.reduce(function (a, b) { return a + b; }, 0) / n;
+      var tPitch = Math.atan2(ys[n - 1] - ys[0], len) * 0.85;
+      var a = 1 - Math.exp(-dt / 0.35);                       // inertia: the hull follows the water, it does not snap to it
+      sh.heave += (mean - sh.heave) * a; if (!sh.init) { sh.heave = mean; sh.init = 1; }
+      sh.pitch += (tPitch - sh.pitch) * (1 - Math.exp(-dt / 0.5));
+      sh.y = sh.heave - 0.5 * L.scale * 1;                    // sits at the waterline, a touch in
+      var k = sh.sp.k, c = Math.cos(sh.pitch), sn = Math.sin(sh.pitch);
+      var toWorld = (function (ox, oy, cc, ss) {              // fixed to this ship's pose for this frame
+        return function (dx, dy) { return {x: ox + dx * cc - dy * ss, y: oy + dx * ss + dy * cc}; };
+      })(sh.x, sh.y, c, sn);
+      sh.toWorld = toWorld;
+      var stern = toWorld(-len / 2 + 10 * k, 0), bow = toWorld(len / 2 - 2 * k, 0);
+      // wake foam: dropped at the stern, left where the water is
+      sh.nextFoam -= dt;
+      var rate = 1 / (12 + sh.v * .55);
+      while (sh.nextFoam <= 0) {
+        S.foam.push({layer: L.idx, x: stern.x - R() * 4 * k, age: 0, life: 7 + R() * 5 + L.scale * 4, size: (1.1 + R() * 1.3) * Math.max(.5, k * 1.5), dy: (R() - .5) * 1.4 * k * 2});
+        sh.nextFoam += rate;
+      }
+      // bow spray
+      sh.nextSpray -= dt;
+      while (sh.nextSpray <= 0 && L.scale > .3) {
+        S.spray.push({layer: L.idx, x: bow.x, y: bow.y, vx: sh.v * (.6 + R() * .8) + R() * 18 * k * 3, vy: -(10 + R() * 34) * k * 3.2, age: 0, life: .7 + R() * .6, s: Math.max(.7, k * 2.4)});
+        sh.nextSpray += 1 / (14 * L.scale + 4);
+      }
+      // funnel smoke
+      if (sh.hasSmoke) {
+        sh.nextSmoke -= dt;
+        while (sh.nextSmoke <= 0) {
+          var f = toWorld((sh.sp.fx - 150) * k, (sh.sp.fy - WL) * k);
+          S.smoke.push({layer: L.idx, x: f.x, y: f.y, vx0: sh.v, age: 0, life: 5.5 + R() * 2, r0: (1.6 + R() * .8) * k * 3, g: 110 + R() * 40, k: k});
+          sh.nextSmoke += 0.2 / (0.6 + L.scale);
+        }
+      }
+    }
+    var wind = cfg.wind == null ? -11 : cfg.wind;
+    S.foam = S.foam.filter(function (f) { f.age += dt; return f.age < f.life; });
+    S.spray = S.spray.filter(function (p) { p.age += dt; p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 190 * p.s * dt; return p.age < p.life; });
+    S.smoke = S.smoke.filter(function (m) {
+      m.age += dt;
+      var u = 1 - Math.exp(-m.age / 1.4);                      // the ship's speed is shed, the wind takes over
+      m.x += (m.vx0 * (1 - u) + wind * m.k * 3.2 * u) * dt;
+      m.y -= (9 + 8 * Math.exp(-m.age / 2.5)) * m.k * 3.2 * dt;
+      return m.age < m.life;
+    });
+  };
+
+  Sea.prototype.draw = function () {
+    var S = this, ctx = S.ctx, cfg = S.cfg, W = S.W, H = S.H;
+    ctx.setTransform(S.dpr, 0, 0, S.dpr, 0, 0);
+    ctx.clearRect(0, 0, W, H);
+    for (var li = 0; li < S.layers.length; li++) {
+      var L = S.layers[li];
+      // ships on this layer, then their smoke, then the water that cuts the hull at the waterline
+      for (var i = 0; i < S.ships.length; i++) {
+        var sh = S.ships[i];
+        if (sh.layer !== L) continue;
+        ctx.save();
+        ctx.translate(sh.x, sh.y); ctx.rotate(sh.pitch);
+        ctx.drawImage(sh.sp.cv, -sh.w / 2, -WL * sh.sp.k, sh.w, DH * sh.sp.k);
+        ctx.restore();
+      }
+      for (var m = 0; m < S.smoke.length; m++) {
+        var sm = S.smoke[m]; if (sm.layer !== li) continue;
+        var u = sm.age / sm.life, r = sm.r0 * (1 + 5 * Math.pow(u, .8)), al = .26 * Math.pow(1 - u, 1.8) * Math.min(1, sm.age / .3);
+        var g = sm.g + 80 * u, gr = ctx.createRadialGradient(sm.x, sm.y, 0, sm.x, sm.y, r);
+        var col = cfg.night ? [150, 160, 180] : [g, g, g + 6];
+        gr.addColorStop(0, 'rgba(' + col.join(',') + ',' + al + ')'); gr.addColorStop(1, 'rgba(' + col.join(',') + ',0)');
+        ctx.fillStyle = gr; ctx.beginPath(); ctx.arc(sm.x, sm.y, r, 0, 6.2832); ctx.fill();
+      }
+      // water body of this layer
+      var step = 7, x;
+      ctx.beginPath();
+      ctx.moveTo(-10, H + 4);
+      for (x = -20; x <= W + 20; x += step) ctx.lineTo(S.shiftX(L, x), S.surface(L, x));
+      ctx.lineTo(W + 20, H + 4); ctx.closePath();
+      ctx.fillStyle = S.gradients[li]; ctx.fill();
+      // sheen on the surface line, and white caps where the crest is high
+      ctx.beginPath();
+      for (x = -20; x <= W + 20; x += step) { var yy = S.surface(L, x), xx = S.shiftX(L, x); if (x === -20) ctx.moveTo(xx, yy); else ctx.lineTo(xx, yy); }
+      ctx.strokeStyle = cfg.night ? 'rgba(190,210,255,.20)' : 'rgba(255,255,255,.26)'; ctx.lineWidth = Math.max(.8, L.scale * 1.7); ctx.stroke();
+      if (L.amp >= 2) for (x = 0; x <= W; x += 9) {
+        var h = (L.y - (S.cfg.scrollY || 0) * L.par - S.surface(L, x)) / (L.amp * 1.85);
+        if (h > .55) {
+          var a = clamp((h - .55) * 2.2, 0, .9) * (cfg.night ? .55 : 1);
+          ctx.fillStyle = 'rgba(255,255,255,' + a + ')';
+          ctx.fillRect(S.shiftX(L, x), S.surface(L, x) - .6, 5 + 9 * L.scale, Math.max(1, 1.5 * L.scale));
+        }
+      }
+      // wake foam of the ships on this layer, laid on the surface
+      for (var f = 0; f < S.foam.length; f++) {
+        var fo = S.foam[f]; if (fo.layer !== li) continue;
+        var q = fo.age / fo.life, al2 = Math.pow(1 - q, 1.9) * (cfg.night ? .38 : .6);
+        ctx.fillStyle = 'rgba(255,255,255,' + al2 + ')';
+        var fx = fo.x - fo.age * 1.5, fy = S.surface(L, fx) + fo.dy, fw = fo.size * (2.2 + q * 5), fh = Math.max(.7, fo.size * .5);
+        ctx.fillRect(fx - fw / 2, fy - fh / 2, fw, fh);
+      }
+      for (var p = 0; p < S.spray.length; p++) {
+        var sp = S.spray[p]; if (sp.layer !== li) continue;
+        ctx.fillStyle = 'rgba(255,255,255,' + (.85 * (1 - sp.age / sp.life)) + ')';
+        ctx.fillRect(sp.x, sp.y, sp.s, sp.s);
+      }
+      // bow wave where each ship parts the water
+      for (var b = 0; b < S.ships.length; b++) {
+        var s2 = S.ships[b]; if (s2.layer !== L) continue;
+        var bp = s2.toWorld(s2.w * s2.sp.len / DW / 2 - 2 * s2.sp.k, 0);
+        var bw = Math.max(5, s2.w * .035);
+        ctx.fillStyle = 'rgba(255,255,255,' + (cfg.night ? .5 : .9) + ')';
+        ctx.beginPath(); ctx.ellipse(bp.x + bw * .3, bp.y - 1, bw, bw * .34, 0, 0, 6.2832); ctx.fill();
+        ctx.fillStyle = 'rgba(255,255,255,.55)';
+        ctx.beginPath(); ctx.ellipse(bp.x + bw * 1.4, bp.y, bw * .8, bw * .22, 0, 0, 6.2832); ctx.fill();
+      }
+      // light on the water, gathered under the sun or moon
+      for (var gi = 0; gi < S.glints.length; gi++) {
+        var gl = S.glints[gi]; if (gl.layer !== li) continue;
+        var tw = Math.pow(Math.max(0, Math.sin(S.t * gl.f + gl.ph)), 7);
+        if (tw < .04) continue;
+        ctx.fillStyle = (cfg.night ? 'rgba(235,240,255,' : 'rgba(255,248,214,') + (tw * .9) + ')';
+        ctx.fillRect(gl.x, S.surface(L, gl.x) + gl.dy * L.scale * .5, gl.w * Math.max(.5, L.scale), Math.max(.8, L.scale * 1.4));
+      }
+    }
+  };
+
+  var seas = [];
+  function frame(S, dt) { S.cfg.scrollY = Math.min(window.pageYOffset || 0, 1600); S.step(dt); S.draw(); }
+
+  function start(id, cfg) {
+    var el = document.getElementById(id);
+    if (!el || !el.getContext) return null;
+    var S = new Sea(el, cfg);
+    seas.push(S);
+    S.advance = function (sec) { for (var t = 0; t < sec; t += 1 / 30) frame(S, 1 / 30); };
+    S.advance(reduce ? 9 : 4);                              // settle: wakes already trail, smoke is already drifting
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(function (es) { S.visible = es[0].isIntersecting; }, {rootMargin: '120px'}).observe(el);
+    }
+    var last = 0, raf = false;
+    function loop(ts) {
+      raf = true;
+      if (!last) last = ts; var dt = Math.min(.05, (ts - last) / 1000); last = ts;
+      if (S.visible && !document.hidden) frame(S, dt);
+      requestAnimationFrame(loop);
+    }
+    if (!reduce) {
+      requestAnimationFrame(loop);
+      setTimeout(function () {                              // some embedded viewers never fire animation frames
+        if (!raf) setInterval(function () { if (S.visible && !document.hidden) frame(S, 1 / 30); }, 33);
+      }, 400);
+    } else { frame(S, 0); }
+    return S;
+  }
+  var rt;
+  window.addEventListener('resize', function () {
+    clearTimeout(rt);
+    rt = setTimeout(function () { seas.forEach(function (S) { var t = S.t; S.build(); S.t = t; S.advance(2); }); }, 180);
+  });
+
+  /* ---------- the three scenes ---------- */
+  var DAY = [
+    {y: .30, amp: 0.9, scale: .22, top: '#8fd6f2', bot: '#62c3ec', par: .20},
+    {y: .42, amp: 2.0, scale: .40, top: '#5cc2ee', bot: '#38aadf', par: .12},
+    {y: .57, amp: 3.8, scale: .65, top: '#33a5dc', bot: '#1d89c1', par: .07},
+    {y: .76, amp: 6.2, scale: 1.0, top: '#1d8bc6', bot: '#0f6ca3', par: .04},
+    {y: .93, amp: 8.5, scale: 1.3, top: '#0e6fa9', bot: '#07517f', par: 0, front: true}
+  ];
+  window.__ckSea = {
+    hero: start('seaHero', {
+      seed: 21, layers: DAY, glintX: .78, wind: -11, pad: 190,
+      ships: [
+        {kind: 'cruise',    layer: 0, wFrac: .085, min: 66,  max: 124, speed: 6,  pos: .74, smoke: false},
+        {kind: 'container', layer: 1, wFrac: .105, min: 84,  max: 150, speed: 9,  pos: .20},
+        {kind: 'bulk',      layer: 2, wFrac: .19,  min: 140, max: 270, speed: 14, pos: .52},
+        {kind: 'tanker',    layer: 3, wFrac: .31,  min: 220, max: 440, speed: 24, pos: .17}
+      ]
+    }),
+    night: start('seaNight', {
+      seed: 5, night: true, glintX: .89, wind: -8, swell: 1.0,
+      layers: [
+        {y: .30, amp: 1.2, scale: .35, top: '#10305c', bot: '#0c2548', par: 0},
+        {y: .52, amp: 3.2, scale: .7,  top: '#0b2750', bot: '#081c3a', par: 0},
+        {y: .80, amp: 5.5, scale: 1.1, top: '#071c3b', bot: '#050f24', par: 0, front: true}
+      ],
+      ships: [{kind: 'container', layer: 1, wFrac: .24, min: 200, max: 340, speed: 12, pos: .62}]
+    })
+  };
+})();
 </script>
 
 <script>

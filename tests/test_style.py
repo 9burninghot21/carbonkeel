@@ -114,6 +114,15 @@ def check_pages():
           "app: the bill names the year of the emissions it covers")
     check("before the cost of the biofuel itself" in app and "before fuel costs" in app,
           "app: lever savings say they exclude the cost of the biofuel")
+    # copy that quotes the verifier match must agree with the measured figures
+    vm = json.load(open(os.path.join(ROOT, "data", "verifier_match.json"), encoding="utf-8"))
+    check(0.62 <= vm["share_exact"] <= 0.72, "'about two ships in three' still describes the measured exact match", vm["share_exact"])
+    check(0.70 <= vm["share_within_2pct"] <= 0.80, "'about three in four' still describes the measured match within 2%", vm["share_within_2pct"])
+    for rel in ("site/index.html", "api/report.py"):
+        t = re.sub(r"\s+", " ", read(rel))
+        check("two ships in three" in t or "two in three" in t, f"{rel}: quotes the exact-match rate")
+        check("three in four" in t, f"{rel}: quotes the within-2% rate")
+        check("400-ship" not in t and "On 400 ships" not in t and "four in five" not in t, f"{rel}: no stale sample figures")
     for needle, why in [("From problem to action", "insight chain"), ("Observation", "observation step"), ("Expected value", "expected-value step"),
                         ("modelled, not measured", "before/after says it is modelled"), ("Top opportunities", "fleet opportunities")]:
         check(needle in app, f"app shows the {why}")
@@ -201,11 +210,42 @@ def check_server_text():
 
     code, m = http("/api/method", want_json=False)
     check("(144 checks)" in m and "96 checks" not in m, "method page quotes the real test count")
-    check("exactly on spot" not in m and "67.5%" in m, "method page states the measured match rate, not an absolute")
+    vm = json.load(open(os.path.join(ROOT, "data", "verifier_match.json"), encoding="utf-8"))
+    check("exactly on spot" not in m and f"{vm['share_exact'] * 100:.1f}%" in m,
+          "method page states the measured match rate (data/verifier_match.json), not an absolute")
+    check("400 ships" not in m and "400-ship" not in m, "method page no longer quotes the old sample")
     check("Art. 21(6)" not in m, "method page: no wrong Article 21(6)")
     code, pv = http("/api/privacy", want_json=False)
     check("21(6)" not in pv and "21(3)" in pv, "data page cites Article 21(3), not 21(6)")
     check("EEA port" not in pv, "data page does not misstate the scope as 'EEA port'")
+
+    # --- EU ETS and UK ETS rules, through the API -----------------------------------------
+    code, d = http("/api/lookup/9464663")
+    e = d["ets"]
+    check(e["basis"] == "verifier" and abs(e["co2e_in_scope_t"] - d["verified"]["ets_scope_co2_reported"]) < 0.06,
+          "bill uses the verifier-reported ETS-scope CO2")
+    check(d["verified"]["ets_scope_co2_rebuilt"] is not None, "our own rebuild is returned as a cross-check")
+    check(e["surrender_by"] == "30 September 2026", "2025 emissions are surrendered by 30 September 2026", e["surrender_by"])
+    code, x = http("/api/lookup/9464663?ice_class=true&derogation_pct=30")
+    want = d["ets"]["allowances_due"] * 0.95 * 0.70
+    check(abs(x["ets"]["allowances_due"] - want) < 0.5, "exceptions lower the allowances (ice class, 30% derogation)",
+          f"{x['ets']['allowances_due']} vs {want}")
+    check(len(x["ets"]["exceptions_applied"]) == 2, "the exceptions applied are listed")
+    # a ship that reported no ETS-scope emissions is not charged
+    code, sr = http("/api/search?q=a&limit=1")
+    from ghgcore.exports import latest as _latest
+    from ghgcore.thetis import load_thetis_cached as _load
+    recs = _load(_latest(os.path.join(ROOT, "fixtures")))
+    zero = next(r for r in recs.values() if r.co2_ets_reported_t == 0 and r.ship_type is not None
+                and (r.co2_intra_t or 0) + (r.co2_departed_t or 0) > 0)
+    code, z = http(f"/api/lookup/{zero.imo}")
+    check(z["ets"]["cost_eur"] == 0 and any("below 5,000 GT" in n for n in z["ets"]["notes"]),
+          "a ship that reported zero ETS-scope CO2 is not charged, and is told why")
+    code, cal = http("/api/calendar?year=2026")
+    uk = [x for x in cal["deadlines"] if x["regime"] == "UK ETS" and x["what"].startswith("Surrender")]
+    check(len(uk) == 1 and uk[0]["due"] == "2028-04-30", "UK ETS surrender for 2026 is 30 April 2028", uk)
+    code, cal25 = http("/api/calendar?year=2025")
+    check(not any(x["regime"] == "UK ETS" for x in cal25["deadlines"]), "no UK ETS dates for 2025 (scheme starts 2026)")
 
     code, rep = http("/report?imos=9464663", want_json=False)
     check(code == 200 and "generated for outreach" not in rep, "printable report: no internal 'outreach' wording")
