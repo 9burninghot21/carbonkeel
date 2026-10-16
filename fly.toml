@@ -1,9 +1,8 @@
 app = "carbonkeel"
-primary_region = "ams"  # Amsterdam (closest to EU market)
+primary_region = "ams"
 
 [build]
-  builder = "pacer"
-  buildpacks = ["heroku/python"]
+  builder = "heroku/buildpacks:20"
 
 [env]
   PYTHONUNBUFFERED = "true"
