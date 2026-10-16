@@ -148,6 +148,11 @@ def index():
         headers={"Cache-Control": "no-store, must-revalidate"})
 
 
+@app.get("/healthz")
+def health():
+    return {"status": "ok"}
+
+
 @app.get("/api/search")
 def search(request: Request, q: str = Query(min_length=3), limit: int = 20):
     # Search fires on every keystroke (debounced), so it needs a far larger
