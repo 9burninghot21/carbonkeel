@@ -823,8 +823,9 @@ async function probeValue() {
 /* the parts of the bill, whichever way the result was built */
 function billParts(d) {
   const full = lastMode === 'full';
+  const ukets_cost = full ? (d.scorecard.ukets.cost_gbp * 1.15) : (d.ukets && d.ukets.cost_gbp * 1.15 || 0);
   return {ets: full ? d.scorecard.ets : d.ets, feu: full ? d.scorecard.fueleu : d.fueleu,
-          uk: full ? d.scorecard.ukets.cost_gbp * 1.15 : 0, year: full ? d.scorecard.year : d.year};
+          uk: ukets_cost, year: full ? d.scorecard.year : d.year};
 }
 /* Observation -> why -> impact -> action -> expected value, from this ship's own numbers.
    The value is carbon cost avoided by a modelled lever package: it is not a measured result
@@ -1135,13 +1136,16 @@ function renderPartial(d, banner, keepOpen) {
     <div class="idstrip"><b>${d.vessel_name}</b> · IMO ${d.imo} · ${d.year}
       · verified ${Math.round(d.verified.co2_tonnes).toLocaleString('en-GB')} t CO₂
       ${d.verified.tech_efficiency ? ' · ' + d.verified.tech_efficiency : ''}</div>
-    ${billBlock([
-      {label: 'EU ETS', eur: d.ets.cost_eur,
-       due: etsDue(d.ets)},
-      {label: 'FuelEU', eur: d.fueleu.penalty_eur,
-       due: (cb < 0 ? `Balance ${Math.round(cb).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
-                   : `Balance +${Math.round(cb).toLocaleString('en-GB')} t. A surplus can be pooled.`) + feuCheck(d.ets)}
-    ], d.nzf.remedial_cost_usd, d.year, d.ets.surrender_share)}
+    ${billBlock(
+      [
+        {label: 'EU ETS', eur: d.ets.cost_eur,
+         due: etsDue(d.ets)},
+        ...(d.ukets && d.ukets.cost_gbp > 0 ? [{label: 'UK ETS', eur: d.ukets.cost_gbp * 1.15,
+         due: `£${Math.round(d.ukets.cost_gbp).toLocaleString('en-GB')} for UK domestic voyages. Surrender by ${d.ukets.surrender_by}.`}] : []),
+        {label: 'FuelEU', eur: d.fueleu.penalty_eur,
+         due: (cb < 0 ? `Balance ${Math.round(cb).toLocaleString('en-GB')} t. Pool it or pay by 30 June.`
+                     : `Balance +${Math.round(cb).toLocaleString('en-GB')} t. A surplus can be pooled.`) + feuCheck(d.ets)}
+      ], d.nzf.remedial_cost_usd, d.year, d.ets.surrender_share)}
     <div id="teaserSlot">${teaserHtml()}</div>
     <div class="statline">
       <span>CII rating <b class="dim">needs capacity</b>

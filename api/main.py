@@ -27,6 +27,7 @@ from ghgcore.thetis import load_thetis_cached, record_to_activity
 from ghgcore.exports import ordered as _ordered_exports
 from ghgcore.fueleu import compute_fueleu
 from ghgcore.euets import compute_ets
+from ghgcore.ukets import compute_ukets
 from ghgcore.nzf import compute_nzf
 from ghgcore import privacy
 
@@ -236,11 +237,12 @@ def lookup(imo: str, request: Request = None,
         return {"estimate": True, "scenario": scenario, "source": _EXPORT_NAME,
                 "verified": verified, "scorecard": asdict(sc)}
     act = transform(record_to_activity(rec, year=y, dwt=1.0))
-    feu, ets, nzf = compute_fueleu(act), compute_ets(act, exceptions=eu_exc), compute_nzf(act)
+    feu, ets, ukets, nzf = (compute_fueleu(act), compute_ets(act, exceptions=eu_exc),
+                             compute_ukets(act), compute_nzf(act))
     return {"estimate": True, "scenario": scenario, "source": _EXPORT_NAME,
             "verified": verified,
             "partial": True, "vessel_name": rec.name, "imo": rec.imo, "year": y,
-            "ets": asdict(ets), "fueleu": asdict(feu), "nzf": asdict(nzf)}
+            "ets": asdict(ets), "ukets": asdict(ukets), "fueleu": asdict(feu), "nzf": asdict(nzf)}
 
 
 @app.get("/api/fleet")
@@ -270,7 +272,7 @@ def fleet(imos: str = Query(min_length=7), request: Request = None):
                         "suppressed": True})
             continue
         act = record_to_activity(rec, year=rec.reporting_period or 2025, dwt=1.0)
-        feu, ets = compute_fueleu(act), compute_ets(act)
+        feu, ets, ukets = compute_fueleu(act), compute_ets(act), compute_ukets(act)
         # carbon cost the standard lever package would remove (modelled)
         lev = _whatif(act, 20.0, -10.0)
         lever_saving = max(0.0, (ets.cost_eur + feu.penalty_eur)
@@ -279,9 +281,9 @@ def fleet(imos: str = Query(min_length=7), request: Request = None):
                if rec.est_distance_nm else None)
         out.append({"imo": imo, "name": rec.name, "ship_type": rec.ship_type_raw,
                     "co2_tonnes": rec.co2_tonnes, "euas": ets.allowances_due,
-                    "ets_cost_eur": ets.cost_eur, "fueleu_cb_t":
-                    feu.compliance_balance_tco2e, "fueleu_penalty_eur":
-                    feu.penalty_eur,
+                    "ets_cost_eur": ets.cost_eur, "ukets_cost_gbp": ukets.cost_gbp,
+                    "fueleu_cb_t": feu.compliance_balance_tco2e,
+                    "fueleu_penalty_eur": feu.penalty_eur,
                     "lever_saving_eur": round(lever_saving),
                     "co2_per_nm_kg": round(cpd, 1) if cpd else None,
                     "supported": True})
